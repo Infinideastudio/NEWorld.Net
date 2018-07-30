@@ -1,3 +1,4 @@
+/*
 // 
 // GUI: window.h
 // NEWorld: A Free Game with Similar Rules to Minecraft.
@@ -115,7 +116,7 @@ namespace NEWorld
         /**
          * \brief Get the relative motion of mouse
          * \return The relative motion of mouse
-         */
+         #1#
         public MouseState getMouseMotion()   {
             MouseState res = mMouse;
             res.x -= mPrevMouse.x;
@@ -174,3 +175,4 @@ namespace NEWorld
         private nk_context mNuklearContext;
     };
 }
+*/

@@ -82,9 +82,9 @@ namespace NEWorld.Renderer
         {
             if (mBuffer != null)
             {
-                Renderer::translate(Vec3f(c * Chunk.Size));
-                mBuffer.render();
-                Renderer::translate(Vec3f(-c * Chunk.Size));
+                //Renderer::translate(Vec3f(c * Chunk.Size));
+                //mBuffer.render();
+                //Renderer::translate(Vec3f(-c * Chunk.Size));
             }
         }
 
@@ -92,9 +92,9 @@ namespace NEWorld.Renderer
         {
             if (mBufferTrans != null)
             {
-                Renderer::translate(Vec3f(c * Chunk.Size));
-                mBufferTrans.render();
-                Renderer::translate(Vec3f(-c * Chunk.Size));
+                //Renderer::translate(Vec3f(c * Chunk.Size));
+                //mBufferTrans.render();
+                //Renderer::translate(Vec3f(-c * Chunk.Size));
             }
         }
 
