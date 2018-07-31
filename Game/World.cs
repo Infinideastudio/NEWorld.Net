@@ -28,10 +28,10 @@ namespace Game
     {
         public World(string name)
         {
-            Name = Name;
+            Name = name;
             Id = 0;
-            MDaylightBrightness = 15;
-            MChunks = new ChunkManager();
+            DaylightBrightness = 15;
+            Chunks = new ChunkManager();
         }
 
         ////////////////////////////////////////
@@ -41,22 +41,22 @@ namespace Game
 
         public uint Id { get; }
 
-        public int DaylightBrightness => MDaylightBrightness;
+        public int DaylightBrightness { get; }
 
         ////////////////////////////////////////
         // Chunk Management
         ////////////////////////////////////////
         // Raw Access
-        public ChunkManager Chunks => MChunks;
+        public ChunkManager Chunks { get; }
 
         // Alias declearations for Chunk management
-        public int GetChunkCount() => MChunks.Count;
+        public int GetChunkCount() => Chunks.Count;
 
-        public Chunk GetChunk(ref Vec3<int> chunkPos) => MChunks[chunkPos];
+        public Chunk GetChunk(ref Vec3<int> chunkPos) => Chunks[chunkPos];
 
-        public bool IsChunkLoaded(Vec3<int> chunkPos) => MChunks.IsLoaded(chunkPos);
+        public bool IsChunkLoaded(Vec3<int> chunkPos) => Chunks.IsLoaded(chunkPos);
 
-        public void DeleteChunk(Vec3<int> chunkPos) => MChunks.Remove(chunkPos);
+        public void DeleteChunk(Vec3<int> chunkPos) => Chunks.Remove(chunkPos);
 
         public static int GetChunkAxisPos(int pos) => ChunkManager.GetAxisPos(pos);
 
@@ -66,17 +66,17 @@ namespace Game
 
         public static Vec3<int> GetBlockPos(ref Vec3<int> pos) => ChunkManager.GetBlockPos(pos);
 
-        public BlockData GetBlock(Vec3<int> pos) => MChunks.GetBlock(pos);
+        public BlockData GetBlock(Vec3<int> pos) => Chunks.GetBlock(pos);
 
-        public void SetBlock(ref Vec3<int> pos, BlockData block) => MChunks.SetBlock(pos, block);
+        public void SetBlock(ref Vec3<int> pos, BlockData block) => Chunks.SetBlock(pos, block);
 
         public Chunk InsertChunk(ref Vec3<int> pos, Chunk chunk)
         {
-            MChunks.Add(pos, chunk);
-            return MChunks[pos];
+            Chunks.Add(pos, chunk);
+            return Chunks[pos];
         }
 
-        private static Vec3<int>[] _delta =
+        private static readonly Vec3<int>[] Delta =
         {
             new Vec3<int>(1, 0, 0), new Vec3<int>(-1, 0, 0),
             new Vec3<int>(0, 1, 0), new Vec3<int>(0, -1, 0),
@@ -86,13 +86,13 @@ namespace Game
         public Chunk InsertChunkAndUpdate(Vec3<int> pos, Chunk chunk)
         {
             var ret = InsertChunk(ref pos, chunk);
-            foreach (var dt in _delta)
-                if (MChunks.TryGetValue(pos + dt, out var target))
+            foreach (var dt in Delta)
+                if (Chunks.TryGetValue(pos + dt, out var target))
                     target.IsUpdated = true;
             return ret;
         }
 
-        public Chunk ResetChunk(ref Vec3<int> pos, Chunk ptr) => MChunks[pos] = ptr;
+        public Chunk ResetChunk(ref Vec3<int> pos, Chunk ptr) => Chunks[pos] = ptr;
 
         public Chunk AddChunk(ref Vec3<int> chunkPos) => InsertChunk(ref chunkPos, new Chunk(chunkPos, this));
 
@@ -124,11 +124,11 @@ namespace Game
 
         public void UpdateChunkLoadStatus()
         {
-            lock (mMutex)
+            lock (_mutex)
             {
-                foreach (var kvPair in MChunks.ToList())
+                foreach (var kvPair in Chunks.ToList())
                     if (kvPair.Value.CheckReleaseable())
-                        MChunks.Remove(kvPair.Key);
+                        Chunks.Remove(kvPair.Key);
             }
         }
 
@@ -143,10 +143,8 @@ namespace Game
 
         protected static uint IdCount;
 
-// All Chunks (Chunk array)
-        protected object mMutex;
-        protected ChunkManager MChunks;
-        protected int MDaylightBrightness;
+        // All Chunks (Chunk array)
+        private readonly object _mutex = new object();
     }
 
     public class WorldManager : List<World>

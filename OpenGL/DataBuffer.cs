@@ -32,6 +32,7 @@ namespace OpenGL
         public const uint DynamicRead = 0x88E9;
         public const uint DynamicCopy = 0x88EA;
         public const uint UniformBuffer = 0x8A11;
+        public const uint ElementArrayBuffer = 0x8893;
         
         internal unsafe delegate void CreateBuffersProc(int n, uint* buffers);
 
@@ -40,6 +41,8 @@ namespace OpenGL
         internal unsafe delegate void NamedBufferStorageProc(uint buffer, int size, void* data, uint flags);
 
         internal delegate void BindBufferBaseProc(uint target, uint index, uint buffer);
+        
+        internal delegate void BindBufferProc(uint target, uint buffer);
 
         internal unsafe delegate void NamedBufferSubDataProc(uint buffer, UIntPtr offset, UIntPtr size,
             void* data);
@@ -48,6 +51,7 @@ namespace OpenGL
         internal static DeleteBuffersProc DeleteBuffers;
         internal static NamedBufferStorageProc NamedBufferStorage;
         internal static BindBufferBaseProc BindBufferBase;
+        internal static BindBufferProc BindBuffer;
         internal static NamedBufferSubDataProc NamedBufferSubData;
 
         static partial void InitDataBuffer()
@@ -56,6 +60,7 @@ namespace OpenGL
             DeleteBuffers = Get<DeleteBuffersProc>("glDeleteBuffers");
             NamedBufferStorage = Get<NamedBufferStorageProc>("glNamedBufferStorage");
             BindBufferBase = Get<BindBufferBaseProc>("glBindBufferBase");
+            BindBuffer = Get<BindBufferProc>("glBindBuffer");
             NamedBufferSubData = Get<NamedBufferSubDataProc>("glNamedBufferSubData");
         }
     }
@@ -79,23 +84,41 @@ namespace OpenGL
                 Gl.DeleteBuffers(1, addr);
             }
         }
+        
+        public unsafe void AllocateWith(byte[] data)
+        {
+            fixed (byte* ptr = &data[0])
+            {
+                AllocateRaw(data.Length * sizeof(float), ptr);
+            }
+        }
+        
+        public unsafe void AllocateWith(ushort[] data)
+        {
+            fixed (ushort* ptr = &data[0])
+            {
+                AllocateRaw(data.Length * sizeof(float), ptr);
+            }
+        }
 
         public unsafe void AllocateWith(float[] data)
         {
-            var ptr = Marshal.AllocHGlobal(data.Length * sizeof(float));
-            Marshal.Copy(data, 0, ptr, data.Length);
-            AllocateRaw(data.Length * sizeof(float), (void*) ptr);
-            Marshal.FreeHGlobal(ptr);
+            fixed (float* ptr = &data[0])
+            {
+                AllocateRaw(data.Length * sizeof(float), ptr);
+            }
         }
 
         public unsafe void DataSection(uint offset, float[] data)
         {
-            var ptr = Marshal.AllocHGlobal(data.Length * sizeof(float));
-            Marshal.Copy(data, 0, ptr, data.Length);
-            DataSectionRaw(offset, data.Length * sizeof(float), (void*) ptr);
-            Marshal.FreeHGlobal(ptr);
+            fixed (float* ptr = &data[0])
+            {
+                DataSectionRaw(offset, data.Length * sizeof(float), ptr);
+            }
         }
 
+        public void Bind(uint usage) => Gl.BindBuffer(usage, _hdc);
+        
         public void BindBase(uint usage, uint index) => Gl.BindBufferBase(usage, index, _hdc);
         
         public uint Raw() => _hdc;

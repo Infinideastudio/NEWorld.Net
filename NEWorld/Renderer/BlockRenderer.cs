@@ -29,8 +29,8 @@ namespace NEWorld.Renderer
 {
     public unsafe struct BlockTexCoord
     {
-        public uint pos;
-        public fixed float d[4];
+        public uint Pos;
+        public fixed float D[4];
     }
 
     public interface IBlockRenderer
@@ -48,13 +48,13 @@ namespace NEWorld.Renderer
         public void AddPrimitive(int verts, params float[] data)
         {
             VertCount += verts;
-            Marshal.Copy(data, 0, _data + Size * sizeof(float), data.Length);
-            Size += data.Length;
+            Marshal.Copy(data, 0, _data + _size * sizeof(float), data.Length);
+            _size += data.Length;
         }
 
-        public ConstDataBuffer Dump() => VertCount > 0 ? new ConstDataBuffer(Size * sizeof(float), _data) : null;
+        public ConstDataBuffer Dump() => VertCount > 0 ? new ConstDataBuffer(_size * sizeof(float), _data) : null;
 
-        public int Size;
+        private int _size;
         public int VertCount;
         private readonly IntPtr _data;
     }
@@ -65,13 +65,14 @@ namespace NEWorld.Renderer
         {
             _tex = new BlockTexCoord[6];
             for (var i = 0; i < 6; ++i)
-                _tex[i].pos = data[i];
+                _tex[i].Pos = data[i];
         }
 
         public unsafe void FlushTexture()
         {
             for (var i = 0; i < 6; ++i)
-                BlockTextureBuilder.getTexturePos(_tex[i].d, _tex[i].pos);
+                fixed (float* tex = _tex[0].D)
+                    BlockTextureBuilder.getTexturePos(tex, _tex[i].Pos);
         }
 
         public unsafe void Render(VertexBuilder target, Chunk chunk, Vec3<int> pos)
@@ -97,61 +98,67 @@ namespace NEWorld.Renderer
                     : chunk[new Vec3<int>(pos.X, pos.Y, pos.Z + 1)],
                 pos.Z == 0
                     ? chunk.World.GetBlock(new Vec3<int>(worldpos.X, worldpos.Y, worldpos.Z - 1))
-                    : chunk[new Vec3<int>(pos.X, pos.Y, pos.Z - 1)],
+                    : chunk[new Vec3<int>(pos.X, pos.Y, pos.Z - 1)]
             };
 
             // Right
             if (AdjacentTest(curr, neighbors[0]))
-                target.AddPrimitive(4,
-                    _tex[0].d[0], _tex[0].d[1], 0.5f, 0.5f, 0.5f, pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 1.0f,
-                    _tex[0].d[0], _tex[0].d[3], 0.5f, 0.5f, 0.5f, pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 1.0f,
-                    _tex[0].d[2], _tex[0].d[3], 0.5f, 0.5f, 0.5f, pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 0.0f,
-                    _tex[0].d[2], _tex[0].d[1], 0.5f, 0.5f, 0.5f, pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 0.0f
-                );
+                fixed (float* tex = _tex[0].D)
+                    target.AddPrimitive(4,
+                        tex[0], tex[1], 0.5f, 0.5f, 0.5f, pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 1.0f,
+                        tex[0], tex[3], 0.5f, 0.5f, 0.5f, pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 1.0f,
+                        tex[2], tex[3], 0.5f, 0.5f, 0.5f, pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 0.0f,
+                        tex[2], tex[1], 0.5f, 0.5f, 0.5f, pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 0.0f
+                    );
 
             // Left
             if (AdjacentTest(curr, neighbors[1]))
+                fixed (float* tex = _tex[1].D)
                 target.AddPrimitive(4,
-                    _tex[1].d[0], _tex[1].d[1], 0.5f, 0.5f, 0.5f, pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 0.0f,
-                    _tex[1].d[0], _tex[1].d[3], 0.5f, 0.5f, 0.5f, pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 0.0f,
-                    _tex[1].d[2], _tex[1].d[3], 0.5f, 0.5f, 0.5f, pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 1.0f,
-                    _tex[1].d[2], _tex[1].d[1], 0.5f, 0.5f, 0.5f, pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 1.0f
+                    tex[0], tex[1], 0.5f, 0.5f, 0.5f, pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 0.0f,
+                    tex[0], tex[3], 0.5f, 0.5f, 0.5f, pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 0.0f,
+                    tex[2], tex[3], 0.5f, 0.5f, 0.5f, pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 1.0f,
+                    tex[2], tex[1], 0.5f, 0.5f, 0.5f, pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 1.0f
                 );
 
             // Top
             if (AdjacentTest(curr, neighbors[2]))
+                fixed (float* tex = _tex[2].D)
                 target.AddPrimitive(4,
-                    _tex[2].d[0], _tex[2].d[1], 1.0f, 1.0f, 1.0f, pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 0.0f,
-                    _tex[2].d[0], _tex[2].d[3], 1.0f, 1.0f, 1.0f, pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 1.0f,
-                    _tex[2].d[2], _tex[2].d[3], 1.0f, 1.0f, 1.0f, pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 1.0f,
-                    _tex[2].d[2], _tex[2].d[1], 1.0f, 1.0f, 1.0f, pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 0.0f
+                    tex[0], tex[1], 1.0f, 1.0f, 1.0f, pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 0.0f,
+                    tex[0], tex[3], 1.0f, 1.0f, 1.0f, pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 1.0f,
+                    tex[2], tex[3], 1.0f, 1.0f, 1.0f, pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 1.0f,
+                    tex[2], tex[1], 1.0f, 1.0f, 1.0f, pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 0.0f
                 );
 
             // Bottom
             if (AdjacentTest(curr, neighbors[3]))
+                fixed (float* tex = _tex[3].D)
                 target.AddPrimitive(4,
-                    _tex[3].d[0], _tex[3].d[1], 1.0f, 1.0f, 1.0f, pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 1.0f,
-                    _tex[3].d[0], _tex[3].d[3], 1.0f, 1.0f, 1.0f, pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 0.0f,
-                    _tex[3].d[2], _tex[3].d[3], 1.0f, 1.0f, 1.0f, pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 0.0f,
-                    _tex[3].d[2], _tex[3].d[1], 1.0f, 1.0f, 1.0f, pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 1.0f
+                    tex[0], tex[1], 1.0f, 1.0f, 1.0f, pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 1.0f,
+                    tex[0], tex[3], 1.0f, 1.0f, 1.0f, pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 0.0f,
+                    tex[2], tex[3], 1.0f, 1.0f, 1.0f, pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 0.0f,
+                    tex[2], tex[1], 1.0f, 1.0f, 1.0f, pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 1.0f
                 );
 
             // Front
             if (AdjacentTest(curr, neighbors[4]))
+                fixed (float* tex = _tex[4].D)
                 target.AddPrimitive(4,
-                    _tex[4].d[0], _tex[4].d[1], 0.7f, 0.7f, 0.7f, pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 1.0f,
-                    _tex[4].d[0], _tex[4].d[3], 0.7f, 0.7f, 0.7f, pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 1.0f,
-                    _tex[4].d[2], _tex[4].d[3], 0.7f, 0.7f, 0.7f, pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 1.0f,
-                    _tex[4].d[2], _tex[4].d[1], 0.7f, 0.7f, 0.7f, pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 1.0f
+                    tex[0], tex[1], 0.7f, 0.7f, 0.7f, pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 1.0f,
+                    tex[0], tex[3], 0.7f, 0.7f, 0.7f, pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 1.0f,
+                    tex[2], tex[3], 0.7f, 0.7f, 0.7f, pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 1.0f,
+                    tex[2], tex[1], 0.7f, 0.7f, 0.7f, pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 1.0f
                 );
 
             // Back
             if (AdjacentTest(curr, neighbors[5]))
+                fixed (float* tex = _tex[5].D)
                 target.AddPrimitive(4,
-                    _tex[5].d[0], _tex[5].d[1], 0.7f, 0.7f, 0.7f, pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 0.0f,
-                    _tex[5].d[0], _tex[5].d[3], 0.7f, 0.7f, 0.7f, pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 0.0f,
-                    _tex[5].d[2], _tex[5].d[3], 0.7f, 0.7f, 0.7f, pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 0.0f,
-                    _tex[5].d[2], _tex[5].d[1], 0.7f, 0.7f, 0.7f, pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 0.0f
+                    tex[0], tex[1], 0.7f, 0.7f, 0.7f, pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 0.0f,
+                    tex[0], tex[3], 0.7f, 0.7f, 0.7f, pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 0.0f,
+                    tex[2], tex[3], 0.7f, 0.7f, 0.7f, pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 0.0f,
+                    tex[2], tex[1], 0.7f, 0.7f, 0.7f, pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 0.0f
                 );
         }
 
@@ -176,7 +183,7 @@ namespace NEWorld.Renderer
     {
         public static int capacity()
         {
-            var w = capacityRaw() / mPixelPerTexture;
+            var w = capacityRaw() / _pixelPerTexture;
             return w * w;
         }
 
@@ -187,27 +194,21 @@ namespace NEWorld.Renderer
             return cap;
         }
 
-        public static void setWidthPerTex(int wid)
-        {
-            mPixelPerTexture = wid;
-        }
+        public static void setWidthPerTex(int wid) => _pixelPerTexture = wid;
 
-        public static int getWidthPerTex()
-        {
-            return mPixelPerTexture;
-        }
+        public static int getWidthPerTex() => _pixelPerTexture;
 
         public static int addTexture(RawTexture rawTexture)
         {
-            mRawTexs.Add(rawTexture);
-            return mRawTexs.Count - 1;
+            RawTexs.Add(rawTexture);
+            return RawTexs.Count - 1;
         }
 
         public static unsafe Texture buildAndFlush()
         {
-            var count = mRawTexs.Count;
-            mTexturePerLine = 1 << (int) Math.Ceiling(Math.Log(Math.Ceiling(Math.Sqrt(count))) / Math.Log(2));
-            var wid = mTexturePerLine * mPixelPerTexture;
+            var count = RawTexs.Count;
+            _texturePerLine = 1 << (int) Math.Ceiling(Math.Log(Math.Ceiling(Math.Sqrt(count))) / Math.Log(2));
+            var wid = _texturePerLine * _pixelPerTexture;
 
             var mask = EndianCheck.BigEndian
                 ? new uint[] {0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff}
@@ -216,23 +217,23 @@ namespace NEWorld.Renderer
             var s = (SDL.SDL_Surface*) SDL.SDL_CreateRGBSurface(0, wid, wid, 32, mask[0], mask[1], mask[2], mask[3]);
             for (var i = 0; i < count; ++i)
             {
-                var x = i % mTexturePerLine;
-                var y = i / mTexturePerLine;
+                var x = i % _texturePerLine;
+                var y = i / _texturePerLine;
                 SDL.SDL_Rect r;
-                r.x = x * mPixelPerTexture;
-                r.y = y * mPixelPerTexture;
-                r.w = r.h = mPixelPerTexture;
-                SDL.SDL_BlitScaled((IntPtr) mRawTexs[i].Surface, IntPtr.Zero, (IntPtr) s, (IntPtr) (&r));
+                r.x = x * _pixelPerTexture;
+                r.y = y * _pixelPerTexture;
+                r.w = r.h = _pixelPerTexture;
+                SDL.SDL_BlitScaled((IntPtr) RawTexs[i].Surface, IntPtr.Zero, (IntPtr) s, (IntPtr) (&r));
             }
 
-            mRawTexs.Clear();
-            var levels = (int) (Math.Log(mPixelPerTexture) / Math.Log(2));
+            RawTexs.Clear();
+            var levels = (int) (Math.Log(_pixelPerTexture) / Math.Log(2));
             var ret = new Texture(levels, PixelInternalFormats.Rgba8, new Vec2<int>(wid, wid))
             {
                 MinifyingFilter = Texture.Filter.NearestMipmapNearest,
                 MagnificationFilter = Texture.Filter.Nearest
             };
-            Build2DMipmaps(ret, wid, wid, (int) (Math.Log(mPixelPerTexture) / Math.Log(2)), (byte*) s->pixels);
+            Build2DMipmaps(ret, wid, wid, (int) (Math.Log(_pixelPerTexture) / Math.Log(2)), (byte*) s->pixels);
             return ret;
         }
 
@@ -266,49 +267,46 @@ namespace NEWorld.Renderer
 
         public static int addTexture(string path) => addTexture(new RawTexture(path));
 
-        public static int getTexturePerLine()
-        {
-            return mTexturePerLine;
-        }
+        public static int getTexturePerLine() => _texturePerLine;
 
         public static unsafe void getTexturePos(float* pos, uint id)
         {
-            var percentagePerTexture = 1.0f / mTexturePerLine;
-            var x = id % mTexturePerLine;
-            var y = id / mTexturePerLine;
+            var percentagePerTexture = 1.0f / _texturePerLine;
+            var x = id % _texturePerLine;
+            var y = id / _texturePerLine;
             pos[0] = percentagePerTexture * x;
             pos[1] = percentagePerTexture * y;
             pos[2] = percentagePerTexture * (x + 1);
             pos[3] = percentagePerTexture * (y + 1);
         }
 
-        private static int mPixelPerTexture = 32, mTexturePerLine = 8;
-        private static List<RawTexture> mRawTexs;
+        private static int _pixelPerTexture = 32, _texturePerLine = 8;
+        private static readonly List<RawTexture> RawTexs = new List<RawTexture>();
     }
 
     public static class BlockRendererManager
     {
         public static void render(VertexBuilder target, int id, Chunk chunk, Vec3<int> pos)
         {
-            if (mBlockRenderers.Count > 0 && mBlockRenderers[id] != null)
-                mBlockRenderers[id].Render(target, chunk, pos);
+            if (BlockRenderers.Count > 0 && BlockRenderers[id] != null)
+                BlockRenderers[id].Render(target, chunk, pos);
         }
 
         public static void setBlockRenderer(int pos, IBlockRenderer blockRenderer)
         {
-            while (pos >= mBlockRenderers.Count)
-                mBlockRenderers.Add(null);
-            mBlockRenderers[pos] = blockRenderer;
+            while (pos >= BlockRenderers.Count)
+                BlockRenderers.Add(null);
+            BlockRenderers[pos] = blockRenderer;
         }
 
         public static void flushTextures()
         {
-            foreach (var x in mBlockRenderers)
+            foreach (var x in BlockRenderers)
             {
                 x?.FlushTexture();
             }
         }
 
-        private static List<IBlockRenderer> mBlockRenderers;
+        private static readonly List<IBlockRenderer> BlockRenderers = new List<IBlockRenderer>();
     }
 }

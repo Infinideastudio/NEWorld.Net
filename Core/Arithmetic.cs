@@ -34,5 +34,9 @@ namespace Core
         public static dynamic ModulusBy(ref dynamic a, dynamic b) => a %= b;
         public static dynamic Square(dynamic a) => a * a;
         public static dynamic Negate(dynamic a) => -a;
+        public static dynamic Increase(dynamic a) => ++a;
+        public static dynamic Decrease(dynamic a) => --a;
+        public static dynamic IncreaseAfter(dynamic a) => a++;
+        public static dynamic DecreaseAfter(dynamic a) => a--;
     }
 }

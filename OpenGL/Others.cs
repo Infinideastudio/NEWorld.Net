@@ -14,14 +14,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
+
 namespace OpenGL
 {
     static partial class Gl
     {
         // Draw
         public delegate void DrawArraysProc(uint mode, int first, int count);
+        
+        public delegate void DrawElementsProc(uint mode, int count, uint type, IntPtr indicies);
 
         public static DrawArraysProc DrawArrays;
+
+        public static DrawElementsProc DrawElements;
 
         // Context Op
         public delegate void ViewportProc(int x, int y, int width, int height);
@@ -32,10 +38,25 @@ namespace OpenGL
 
         public delegate void LineWidthProc(float width);
 
+        public delegate void EnableProc(uint cap);
+
+        public delegate void DisableProc(uint cap);
+
+        public delegate void BlendEquationProc(uint mode);
+
+        public delegate void BlendFuncProc(uint sfactor, uint dfactor);
+
+        public delegate void ScissorProc(int x, int y, int width, int height);
+
         public static ViewportProc Viewport;
         public static ClearColorProc ClearColor;
         public static ClearProc Clear;
         public static LineWidthProc LineWidth;
+        public static EnableProc Enable;
+        public static DisableProc Disable;
+        public static BlendEquationProc BlendEquation;
+        public static BlendFuncProc BlendFunc;
+        public static ScissorProc Scissor;
 
         static partial void InitOthers()
         {
@@ -46,6 +67,12 @@ namespace OpenGL
             ClearColor = Get<ClearColorProc>("glClearColor");
             Clear = Get<ClearProc>("glClear");
             LineWidth = Get<LineWidthProc>("glLineWidth");
+            Enable = Get<EnableProc>("glEnable");
+            Disable = Get<DisableProc>("glDisable");
+            BlendEquation = Get<BlendEquationProc>("glBlendEquation");
+            BlendFunc = Get<BlendFuncProc>("glBlendFunc");
+            Scissor = Get<ScissorProc>("glScissor");
+            DrawElements = Get<DrawElementsProc>("glDrawElements");
         }
     }
 }

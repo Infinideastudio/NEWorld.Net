@@ -30,6 +30,12 @@ namespace NEWorld.Renderer
      */
     public class ChunkRenderData
     {
+        public ChunkRenderData()
+        {
+            VaOpacity = new VertexBuilder(262144 * (2 + 3 + 0 + 3));
+            VaTranslucent = new VertexBuilder(262144 * (2 + 3 + 0 + 3));
+        }
+
         /**
          * \brief Generate the render data, namely VA, from a chunk.
          *        Does not involve OpenGL functions.
@@ -44,14 +50,14 @@ namespace NEWorld.Renderer
             for (tmp.Z = 0; tmp.Z < Chunk.Size; ++tmp.Z)
             {
                 var b = chunk[tmp];
-                var target = Blocks.Index[b.Id].IsTranslucent ? VATranslucent : VAOpacity;
+                var target = Blocks.Index[b.Id].IsTranslucent ? VaTranslucent : VaOpacity;
                 BlockRendererManager.render(target, b.Id, chunk, tmp);
             }
         }
 
-        public VertexBuilder VAOpacity { get; } // {262144, VertexFormat(2, 3, 0, 3)};
+        public VertexBuilder VaOpacity { get; } // {262144, VertexFormat(2, 3, 0, 3)};
 
-        public VertexBuilder VATranslucent { get; } //{262144, VertexFormat(2, 3, 0, 3)};
+        public VertexBuilder VaTranslucent { get; } //{262144, VertexFormat(2, 3, 0, 3)};
     };
 
     /**
@@ -71,24 +77,24 @@ namespace NEWorld.Renderer
          */
         public void Update(ChunkRenderData data)
         {
-            if (mBuffer.Valid()) mBuffer.Dispose();
-            if (mBufferTrans.Valid()) mBufferTrans.Dispose();
-            mBuffer = data.VAOpacity.Dump();
-            mBufferTrans = data.VATranslucent.Dump();
-            _normCount = data.VAOpacity.VertCount;
-            _transCount = data.VATranslucent.VertCount;
+            if (_buffer.Valid()) _buffer.Dispose();
+            if (_bufferTrans.Valid()) _bufferTrans.Dispose();
+            _buffer = data.VaOpacity.Dump();
+            _bufferTrans = data.VaTranslucent.Dump();
+            _normCount = data.VaOpacity.VertCount;
+            _transCount = data.VaTranslucent.VertCount;
         }
 
         protected override void Release()
         {
-            if (mBuffer.Valid()) mBuffer.Dispose();
-            if (mBufferTrans.Valid()) mBufferTrans.Dispose();
+            if (_buffer.Valid()) _buffer.Dispose();
+            if (_bufferTrans.Valid()) _bufferTrans.Dispose();
         }
 
         // Draw call
         public void render(Vec3<int> c)
         {
-            if (mBuffer != null)
+            if (_buffer != null)
             {
                 //Renderer::translate(Vec3f(c * Chunk.Size));
                 //mBuffer.render();
@@ -98,7 +104,7 @@ namespace NEWorld.Renderer
 
         public void renderTrans(Vec3<int> c)
         {
-            if (mBufferTrans != null)
+            if (_bufferTrans != null)
             {
                 //Renderer::translate(Vec3f(c * Chunk.Size));
                 //mBufferTrans.render();
@@ -108,6 +114,6 @@ namespace NEWorld.Renderer
 
         // Vertex buffer object
         private int _normCount, _transCount;
-        private ConstDataBuffer mBuffer, mBufferTrans;
+        private ConstDataBuffer _buffer, _bufferTrans;
     };
 }

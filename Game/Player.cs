@@ -27,47 +27,37 @@ namespace Game
         {
             public PlayerUpdateTask(Player player, uint worldId)
             {
-                mPlayer = player;
-                mWorldId = worldId;
+                _player = player;
+                _worldId = worldId;
             }
 
-            public void Task(ChunkService srv) => mPlayer.Update(srv.Worlds.Get(mWorldId));
+            public void Task(ChunkService srv) => _player.Update(srv.Worlds.Get(_worldId));
 
             IReadOnlyTask IReadOnlyTask.Clone() => (IReadOnlyTask) MemberwiseClone();
 
-            private Player mPlayer;
-            private uint mWorldId;
+            private readonly Player _player;
+            private readonly uint _worldId;
         }
 
         public Player(uint worldId) : base(worldId) =>
             Singleton<ChunkService>.Instance.TaskDispatcher.AddRegularReadOnlyTask(new PlayerUpdateTask(this, WorldId));
 
-        public void Accelerate(Vec3<double> acceleration)
-        {
-            _speed += acceleration;
-        }
+        public void Accelerate(Vec3<double> acceleration) => _speed += acceleration;
 
-        public void AccelerateRotation(Vec3<double> acceleration)
-        {
-            _rotationSpeed += acceleration;
-        }
+        public void AccelerateRotation(Vec3<double> acceleration) => _rotationSpeed += acceleration;
 
-        public void SetSpeed(Vec3<double> speed)
-        {
-            _speed = speed;
-        }
+        public void SetSpeed(Vec3<double> speed) => _speed = speed;
 
-        public Vec3<double> GetPositionDelta()
-        {
-            return _positionDelta;
-        }
+        public Vec3<double> PositionDelta => _positionDelta;
+
+        public Vec3<double> RotationDelta { get; private set; }
 
         public override void Render()
         {
         }
 
         private Vec3<double> _speed, _rotationSpeed;
-        private Vec3<double> _positionDelta, _rotationDelta;
+        private Vec3<double> _positionDelta;
 
         public override void Update(World world)
         {
@@ -109,7 +99,7 @@ namespace Game
             if (Rotation.X + _rotationSpeed.X < -90.0)
                 _rotationSpeed.X = -90.0 - Rotation.X;
             Rotation += _rotationSpeed;
-            _rotationDelta = _rotationSpeed;
+            RotationDelta = _rotationSpeed;
             if (_rotationInteria)
                 _rotationSpeed *= 0.6;
             else

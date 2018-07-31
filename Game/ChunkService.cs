@@ -46,6 +46,6 @@ namespace Game
 
         public WorldManager Worlds { get; }
 
-        public bool IsAuthority { get; }
+        public bool IsAuthority { set; get; }
     }
 }

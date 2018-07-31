@@ -19,10 +19,36 @@
 
 namespace NEWorld
 {
-    internal class Program
+    internal class NEWorld
     {
+        public NEWorld()
+        {
+            Window.getInstance("NEWorld", 852, 480);
+        }
+
+        public void run()
+        {
+            var fps = 60;
+            var shouldLimitFps = true;
+            var delayPerFrame = (uint)(1000 / fps - 0.5);
+            var window = Window.getInstance("NEWorld", 852, 480);
+            var game = new GameScene("TestWorld", window);
+            while (!window.shouldQuit())
+            {
+                // Update
+                window.pollEvents();
+                // Render
+                game.render();
+                window.swapBuffers();
+                if (shouldLimitFps) 
+                    SDL2.SDL.SDL_Delay(delayPerFrame);
+            }
+        }
+
         public static void Main(string[] args)
         {
+            var instance = new NEWorld();
+            instance.run();
         }
     }
 }

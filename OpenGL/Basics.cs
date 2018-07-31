@@ -38,10 +38,19 @@ namespace OpenGL
         public const uint ColorBufferBit = 0x4000;
         public const uint DepthBufferBit = 0x0100;
         public const uint StencilBufferBit = 0x0400;
+        public const uint Blend = 0x0BE2;
+        public const uint SrcAlpha = 0x0302;
+        public const uint OneMinusSrcAlpha = 0x0303;
+        public const uint DstAlpha = 0x0304;
+        public const uint OneMinusDstAlpha = 0x0305;
+        public const uint FuncAdd = 0x8006;
+        public const uint CullFace = 0x0B44;
+        public const uint DepthTest = 0x0B71;
+        public const uint ScissorTest = 0x0C11;
 
-        internal static byte[] Utf8ToNative(string s) => s == null ? null : Encoding.UTF8.GetBytes(s + "\0");
+        public static byte[] Utf8ToNative(string s) => s == null ? null : Encoding.UTF8.GetBytes(s + "\0");
 
-        internal static unsafe string Utf8ToManaged(IntPtr s)
+        public static unsafe string Utf8ToManaged(IntPtr s)
         {
             var sBase = (byte*) s;
             if (sBase == null)

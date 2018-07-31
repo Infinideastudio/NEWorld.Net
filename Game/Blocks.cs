@@ -21,6 +21,7 @@ namespace Game
 {
     public struct BlockData
     {
+        public BlockData(ushort id) => Id = id;
         public ushort Id;
         public byte Brightness;
         public byte Data0;
