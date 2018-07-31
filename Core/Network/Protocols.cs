@@ -53,7 +53,7 @@ namespace Core.Network
 
             public static KeyValuePair<string, int>[] Get(ConnectionHost.Connection conn)
             {
-                var session = Singleton<ProtocolReply>.Instance.AllocReplySession();
+                var session = ProtocolReply.AllocSession();
                 Send(conn.Stream, Request(1, SerialSend.PackSingleObjectAsBytes(session.Key)));
                 return SerialReply.UnpackSingleObject(session.Value.Result);
             }
@@ -84,7 +84,10 @@ namespace Core.Network
             SessionDispatch(GetSessionId(extraHead), dataSegment);
         }
 
-        public KeyValuePair<int, Task<byte[]>> AllocReplySession()
+        public static KeyValuePair<int, Task<byte[]>> AllocSession() => 
+            Singleton<ProtocolReply>.Instance.AllocSessionInternal();
+
+        private KeyValuePair<int, Task<byte[]>> AllocSessionInternal()
         {
             if (!_sessionIds.TryDequeue(out var newId))
                 newId = Interlocked.Increment(ref _idTop) - 1;

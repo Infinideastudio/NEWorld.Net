@@ -48,7 +48,7 @@ namespace NEWorld.Renderer
                 BlockRendererManager.render(target, b.Id, chunk, tmp);
             }
         }
-        
+
         public VertexBuilder VAOpacity { get; } // {262144, VertexFormat(2, 3, 0, 3)};
 
         public VertexBuilder VATranslucent { get; } //{262144, VertexFormat(2, 3, 0, 3)};
@@ -59,7 +59,7 @@ namespace NEWorld.Renderer
      *        VBO that we need to render. It can be generated from a
      *        ChunkRenderData
      */
-    public class ChunkRenderer
+    public class ChunkRenderer : StrictDispose
     {
         public ChunkRenderer(ChunkRenderData data) => Update(data);
 
@@ -71,10 +71,18 @@ namespace NEWorld.Renderer
          */
         public void Update(ChunkRenderData data)
         {
+            if (mBuffer.Valid()) mBuffer.Dispose();
+            if (mBufferTrans.Valid()) mBufferTrans.Dispose();
             mBuffer = data.VAOpacity.Dump();
             mBufferTrans = data.VATranslucent.Dump();
             _normCount = data.VAOpacity.VertCount;
             _transCount = data.VATranslucent.VertCount;
+        }
+
+        protected override void Release()
+        {
+            if (mBuffer.Valid()) mBuffer.Dispose();
+            if (mBufferTrans.Valid()) mBufferTrans.Dispose();
         }
 
         // Draw call

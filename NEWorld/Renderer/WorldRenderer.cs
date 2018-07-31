@@ -45,8 +45,6 @@ namespace NEWorld.Renderer
             {
                 var counter = 0;
                 // TODO: improve performance by adding multiple instances of this and set a step when itering the chunks.
-                // Render build list
-                //PODOrderedList<int, Chunk*, MaxChunkRenderCount> chunkRenderList;
                 var position = mPlayer.Position;
                 var positionInt = new Vec3<int>((int)position.X, (int)position.Y, (int)position.Z);
                 var chunkpos = World.GetChunkPos(positionInt);

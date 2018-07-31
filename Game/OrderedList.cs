@@ -45,7 +45,7 @@ namespace Game
 
         protected int Size;
         public readonly int FixedSize;
-        public KeyValuePair<int, TD>[] Data;
+        public readonly KeyValuePair<int, TD>[] Data;
 
         public IEnumerator<KeyValuePair<int, TD>> GetEnumerator() => new OrderedListIntBaseEnum<TD>(this);
 
