@@ -15,7 +15,6 @@
 // limitations under the License.
 
 using System;
-using System.Runtime.InteropServices;
 using Core;
 
 namespace OpenGL
@@ -84,28 +83,34 @@ namespace OpenGL
                 Gl.DeleteBuffers(1, addr);
             }
         }
+
+        public void AllocateWith(byte[] data) => AllocateWith(data, data.Length);
+
+        public void AllocateWith(ushort[] data) => AllocateWith(data, data.Length);
+
+        public void AllocateWith(float[] data) => AllocateWith(data, data.Length);
         
-        public unsafe void AllocateWith(byte[] data)
+        public unsafe void AllocateWith(byte[] data, int length)
         {
             fixed (byte* ptr = &data[0])
             {
-                AllocateRaw(data.Length * sizeof(float), ptr);
+                AllocateRaw(length * sizeof(byte), ptr);
             }
         }
         
-        public unsafe void AllocateWith(ushort[] data)
+        public unsafe void AllocateWith(ushort[] data, int length)
         {
             fixed (ushort* ptr = &data[0])
             {
-                AllocateRaw(data.Length * sizeof(float), ptr);
+                AllocateRaw(length * sizeof(ushort), ptr);
             }
         }
 
-        public unsafe void AllocateWith(float[] data)
+        public unsafe void AllocateWith(float[] data, int length)
         {
             fixed (float* ptr = &data[0])
             {
-                AllocateRaw(data.Length * sizeof(float), ptr);
+                AllocateRaw(length * sizeof(float), ptr);
             }
         }
 

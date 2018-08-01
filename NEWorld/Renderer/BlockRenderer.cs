@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Game;
 using Core;
+using Core.Math;
 using OpenGL;
 using SDL2;
 
@@ -72,7 +73,7 @@ namespace NEWorld.Renderer
         {
             for (var i = 0; i < 6; ++i)
                 fixed (float* tex = _tex[0].D)
-                    BlockTextureBuilder.getTexturePos(tex, _tex[i].Pos);
+                    BlockTextureBuilder.GetTexturePos(tex, _tex[i].Pos);
         }
 
         public unsafe void Render(VertexBuilder target, Chunk chunk, Vec3<int> pos)
@@ -181,30 +182,30 @@ namespace NEWorld.Renderer
 
     public static class BlockTextureBuilder
     {
-        public static int capacity()
+        public static int Capacity()
         {
-            var w = capacityRaw() / _pixelPerTexture;
+            var w = CapacityRaw() / _pixelPerTexture;
             return w * w;
         }
 
-        public static int capacityRaw()
+        public static int CapacityRaw()
         {
             int cap = 2048;
             //glGetIntegerv(GL_MAX_TEXTURE_SIZE, &cap);
             return cap;
         }
 
-        public static void setWidthPerTex(int wid) => _pixelPerTexture = wid;
+        public static void SetWidthPerTex(int wid) => _pixelPerTexture = wid;
 
-        public static int getWidthPerTex() => _pixelPerTexture;
+        public static int GetWidthPerTex() => _pixelPerTexture;
 
-        public static int addTexture(RawTexture rawTexture)
+        public static int AddTexture(RawTexture rawTexture)
         {
             RawTexs.Add(rawTexture);
             return RawTexs.Count - 1;
         }
 
-        public static unsafe Texture buildAndFlush()
+        public static unsafe Texture BuildAndFlush()
         {
             var count = RawTexs.Count;
             _texturePerLine = 1 << (int) Math.Ceiling(Math.Log(Math.Ceiling(Math.Sqrt(count))) / Math.Log(2));
@@ -265,11 +266,11 @@ namespace NEWorld.Renderer
             }
         }
 
-        public static int addTexture(string path) => addTexture(new RawTexture(path));
+        public static int AddTexture(string path) => AddTexture(new RawTexture(path));
 
-        public static int getTexturePerLine() => _texturePerLine;
+        public static int GetTexturePerLine() => _texturePerLine;
 
-        public static unsafe void getTexturePos(float* pos, uint id)
+        public static unsafe void GetTexturePos(float* pos, uint id)
         {
             var percentagePerTexture = 1.0f / _texturePerLine;
             var x = id % _texturePerLine;
@@ -286,20 +287,20 @@ namespace NEWorld.Renderer
 
     public static class BlockRendererManager
     {
-        public static void render(VertexBuilder target, int id, Chunk chunk, Vec3<int> pos)
+        public static void Render(VertexBuilder target, int id, Chunk chunk, Vec3<int> pos)
         {
             if (BlockRenderers.Count > 0 && BlockRenderers[id] != null)
                 BlockRenderers[id].Render(target, chunk, pos);
         }
 
-        public static void setBlockRenderer(int pos, IBlockRenderer blockRenderer)
+        public static void SetBlockRenderer(int pos, IBlockRenderer blockRenderer)
         {
             while (pos >= BlockRenderers.Count)
                 BlockRenderers.Add(null);
             BlockRenderers[pos] = blockRenderer;
         }
 
-        public static void flushTextures()
+        public static void FlushTextures()
         {
             foreach (var x in BlockRenderers)
             {

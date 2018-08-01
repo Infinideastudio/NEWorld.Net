@@ -17,11 +17,11 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
-using System;
+using Core.Math;
 
 namespace Core
 {
-    using static Math;
+    using static System.Math;
 
     public struct Aabb
     {

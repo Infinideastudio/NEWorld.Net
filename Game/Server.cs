@@ -1,5 +1,5 @@
-// 
-// Core: Compare.cs
+﻿// 
+// Game: Server.cs
 // NEWorld: A Free Game with Similar Rules to Minecraft.
 // Copyright (C) 2015-2018 NEWorld Team
 // 
@@ -17,14 +17,34 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
-namespace Core
+using System.Threading.Tasks;
+using Core;
+
+namespace Game
 {
-    public static partial class Generic
+    public class Server
     {
-        public static bool Less(dynamic a, dynamic b) => a < b;
-        public static bool LessEqual(dynamic a, dynamic b) => a <= b;
-        public static bool Larger(dynamic a, dynamic b) => a > b;
-        public static bool LargerEqual(dynamic a, dynamic b) => a >= b;
-        public static bool Equal(dynamic a, dynamic b) => a == b;
+        public Server(int port)
+        {
+            _server = new Core.Network.Server(port);
+            _server.RegisterProtocol(new GetChunk.Server());
+            _server.RegisterProtocol(new GetAvailableWorldId.Server());
+            _server.RegisterProtocol(new GetWorldInfo.Server());
+            Singleton<ChunkService>.Instance.Worlds.Add("test world");
+        }
+        
+        public void Run()
+        {
+            _wait = _server.RunAsync();
+        }
+
+        public void Stop()
+        {
+            _server.StopServer();
+            _wait.Wait();
+        }
+
+        private Task _wait;
+        private readonly Core.Network.Server _server;
     }
 }

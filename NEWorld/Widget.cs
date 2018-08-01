@@ -35,16 +35,19 @@ namespace NEWorld
         public void _render(NkSdl ctx)
         {
             if (ctx.Begin(Name, _size, _flags))
-                render(ctx);
+            {
+                Render(ctx);
+                ctx.End();
+            }
         }
 
-        public abstract void update();
+        public abstract void Update();
 
         public bool Open { get; set; } 
 
         public string Name { get; }
 
-        protected abstract void render(NkSdl ctx);
+        protected abstract void Render(NkSdl ctx);
 
         private readonly uint _flags;
         private readonly Nuklear.nk_rect _size;
@@ -64,9 +67,9 @@ namespace NEWorld
             _updateFunc = updateFunc;
         }
 
-        protected override void render(NkSdl ctx) => _renderFunc(ctx);
+        protected override void Render(NkSdl ctx) => _renderFunc(ctx);
 
-        public override void update() => _updateFunc?.Invoke();
+        public override void Update() => _updateFunc?.Invoke();
 
         private RenderCallback _renderFunc;
         private UpdateCallback _updateFunc;

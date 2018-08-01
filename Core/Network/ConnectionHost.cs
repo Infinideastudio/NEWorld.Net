@@ -100,15 +100,7 @@ namespace Core.Network
             Protocols = new List<Protocol>();
         }
 
-        public delegate void LockedExecProc();
-
-        public void LockedExec(LockedExecProc proc)
-        {
-            lock (_protocolLock)
-            {
-                proc();
-            }
-        }
+        public object Lock => _protocolLock;
 
         private const double UtilizationThreshold = 0.75;
 

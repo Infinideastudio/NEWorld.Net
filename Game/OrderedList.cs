@@ -43,7 +43,7 @@ namespace Game
 
         public void Clear() => Size = 0;
 
-        protected int Size;
+        public int Size { get; private set; }
         public readonly int FixedSize;
         public readonly KeyValuePair<int, TD>[] Data;
 
@@ -56,9 +56,9 @@ namespace Game
     {
         public OrderedListIntBaseEnum(OrderedListIntBase<TD> host) => _base = host;
 
-        public bool MoveNext() => ++_position < _base.FixedSize;
+        public bool MoveNext() => ++_position < _base.Size;
 
-        public void Reset() => _position = 0;
+        public void Reset() => _position = -1;
 
         public KeyValuePair<int, TD> Current => _base.Data[_position];
 
@@ -68,7 +68,7 @@ namespace Game
         {
         }
 
-        private int _position;
+        private int _position = -1;
 
         private OrderedListIntBase<TD> _base;
     }

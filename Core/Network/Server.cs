@@ -33,12 +33,19 @@ namespace Core.Network
 
         public void Run()
         {
-            _connHost.LockedExec(() =>
+            lock (_connHost.Lock)
             {
                 Boot();
                 ListenConnections().Wait();
                 ShutDown();
-            });
+            }
+        }
+
+        public async Task RunAsync()
+        {
+            Boot();
+            await ListenConnections();
+            ShutDown();
         }
 
         public void RegisterProtocol(Protocol newProtocol) => _connHost.RegisterProtocol(newProtocol);
@@ -54,7 +61,7 @@ namespace Core.Network
 
         private void ShutDown() => Stop();
 
-        private async Task<bool> ListenConnections()
+        private async Task ListenConnections()
         {
             while (!_exit)
             {
@@ -71,8 +78,6 @@ namespace Core.Network
             }
 
             _connHost.CloseAll();
-
-            return true;
         }
 
         private void AssignProtocolIdentifiers()

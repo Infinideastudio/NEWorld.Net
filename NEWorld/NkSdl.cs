@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Core;
+using Core.Math;
 using NuklearSharp;
 using OpenGL;
 using SDL2;
@@ -22,11 +23,11 @@ namespace NEWorld
             _win = win;
             Ctx.clip.copy = ClipBoardCopy;
             Ctx.clip.paste = ClipboardPaste;
-            Ctx.clip.userdata = nk_handle_ptr(null);
             _prog = new Program();
             using (Shader vertex = new Shader(Gl.VertexShader, @"
 #version 450 core
-layout (std140, binding = 0) uniform { mat4 ProjMtx; }
+layout(shared, row_major) uniform;
+layout (std140, binding = 0) uniform MVP { mat4 ProjMtx; };
 layout (location = 0) in vec2 Position;
 layout (location = 1) in vec2 TexCoord;
 layout (location = 2) in vec4 Color;
@@ -43,7 +44,7 @@ precision mediump float;
 layout (binding = 1) uniform sampler2D Texture;
 in vec2 Frag_UV;
 in vec4 Frag_Color;
-out vec4 Out_Color
+out vec4 Out_Color;
 void main(){
    Out_Color = Frag_Color * texture(Texture, Frag_UV.st);
 }"))
@@ -64,6 +65,21 @@ void main(){
             ConvertConfig.vertex_layout = VertexLayout;
             ConvertConfig.vertex_size = 4 * sizeof(float) + 4;
             _textures = new List<Texture>();
+            _atlas = new FontAtlasWrapper(this);
+            var defaultFont = _atlas.AddDefaultFont(16.0f);
+            _atlas.Bake();
+            SetFont(defaultFont);
+            StyleDefault();
+            CreateMaskTexture();
+        }
+
+        private void CreateMaskTexture()
+        {
+            var newTex = new Texture(1, PixelInternalFormats.Rgba8, new Vec2<int>(1, 1));
+            newTex.Image(0, new Rect<int>(0, 0, 1, 1), PixelTypes.Rgba, PixelDataFormats.UnsignedByte,
+                new byte[] {255, 255, 255, 255});
+            _textures.Add(newTex);
+            _mask = newTex.Raw();
         }
 
         private static readonly nk_draw_vertex_layout_element[] VertexLayout =
@@ -240,11 +256,10 @@ void main(){
 
         public override int CreateTexture(int width, int height, byte[] data)
         {
-            var id = _textures.Count;
             var newTex = new Texture(1, PixelInternalFormats.Rgba8, new Vec2<int>(width, height));
             newTex.Image(0, new Rect<int>(0, 0, width, height), PixelTypes.Rgba, PixelDataFormats.UnsignedByte, data);
             _textures.Add(newTex);
-            return id;
+            return (int) newTex.Raw();
         }
 
         protected override void BeginDraw()
@@ -276,19 +291,19 @@ void main(){
             _verts = new DataBuffer();
             _element = new DataBuffer();
             _vao.Use();
-            _verts.AllocateWith(vertices);
-            _element.AllocateWith(indices);
-            _vao.BindBuffer(0, _verts, 0, vertices.Length / vertexCount);
+            _verts.AllocateWith(vertices, vertexCount * 20);
+            _element.AllocateWith(indices, indicesCount);
+            _vao.BindBuffer(0, _verts, 0, 5 * sizeof(float));
             _ubo.BindBase(Gl.UniformBuffer, 0);
             _element.Bind(Gl.ElementArrayBuffer);
         }
 
         protected override void Draw(int x, int y, int w, int h, int textureId, int startIndex, int primitiveCount)
         {
-            _textures[textureId].Use(0);
-            Gl.Scissor((int) (x * _scale.x), (int) ((_height - (y + h)) * _scale.y),
-                (int) (w * _scale.x), (int) (h * _scale.y));
-            Gl.DrawElements(Gl.Triangles, primitiveCount, Gl.UnsignedShort, (IntPtr) startIndex);
+            Texture.UseRaw(0, textureId != 0? (uint) textureId : _mask);
+            //Gl.Scissor((int) (x * _scale.x), (int) ((_height - (y + h)) * _scale.y),
+            //    (int) (w * _scale.x), (int) (h * _scale.y));
+            Gl.DrawElements(Gl.Triangles, primitiveCount * 3, Gl.UnsignedShort, (IntPtr) startIndex);
         }
 
         protected override void EndDraw()
@@ -307,6 +322,8 @@ void main(){
         private nk_vec2 _scale;
         private int _height;
         private readonly List<Texture> _textures;
+        private FontAtlasWrapper _atlas;
+        private uint _mask;
 
         public void Dispose()
         {
@@ -315,7 +332,7 @@ void main(){
             _prog?.Dispose();
             _verts?.Dispose();
             _element?.Dispose();
-            if (_textures!=null)
+            if (_textures != null)
                 foreach (var texture in _textures)
                     texture.Dispose();
         }

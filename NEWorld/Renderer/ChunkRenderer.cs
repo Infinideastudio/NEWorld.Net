@@ -18,6 +18,7 @@
 // 
 
 using Core;
+using Core.Math;
 using Game;
 using OpenGL;
 
@@ -41,7 +42,7 @@ namespace NEWorld.Renderer
          *        Does not involve OpenGL functions.
          * \param chunk the chunk to be rendered.
          */
-        public void generate(Chunk chunk)
+        public void Generate(Chunk chunk)
         {
             // TODO: merge face rendering
             var tmp = new Vec3<int>();
@@ -51,7 +52,7 @@ namespace NEWorld.Renderer
             {
                 var b = chunk[tmp];
                 var target = Blocks.Index[b.Id].IsTranslucent ? VaTranslucent : VaOpacity;
-                BlockRendererManager.render(target, b.Id, chunk, tmp);
+                BlockRendererManager.Render(target, b.Id, chunk, tmp);
             }
         }
 
@@ -92,23 +93,25 @@ namespace NEWorld.Renderer
         }
 
         // Draw call
-        public void render(Vec3<int> c)
+        public void Render(Vec3<int> c, WorldRenderer rd)
         {
             if (_buffer != null)
             {
-                //Renderer::translate(Vec3f(c * Chunk.Size));
-                //mBuffer.render();
-                //Renderer::translate(Vec3f(-c * Chunk.Size));
+                Matrix.ModelTranslate(c * Chunk.Size);
+                rd.FlushMatrix();
+                rd.RenderBuffer(_buffer, _normCount);
+                Matrix.ModelTranslate(-c * Chunk.Size);
             }
         }
 
-        public void renderTrans(Vec3<int> c)
+        public void RenderTrans(Vec3<int> c, WorldRenderer rd)
         {
             if (_bufferTrans != null)
             {
-                //Renderer::translate(Vec3f(c * Chunk.Size));
-                //mBufferTrans.render();
-                //Renderer::translate(Vec3f(-c * Chunk.Size));
+                Matrix.ModelTranslate(c * Chunk.Size);
+                rd.FlushMatrix();
+                rd.RenderBuffer(_bufferTrans, _transCount);
+                Matrix.ModelTranslate(-c * Chunk.Size);
             }
         }
 

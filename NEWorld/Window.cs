@@ -26,8 +26,8 @@ namespace NEWorld
 {
     public struct MouseState
     {
-        public int x, y;
-        public bool left, mid, right, relative;
+        public int X, Y;
+        public bool Left, Mid, Right, Relative;
     }
 
     public class Window
@@ -37,22 +37,20 @@ namespace NEWorld
             _title = title;
             _width = width;
             _height = height; 
-            SDL.SDL_Init(SDL.SDL_INIT_VIDEO);
-            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_DOUBLEBUFFER, 1);
-            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_DEPTH_SIZE, 24);
+            if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO) < 0)
+                throw new Exception("SDL could not initialize! SDL_Error: " + SDL.SDL_GetError());
+            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 5);
             SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_STENCIL_SIZE, 8);
-            //SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
-            //SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-            //SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-            //SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK,
+                (int) SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_CORE);
 
             _window = SDL.SDL_CreateWindow(_title, 100, 100, _width, _height, 
                 SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL | SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE);
-            Gl.Init(SDL.SDL_GL_GetProcAddress);
             _context = SDL.SDL_GL_CreateContext(_window);
             SDL.SDL_GL_SetSwapInterval(0); // VSync
-            makeCurrentDraw();
-            //Renderer::init();
+            MakeCurrentDraw();
+            Gl.Init(SDL.SDL_GL_GetProcAddress);
             _nuklearContext = new NkSdl(_window);
         }
         
@@ -63,35 +61,35 @@ namespace NEWorld
             SDL.SDL_Quit();
         }
 
-        public void makeCurrentDraw() => SDL.SDL_GL_MakeCurrent(_window, _context);
+        public void MakeCurrentDraw() => SDL.SDL_GL_MakeCurrent(_window, _context);
 
-        public void swapBuffers() => SDL.SDL_GL_SwapWindow(_window);
+        public void SwapBuffers() => SDL.SDL_GL_SwapWindow(_window);
 
-        public static unsafe byte* getKeyBoardState() => (byte*) SDL.SDL_GetKeyboardState(out var number);
+        public static unsafe byte* GetKeyBoardState() => (byte*) SDL.SDL_GetKeyboardState(out var number);
 
-        public int getWidth() => _width;
+        public int GetWidth() => _width;
 
-        public int getHeight() => _height;
+        public int GetHeight() => _height;
 
-        public void pollEvents()
+        public void PollEvents()
         {
             if (SDL.SDL_GetRelativeMouseMode() == SDL.SDL_bool.SDL_TRUE)
             {
-                var buttons = SDL.SDL_GetRelativeMouseState(out _mouse.x, out _mouse.y);
-                _mouse.left = (buttons & SDL.SDL_BUTTON_LEFT) != 0;
-                _mouse.right = (buttons & SDL.SDL_BUTTON_RIGHT) != 0;
-                _mouse.mid = (buttons & SDL.SDL_BUTTON_MIDDLE) != 0;
-                _mouse.relative = true;
+                var buttons = SDL.SDL_GetRelativeMouseState(out _mouse.X, out _mouse.Y);
+                _mouse.Left = (buttons & SDL.SDL_BUTTON_LEFT) != 0;
+                _mouse.Right = (buttons & SDL.SDL_BUTTON_RIGHT) != 0;
+                _mouse.Mid = (buttons & SDL.SDL_BUTTON_MIDDLE) != 0;
+                _mouse.Relative = true;
             }
             else
             {
                 _prevMouse = _mouse;
-                var buttons = SDL.SDL_GetMouseState(out _mouse.x, out _mouse.y);
-                _mouse.left = (buttons & SDL.SDL_BUTTON_LEFT) != 0;
-                _mouse.right = (buttons & SDL.SDL_BUTTON_RIGHT) != 0;
-                _mouse.mid = (buttons & SDL.SDL_BUTTON_MIDDLE) != 0;
-                if (_mouse.relative) _prevMouse = _mouse;
-                _mouse.relative = false;
+                var buttons = SDL.SDL_GetMouseState(out _mouse.X, out _mouse.Y);
+                _mouse.Left = (buttons & SDL.SDL_BUTTON_LEFT) != 0;
+                _mouse.Right = (buttons & SDL.SDL_BUTTON_RIGHT) != 0;
+                _mouse.Mid = (buttons & SDL.SDL_BUTTON_MIDDLE) != 0;
+                if (_mouse.Relative) _prevMouse = _mouse;
+                _mouse.Relative = false;
             }
 
             _nuklearContext.InputBegin();
@@ -120,28 +118,28 @@ namespace NEWorld
             _nuklearContext.InputEnd();
         }
 
-        public bool shouldQuit() => _shouldQuit;
+        public bool ShouldQuit() => _shouldQuit;
 
-        public NkSdl getNkContext() => _nuklearContext;
+        public NkSdl GetNkContext() => _nuklearContext;
 
         /**
          * \brief Get the relative motion of mouse
          * \return The relative motion of mouse
          */
-        public MouseState getMouseMotion()   {
+        public MouseState GetMouseMotion()   {
             var res = _mouse;
-            res.x -= _prevMouse.x;
-            res.y -= _prevMouse.y;
+            res.X -= _prevMouse.X;
+            res.Y -= _prevMouse.Y;
             return res;
         }
 
-        public static void lockCursor() => SDL.SDL_SetRelativeMouseMode(SDL.SDL_bool.SDL_TRUE);
+        public static void LockCursor() => SDL.SDL_SetRelativeMouseMode(SDL.SDL_bool.SDL_TRUE);
 
-        public static void unlockCursor() => SDL.SDL_SetRelativeMouseMode(SDL.SDL_bool.SDL_FALSE);
+        public static void UnlockCursor() => SDL.SDL_SetRelativeMouseMode(SDL.SDL_bool.SDL_FALSE);
 
         private static Window _win;
         
-        public static Window getInstance(string title = "", int width = 0, int height = 0) => 
+        public static Window GetInstance(string title = "", int width = 0, int height = 0) => 
             _win ?? (_win = new Window(title, width, height));
 
         private string _title;

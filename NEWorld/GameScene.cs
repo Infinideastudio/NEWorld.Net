@@ -20,6 +20,7 @@
 using System;
 using System.Threading;
 using Core;
+using Core.Math;
 using Game;
 using NEWorld.Renderer;
 using OpenGL;
@@ -66,7 +67,7 @@ namespace NEWorld
                 const double speed = 0.1;
 
                 // TODO: Read keys from the configuration file
-                var state = Window.getKeyBoardState();
+                var state = Window.GetKeyBoardState();
                 if (state[(int) SDL.SDL_Scancode.SDL_SCANCODE_UP] != 0)
                     _player.AccelerateRotation(new Vec3<double>(1, 0.0, 0.0));
                 if (state[(int) SDL.SDL_Scancode.SDL_SCANCODE_DOWN] != 0 && _player.Rotation.X > -90)
@@ -96,7 +97,7 @@ namespace NEWorld
 
             private void HandleLeftClickEvent(ChunkService cs)
             {
-                if (!Window.getInstance().getMouseMotion().left) return;
+                if (!Window.GetInstance().GetMouseMotion().Left) return;
                 // Selection
                 var world = cs.Worlds.Get(_player.WorldId);
                 var trans = new Mat4D(1.0f);
@@ -116,7 +117,7 @@ namespace NEWorld
                     try
                     {
                         if (world.GetBlock(blockPos).Id == 0) continue;
-                        cs.TaskDispatcher.AddReadWriteTask(new PutBlockTask(_player.WorldId, blockPos, 0));
+                        cs.TaskDispatcher.Add(new PutBlockTask(_player.WorldId, blockPos, 0));
                         break;
                     }
                     catch
@@ -145,45 +146,50 @@ namespace NEWorld
         // GameScene update frequency
         public const int UpdateFrequency = 30;
 
+        private static bool IsClient()
+        {
+            return false;
+            
+        }
+
         public GameScene(string name, Window window)
         {
             _window = window;
             _player = new Player(0);
-            _guiWidgets = new WidgetManager(_window.getNkContext());
+            _guiWidgets = new WidgetManager(_window.GetNkContext());
 
             _player.Position = new Vec3<double>(-16.0, 48.0, 32.0);
             _player.Rotation = new Vec3<double>(-45.0, -22.5, 0.0);
-            Window.lockCursor();
+            Window.LockCursor();
 
-            if (isClient())
+            if (IsClient())
             {
-                debugstream << "Game is running as the client of a multiplayer session.";
                 Singleton<ChunkService>.Instance.IsAuthority = false;
             }
             else
             {
                 // Initialize server
-                mServer = std.make_unique<Server>(31111);
-                mServer.run();
+                _server = new Server(31111);
+                _server.Run();
             }
 
             // Initialize connection
-            context.rpc.enableClient("127.0.0.1", 31111);
+            Client.EnableClient("127.0.0.1", 31111);
 
-            _currentWorld = Singleton<ChunkService>.Instance.Worlds.Get(requestWorld());
+            _currentWorld = Singleton<ChunkService>.Instance.Worlds.Get(RequestWorld());
             _worldRenderer = new WorldRenderer(_currentWorld, 4);
 
             // Initialize update events
             _currentWorld.RegisterChunkTasks(Singleton<ChunkService>.Instance, _player);
-            _worldRenderer.registerTask(Singleton<ChunkService>.Instance, _player);
-            Singleton<ChunkService>.Instance.TaskDispatcher.AddRegularReadOnlyTask(new PlayerControlTask(_player));
-            Singleton<ChunkService>.Instance.TaskDispatcher.AddRegularReadOnlyTask(new UpsCounter(_upsCounter));
+            _worldRenderer.RegisterTask(Singleton<ChunkService>.Instance, _player);
+            Singleton<ChunkService>.Instance.TaskDispatcher.AddRegular(new PlayerControlTask(_player));
+            Singleton<ChunkService>.Instance.TaskDispatcher.AddRegular(new UpsCounter(_upsCounter));
 
             // Initialize rendering
-            _texture = BlockTextureBuilder.buildAndFlush();
-            BlockRendererManager.flushTextures();
+            _texture = BlockTextureBuilder.BuildAndFlush();
+            BlockRendererManager.FlushTextures();
             Gl.Enable(Gl.DepthTest);
-            Gl.DepthFunc(GL_LEQUAL);
+            Gl.DepthFunc(Gl.Lequal);
 
             // Initialize Widgets
             _guiWidgets.Add(new WidgetCallback(
@@ -195,9 +201,9 @@ namespace NEWorld
                     {
                         // Update FPS & UPS
                         _fpsLatest = _fpsCounter;
-                        _upsLatest = (uint) _upsCounter;
+                        _upsLatest = (uint)_upsCounter;
                         _fpsCounter = 0;
-                        _upsCounter = 0;
+                        Generic.MultiplyBy(ref _upsCounter, 0u);
                         _rateCounterScheduler.IncreaseTimer();
                     }
 
@@ -224,7 +230,6 @@ namespace NEWorld
                 }));
 
             Singleton<ChunkService>.Instance.TaskDispatcher.Start();
-            infostream << "Game initialized!";
         }
 
         ~GameScene()
@@ -232,70 +237,63 @@ namespace NEWorld
             Singleton<ChunkService>.Instance.TaskDispatcher.Stop();
         }
 
-        public void render()
+        public void Render()
         {
             Singleton<ChunkService>.Instance.TaskDispatcher.ProcessRenderTasks();
 
             // Camera control by mouse
             const double mouseSensitivity = 0.3;
 
-            var mouse = Window.getInstance().getMouseMotion();
-            _player.AccelerateRotation(new Vec3<double>(-mouse.y * mouseSensitivity, -mouse.x * mouseSensitivity, 0.0));
+            var mouse = Window.GetInstance().GetMouseMotion();
+            _player.AccelerateRotation(new Vec3<double>(-mouse.Y * mouseSensitivity, -mouse.X * mouseSensitivity, 0.0));
 
             Gl.ClearColor(0.6f, 0.9f, 1.0f, 1.0f);
             Gl.ClearDepth(1.0f);
             Gl.Enable(Gl.DepthTest);
             Gl.Enable(Gl.CullFace);
-            Gl.CullFace(GL_BACK);
+            Gl.CullFaceOption(Gl.Back);
 
             var timeDelta = _updateScheduler.GetDeltaTimeMs() / 1000.0 * UpdateFrequency;
             if (timeDelta > 1.0) timeDelta = 1.0;
             var playerRenderedPosition = _player.Position - _player.PositionDelta * (1.0 - timeDelta);
-            var playerRenderedRotation =
-                _player.Rotation - _player.RotationDelta * (1.0 - timeDelta);
+            var playerRenderedRotation = _player.Rotation - _player.RotationDelta * (1.0 - timeDelta);
 
-            _texture.bind(Texture.Texture2D);
-            Renderer.clear();
-            Renderer.setViewport(0, 0, _window.getWidth(), _window.getHeight());
-            Renderer.restoreProj();
-            Renderer.applyPerspective(70.0f, float(_window.getWidth()) / _window.getHeight(), 0.1f, 3000.0f);
-            Renderer.restoreScale();
-            Renderer.rotate(float(-playerRenderedRotation.X), new Vec3<float>(1.0f, 0.0f, 0.0f));
-            Renderer.rotate(float(-playerRenderedRotation.Y), new Vec3<float>(0.0f, 1.0f, 0.0f));
-            Renderer.rotate(float(-playerRenderedRotation.Z), new Vec3<float>(0.0f, 0.0f, 1.0f));
-            Renderer.translate(-playerRenderedPosition);
+            _texture.Use(0);
+            Gl.Clear(Gl.ColorBufferBit | Gl.DepthBufferBit);
+            Gl.Viewport(0, 0, _window.GetWidth(), _window.GetHeight());
+            Matrix.RestoreProjection();
+            Matrix.ApplyPerspective(70.0f, (float)_window.GetWidth() / _window.GetHeight(), 0.1f, 3000.0f);
+            Matrix.ViewRotate((float)-playerRenderedRotation.X, new Vec3<float>(1.0f, 0.0f, 0.0f));
+            Matrix.ViewRotate((float)-playerRenderedRotation.Y, new Vec3<float>(0.0f, 1.0f, 0.0f));
+            Matrix.ViewRotate((float)-playerRenderedRotation.Z, new Vec3<float>(0.0f, 0.0f, 1.0f));
+            Matrix.ViewTranslate(-playerRenderedPosition);
 
             // Render
-            _worldRenderer.render(_player.Position);
+            _worldRenderer.Render(_player.Position);
             // mPlayer.render();
 
             Gl.Disable(Gl.DepthTest);
 
-            _guiWidgets.render();
+            _guiWidgets.Render();
 
             _fpsCounter++;
         }
 
-        private uint requestWorld()
+        private uint RequestWorld()
         {
             // TODO: change this
-            if (isClient())
+            if (IsClient())
             {
-                auto & client = context.rpc.getClient();
-                debugstream << "Connecting the server for world information...";
-                auto worldIds = client.call("getAvailableWorldId").as<std::vector < uint32_t >> ();
-                if (worldIds.empty())
+                var client = Client.ThisClient;
+                var worldIds = client.GetAvailableWorldId.Call();
+                if (worldIds.Length == 0)
                 {
-                    errorstream << "The server didn't response with any valid worlds.";
-                    assert(false);
+                    throw new Exception("The server didn't response with any valid worlds.");
                 }
 
-                debugstream << "Worlds ids fetched from the server: " << worldIds;
-                auto worldInfo = client.call("getWorldInfo", worldIds[0])
-                    .as<std::unordered_map < std::string, std::string >> ();
-                debugstream << "World info fetched from the server: "
-                "name: " << worldInfo["name"];
-                chunkService.getWorlds().addWorld(worldInfo["name"]);
+                var worldInfo = client.GetWorldInfo.Call(worldIds[0]);
+                
+                Singleton<ChunkService>.Instance.Worlds.Add(worldInfo["name"]);
             }
 
             // It's a simple wait-until-we-have-a-world procedure now.
@@ -307,7 +305,7 @@ namespace NEWorld
         }
 
         // Local server
-        private readonly std.unique_ptr<Server> mServer = nullptr;
+        private readonly Server _server;
 
         // Window
         private readonly Window _window;

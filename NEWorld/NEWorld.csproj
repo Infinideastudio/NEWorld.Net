@@ -55,6 +55,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Renderer\BlockRenderer.cs" />
     <Compile Include="Renderer\ChunkRenderer.cs" />
+    <Compile Include="Renderer\Matrix.cs" />
     <Compile Include="Renderer\WorldRenderer.cs" />
     <Compile Include="Widget.cs" />
     <Compile Include="WidgetManager.cs" />

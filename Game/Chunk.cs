@@ -19,7 +19,8 @@
 
 using System;
 using System.Collections.Generic;
-using Core;
+using System.Threading;
+using Core.Math;
 
 namespace Game
 {
@@ -34,12 +35,24 @@ namespace Game
         public const int SizeLog2 = 5;
         public const int Size = 0b100000;
 
+        public static void SetGenerator(Generator gen)
+        {
+            if (_chunkGeneratorLoaded)
+            {
+                _chunkGen = gen;
+                _chunkGeneratorLoaded = true;
+            }
+            else
+            {
+                throw new Exception("Chunk Generator Alreadly Loaded");
+            }
+        }
+
         public Chunk(Vec3<int> position, World world)
         {
             Position = position;
             World = world;
             Blocks = new BlockData[BlocksSize];
-            _mutex = new object();
             Build(world.DaylightBrightness);
         }
 
@@ -70,44 +83,13 @@ namespace Game
         }
 
         // Reference Counting
-        public void MarkRequest()
-        {
-            lock (_mutex)
-            {
-                _mLastRequestTime = DateTime.Now;
-            }
-        }
+        public void MarkRequest() => _mLastRequestTime = DateTime.Now.Ticks;
 
-        public void IncreaseRef()
-        {
-            lock (_mutex)
-            {
-                ++_mReferenceCount;
-            }
-        }
-
-        public void DecreaseRef()
-        {
-            lock (_mutex)
-            {
-                --_mReferenceCount;
-            }
-        }
-
-        public bool CheckReleaseable()
-        {
-            lock (_mutex)
-            {
-                return DateTime.Now - _mLastRequestTime > TimeSpan.FromSeconds(10) && _mReferenceCount <= 0;
-            }
-        }
-
-        private object _mutex;
+        public bool CheckReleaseable() => 
+            DateTime.Now - new DateTime(Interlocked.Read(ref _mLastRequestTime)) > TimeSpan.FromSeconds(10);
 
         // For Garbage Collection
-        private int _mReferenceCount;
-
-        private DateTime _mLastRequestTime;
+        private long _mLastRequestTime;
     }
 
     [Serializable]

@@ -21,28 +21,28 @@ using System.Collections.Generic;
 
 namespace NEWorld
 {
-    class WidgetManager : Dictionary<string, Widget>
+    internal class WidgetManager : Dictionary<string, Widget>
     {
 
-        public WidgetManager(NkSdl nkctx) => mNkContext = nkctx;
+        public WidgetManager(NkSdl nkctx) => _mNkContext = nkctx;
 
-        public void render()
+        public void Render()
         {
             foreach (var widget in this)
-            widget.Value._render(mNkContext);
-            mNkContext.End();
+            widget.Value._render(_mNkContext);
+            _mNkContext.End();
             // TODO: add an option to adjust the arguments
-            mNkContext.Draw();
+            _mNkContext.Draw();
         }
 
-        public void update()
+        public void Update()
         {
             foreach (var widget in this)
-            widget.Value.update();
+            widget.Value.Update();
         }
 
         public void Add(Widget widget) => Add(widget.Name, widget);
 
-        private readonly NkSdl mNkContext;
+        private readonly NkSdl _mNkContext;
     };
 }

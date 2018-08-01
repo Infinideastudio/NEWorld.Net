@@ -15,6 +15,7 @@
 // limitations under the License.
 
 using Core;
+using Core.Math;
 
 namespace OpenGL
 {

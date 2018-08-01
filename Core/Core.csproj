@@ -44,10 +44,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Aabb.cs" />
-    <Compile Include="Arithmetic.cs" />
-    <Compile Include="Compare.cs" />
+    <Compile Include="Generic.cs" />
     <Compile Include="EndianCheck.cs" />
-    <Compile Include="Mat4.cs" />
+    <Compile Include="Math\Mat4.cs" />
+    <Compile Include="Math\Vector.cs" />
     <Compile Include="Network\Client.cs" />
     <Compile Include="Network\ConnectionHost.cs" />
     <Compile Include="Network\Protocol.cs" />
@@ -59,11 +59,6 @@
     <Compile Include="Singleton.cs" />
     <Compile Include="SingletonException.cs" />
     <Compile Include="StrictDispose.cs" />
-    <Compile Include="Utilities.cs" />
-    <Compile Include="Vector.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Math.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

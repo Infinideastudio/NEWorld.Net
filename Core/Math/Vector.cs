@@ -20,10 +20,10 @@
 using System;
 using System.Collections.Generic;
 
-namespace Core
+namespace Core.Math
 {
     using static Generic;
-
+    
     public struct Vec2<T> : IEquatable<Vec2<T>>
     {
         public Vec2(T x, T y)
@@ -36,7 +36,7 @@ namespace Core
 
         public double LengthSqr() => Square(X) + Square(Y);
 
-        public double Length() => Math.Sqrt(LengthSqr());
+        public double Length() => System.Math.Sqrt(LengthSqr());
 
         public void Normalize()
         {

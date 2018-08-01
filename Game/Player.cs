@@ -18,6 +18,7 @@
 // 
 
 using Core;
+using Core.Math;
 
 namespace Game
 {
@@ -40,7 +41,7 @@ namespace Game
         }
 
         public Player(uint worldId) : base(worldId) =>
-            Singleton<ChunkService>.Instance.TaskDispatcher.AddRegularReadOnlyTask(new PlayerUpdateTask(this, WorldId));
+            Singleton<ChunkService>.Instance.TaskDispatcher.AddRegular(new PlayerUpdateTask(this, WorldId));
 
         public void Accelerate(Vec3<double> acceleration) => _speed += acceleration;
 

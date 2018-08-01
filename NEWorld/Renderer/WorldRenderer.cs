@@ -17,9 +17,10 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Core;
+using Core.Math;
 using Game;
 using OpenGL;
 
@@ -28,7 +29,7 @@ namespace NEWorld.Renderer
     /**
      * \brief Manage the VBO of a world. It includes ChunkRenderer.
      */
-    public class WorldRenderer
+    public class WorldRenderer : IDisposable
     {
         public const int MaxChunkRenderCount = 4;
 
@@ -60,8 +61,8 @@ namespace NEWorld.Renderer
                         {
                             // TODO: maybe build a VA pool can speed this up.
                             var crd = new ChunkRenderData();
-                            crd.generate(chunk);
-                            cs.TaskDispatcher.AddRenderTask(new VboGenerateTask(world, chunkPosition, crd,
+                            crd.Generate(chunk);
+                            cs.TaskDispatcher.Add(new VboGenerateTask(world, chunkPosition, crd,
                                 _worldRenderer.ChunkRenderers));
                             if (counter++ == 3) break;
                         }
@@ -134,18 +135,66 @@ namespace NEWorld.Renderer
         {
             _world = world;
             RenderDist = renderDistance;
+            ChunkRenderers = new Dictionary<Vec3<int>, ChunkRenderer>();
+            _prog = new Program();
+            using (Shader vertex = new Shader(Gl.VertexShader, @"
+#version 450 core
+layout(shared, row_major) uniform;
+layout (std140, binding = 0) uniform vertexMvp { mat4 ProjMtx; };
+layout (location = 0) in vec3 Position;
+layout (location = 1) in vec2 TexCoord;
+layout (location = 2) in vec4 Color;
+out vec2 Frag_UV;
+out vec4 Frag_Color;
+void main() {
+   Frag_UV = TexCoord;
+   Frag_Color = Color;
+   gl_Position = ProjMtx * vec4(Position.xyz, 1);
+}"),
+                fragment = new Shader(Gl.FragmentShader, @"
+#version 450 core
+precision mediump float;
+layout (binding = 1) uniform sampler2D Texture;
+in vec2 Frag_UV;
+in vec4 Frag_Color;
+out vec4 Out_Color;
+void main(){
+   Out_Color = Frag_Color * texture(Texture, Frag_UV.st);
+}"))
+                _prog.Link(new[] {vertex, fragment});
+            
+            _ubo = new DataBuffer(16 * sizeof(float));
+            _vao = new VertexArray();
+
+            _vao.EnableAttrib(0);
+            _vao.EnableAttrib(1);
+            _vao.EnableAttrib(2);
+            _vao.AttribFormat(0, 3, Gl.Float, false, 5 * sizeof(float));
+            _vao.AttribFormat(1, 2, Gl.Float, false, 0);
+            _vao.AttribFormat(2, 3, Gl.Float, false, 2 * sizeof(float));
+            _vao.AttribBinding(0, 0);
+            _vao.AttribBinding(1, 0);
+            _vao.AttribBinding(2, 0);
+        }
+
+        public void RenderBuffer(ConstDataBuffer buffer, int verts)
+        {
+            _vao.BindBuffer(0, buffer, 0, 8 * sizeof(float));
+            Gl.DrawArrays(Gl.Quads, 0, verts);
         }
 
         // Render all chunks
-        public int render(Vec3<int> position)
+        private int Render(Vec3<int> position)
         {
             var chunkPending = new List<KeyValuePair<Vec3<int>, ChunkRenderer>>();
 
             var chunkpos = World.GetChunkPos(position);
+            _vao.Use();
+            _ubo.BindBase(Gl.UniformBuffer, 0);
             foreach (var c in ChunkRenderers)
             {
                 if (chunkpos.ChebyshevDistance(c.Key) > RenderDist) continue;
-                c.Value.render(c.Key);
+                c.Value.Render(c.Key, this);
                 chunkPending.Add(c);
             }
 
@@ -153,15 +202,19 @@ namespace NEWorld.Renderer
             Gl.BlendFunc(Gl.SrcAlpha, Gl.OneMinusSrcAlpha);
             foreach (var c in chunkPending)
             {
-                c.Value.renderTrans(c.Key);
+                c.Value.RenderTrans(c.Key, this);
             }
 
             Gl.Disable(Gl.Blend);
             return chunkPending.Count;
         }
 
-        public void registerTask(ChunkService chunkService, Player player) => 
-            chunkService.TaskDispatcher.AddRegularReadOnlyTask(new RenderDetectorTask(this, _world.Id, player));
+        public int Render(Vec3<double> v) => Render(new Vec3<int>((int) v.X, (int) v.Y, (int) v.Z)); 
+
+        public void RegisterTask(ChunkService chunkService, Player player) => 
+            chunkService.TaskDispatcher.AddRegular(new RenderDetectorTask(this, _world.Id, player));
+
+        public void FlushMatrix() => Matrix.Flush(_ubo);
 
         private readonly World _world;
 
@@ -170,5 +223,17 @@ namespace NEWorld.Renderer
 
         // Chunk Renderers
         public Dictionary<Vec3<int>, ChunkRenderer> ChunkRenderers;
+        private Program _prog;
+        private VertexArray _vao;
+        private DataBuffer _ubo;
+
+        public void Dispose()
+        {
+            _prog?.Dispose();
+            _vao?.Dispose();
+            _ubo?.Dispose();
+            foreach (var renderer in ChunkRenderers)
+                renderer.Value.Dispose();
+        }
     }
 }

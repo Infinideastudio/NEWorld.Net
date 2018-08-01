@@ -14,7 +14,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using Core;
+using Core.Math;
 
 namespace OpenGL
 {
@@ -35,7 +37,7 @@ namespace OpenGL
         internal delegate void TextureStorage2DProc(uint texture, int levels, uint format, int width, int height);
 
         internal delegate void TextureSubImage2DProc(uint texture, int level, int xoffset, int yoffset, int width,
-            int height, uint format, uint type, byte[] pixels);
+            int height, uint format, uint type, IntPtr pixels);
 
         internal static CreateTexturesProc CreateTextures;
         internal static DeleteTexturesProc DeleteTextures;
@@ -122,9 +124,16 @@ namespace OpenGL
 
         public void Use(uint slot) => Gl.BindTextureUnit(slot, _hdc);
 
-        public void Image(int level, Rect<int> area, PixelTypes format, PixelDataFormats type, byte[] data) =>
-            Gl.TextureSubImage2D(_hdc, level, area.Min.X, area.Max.Y, area.Delta.X, area.Delta.Y, (uint) format,
-                (uint) type, data);
+        public static void UseRaw(uint slot, uint handle) => Gl.BindTextureUnit(slot, handle);
+
+        public unsafe void Image(int level, Rect<int> area, PixelTypes format, PixelDataFormats type, byte[] data)
+        {
+            fixed (byte* ptr = &data[0])
+            {
+                Gl.TextureSubImage2D(_hdc, level, area.Min.X, area.Min.Y, area.Delta.X, area.Delta.Y, (uint) format,
+                    (uint) type, (IntPtr) ptr);
+            }
+        }
 
         public uint Raw() => _hdc;
 

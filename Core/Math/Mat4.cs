@@ -17,10 +17,9 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
-using System;
 using System.Collections.Generic;
 
-namespace Core
+namespace Core.Math
 {
     public struct Mat4F
     {
@@ -153,7 +152,7 @@ namespace Core
                 var p = i;
                 for (var j = i + 1; j < 4; j++)
                 {
-                    if (Math.Abs(Data[j * 4 + i]) > Math.Abs(Data[p * 4 + i])) p = j;
+                    if (System.Math.Abs(Data[j * 4 + i]) > System.Math.Abs(Data[p * 4 + i])) p = j;
                 }
 
                 res.SwapRows(i, p);
@@ -198,8 +197,8 @@ namespace Core
         {
             vec.Normalize();
             var alpha = degrees * Pi / 180.0f;
-            var s = (float) Math.Sin(alpha);
-            var c = (float) Math.Cos(alpha);
+            var s = (float) System.Math.Sin(alpha);
+            var c = (float) System.Math.Cos(alpha);
             var t = 1.0f - c;
             return new Mat4F(0.0f)
             {
@@ -222,7 +221,7 @@ namespace Core
         // Construct a perspective projection matrix
         public static Mat4F Perspective(float fov, float aspect, float zNear, float zFar)
         {
-            var f = 1.0f / Math.Tan(fov * Pi / 180.0 / 2.0);
+            var f = 1.0f / System.Math.Tan(fov * Pi / 180.0 / 2.0);
             var a = zNear - zFar;
             return new Mat4F(0.0f)
             {
@@ -399,7 +398,7 @@ namespace Core
                 var p = i;
                 for (var j = i + 1; j < 4; j++)
                 {
-                    if (Math.Abs(Data[j * 4 + i]) > Math.Abs(Data[p * 4 + i])) p = j;
+                    if (System.Math.Abs(Data[j * 4 + i]) > System.Math.Abs(Data[p * 4 + i])) p = j;
                 }
 
                 res.SwapRows(i, p);
@@ -444,8 +443,8 @@ namespace Core
         {
             vec.Normalize();
             var alpha = degrees * Pi / 180.0f;
-            var s = Math.Sin(alpha);
-            var c = Math.Cos(alpha);
+            var s = System.Math.Sin(alpha);
+            var c = System.Math.Cos(alpha);
             var t = 1.0f - c;
             return new Mat4D(0.0f)
             {
@@ -468,7 +467,7 @@ namespace Core
         // Construct a perspective projection matrix
         public static Mat4D Perspective(double fov, double aspect, double zNear, double zFar)
         {
-            var f = 1.0f / Math.Tan(fov * Pi / 180.0 / 2.0);
+            var f = 1.0f / System.Math.Tan(fov * Pi / 180.0 / 2.0);
             var a = zNear - zFar;
             return new Mat4D(0.0f)
             {

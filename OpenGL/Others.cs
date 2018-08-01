@@ -33,6 +33,8 @@ namespace OpenGL
         public delegate void ViewportProc(int x, int y, int width, int height);
 
         public delegate void ClearColorProc(float red, float green, float blue, float alpha);
+        
+        public delegate void ClearDepthProc(float depth);
 
         public delegate void ClearProc(uint mask);
 
@@ -41,6 +43,10 @@ namespace OpenGL
         public delegate void EnableProc(uint cap);
 
         public delegate void DisableProc(uint cap);
+        
+        public delegate void DepthFuncProc(uint cap);
+        
+        public delegate void CullFaceProc(uint cap);
 
         public delegate void BlendEquationProc(uint mode);
 
@@ -51,9 +57,12 @@ namespace OpenGL
         public static ViewportProc Viewport;
         public static ClearColorProc ClearColor;
         public static ClearProc Clear;
+        public static ClearDepthProc ClearDepth;
         public static LineWidthProc LineWidth;
         public static EnableProc Enable;
         public static DisableProc Disable;
+        public static DepthFuncProc DepthFunc;
+        public static CullFaceProc CullFaceOption;
         public static BlendEquationProc BlendEquation;
         public static BlendFuncProc BlendFunc;
         public static ScissorProc Scissor;
@@ -65,6 +74,7 @@ namespace OpenGL
             // Context
             Viewport = Get<ViewportProc>("glViewport");
             ClearColor = Get<ClearColorProc>("glClearColor");
+            ClearDepth = Get<ClearDepthProc>("glClearDepth");
             Clear = Get<ClearProc>("glClear");
             LineWidth = Get<LineWidthProc>("glLineWidth");
             Enable = Get<EnableProc>("glEnable");
@@ -73,6 +83,8 @@ namespace OpenGL
             BlendFunc = Get<BlendFuncProc>("glBlendFunc");
             Scissor = Get<ScissorProc>("glScissor");
             DrawElements = Get<DrawElementsProc>("glDrawElements");
+            DepthFunc = Get<DepthFuncProc>("glDepthFunc");
+            CullFaceOption = Get<CullFaceProc>("glCullFace");
         }
     }
 }

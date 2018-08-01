@@ -29,6 +29,15 @@ namespace Core.Network
         public abstract string Name();
 
         public abstract void HandleRequest(NetworkStream nstream);
+        
+        protected static byte[] Request(int protocol) => new[]
+        {
+            (byte) 'N', (byte) 'W', (byte) 'R', (byte) 'C',
+            (byte) (protocol >> 24),
+            (byte) (protocol >> 16 & 0xFF),
+            (byte) (protocol >> 18 & 0xFF),
+            (byte) (protocol & 0xFF)
+        };
 
         protected static byte[] Request(int protocol, ArraySegment<byte> message) => Concat(message, new[]
         {
@@ -38,7 +47,7 @@ namespace Core.Network
             (byte) (protocol >> 18 & 0xFF),
             (byte) (protocol & 0xFF)
         });
-
+        
         protected static byte[] Reply(int requestSession, ArraySegment<byte> message) => Concat(message, new[]
         {
             (byte) 'N', (byte) 'W', (byte) 'R', (byte) 'C',

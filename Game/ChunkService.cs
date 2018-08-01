@@ -35,11 +35,15 @@ namespace Game
          *                    and in the server-side of the multiplayer mode
          *                    are authoritative.
          */
-        public ChunkService(bool isAuthority)
+        protected ChunkService(bool isAuthority)
         {
             IsAuthority = isAuthority;
             Worlds = new WorldManager();
             TaskDispatcher = new TaskDispatcher(4, this);
+        }
+
+        private ChunkService() : this(false)
+        {
         }
 
         public TaskDispatcher TaskDispatcher { get; }

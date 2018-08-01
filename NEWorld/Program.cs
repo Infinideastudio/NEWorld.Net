@@ -23,23 +23,23 @@ namespace NEWorld
     {
         public NEWorld()
         {
-            Window.getInstance("NEWorld", 852, 480);
+            Window.GetInstance("NEWorld", 852, 480);
         }
 
-        public void run()
+        public void Run()
         {
             var fps = 60;
             var shouldLimitFps = true;
             var delayPerFrame = (uint)(1000 / fps - 0.5);
-            var window = Window.getInstance("NEWorld", 852, 480);
+            var window = Window.GetInstance("NEWorld", 852, 480);
             var game = new GameScene("TestWorld", window);
-            while (!window.shouldQuit())
+            while (!window.ShouldQuit())
             {
                 // Update
-                window.pollEvents();
+                window.PollEvents();
                 // Render
-                game.render();
-                window.swapBuffers();
+                game.Render();
+                window.SwapBuffers();
                 if (shouldLimitFps) 
                     SDL2.SDL.SDL_Delay(delayPerFrame);
             }
@@ -48,7 +48,7 @@ namespace NEWorld
         public static void Main(string[] args)
         {
             var instance = new NEWorld();
-            instance.run();
+            instance.Run();
         }
     }
 }

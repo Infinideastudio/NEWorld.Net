@@ -21,6 +21,7 @@ namespace OpenGL
 {
     public static partial class Gl
     {
+        public const uint Quads = 0x0007;
         public const uint Byte = 0x1400;
         public const uint UnsignedByte = 0x1401;
         public const uint Short = 0x1402;
@@ -47,6 +48,22 @@ namespace OpenGL
         public const uint CullFace = 0x0B44;
         public const uint DepthTest = 0x0B71;
         public const uint ScissorTest = 0x0C11;
+        public const uint FrontLeft = 0x0400;
+        public const uint FrontRight = 0x0401;
+        public const uint BackLeft = 0x0402;
+        public const uint BackRight = 0x0403;
+        public const uint Front = 0x0404;
+        public const uint Back = 0x0405;
+        public const uint Left = 0x0406;
+        public const uint Right = 0x0407;
+        public const uint FrontAndBack = 0x0408;
+        public const uint Less = 0x0201;
+        public const uint Equal = 0x0202;
+        public const uint Lequal = 0x0203;
+        public const uint Greater = 0x0204;
+        public const uint Notequal = 0x0205;
+        public const uint Gequal = 0x0206;
+        public const uint Always = 0x0207;
 
         public static byte[] Utf8ToNative(string s) => s == null ? null : Encoding.UTF8.GetBytes(s + "\0");
 

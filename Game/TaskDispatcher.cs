@@ -95,37 +95,38 @@ namespace Game
             _threads = new List<Thread>(_threadNumber);
             for (var i = 0; i < _threadNumber; ++i)
             {
-                var trd = new Thread(() => { Worker(i); });
+                var i1 = i;
+                var trd = new Thread(() => { Worker(i1); });
                 trd.Start();
                 _threads.Add(trd);
             }
         }
 
-        public void AddReadOnlyTask(IReadOnlyTask task)
+        public void Add(IReadOnlyTask task)
         {
             lock (_mutex)
                 _nextReadOnlyTasks.Add(task);
         }
 
-        public void AddReadWriteTask(IReadWriteTask task)
+        public void Add(IReadWriteTask task)
         {
             lock (_mutex)
                 _nextReadWriteTasks.Add(task);
         }
 
-        public void AddRenderTask(IRenderTask task)
+        public void Add(IRenderTask task)
         {
             lock (_mutex)
                 _nextRenderTasks.Add(task);
         }
 
-        public void AddRegularReadOnlyTask(IReadOnlyTask task)
+        public void AddRegular(IReadOnlyTask task)
         {
             lock (_mutex)
                 _regularReadOnlyTasks.Add(task);
         }
 
-        public void AddRegularReadWriteTask(IReadWriteTask task)
+        public void AddRegular(IReadWriteTask task)
         {
             lock (_mutex)
                 _regularReadWriteTasks.Add(task);

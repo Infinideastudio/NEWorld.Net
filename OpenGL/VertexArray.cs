@@ -50,7 +50,6 @@ namespace OpenGL
 
         static partial void InitVertexArray()
         {
-            CreateVertexArrays = Get<CreateVertexArraysProc>("glCreateVertexArrays");
             DeleteVertexArrays = Get<DeleteVertexArraysProc>("glDeleteVertexArrays");
             BindVertexArray = Get<BindVertexArrayProc>("glBindVertexArray");
             EnableVertexArrayAttrib = Get<EnableVertexArrayAttribProc>("glEnableVertexArrayAttrib");
@@ -60,6 +59,7 @@ namespace OpenGL
             VertexArrayAttribBinding =
                 Get<VertexArrayAttribBindingProc>("glVertexArrayAttribBinding");
             VertexArrayVertexBuffer = Get<VertexArrayVertexBufferProc>("glVertexArrayVertexBuffer");
+            CreateVertexArrays = Get<CreateVertexArraysProc>("glCreateVertexArrays");
         }
     }
 
@@ -98,6 +98,9 @@ namespace OpenGL
             Gl.VertexArrayAttribBinding(_hdc, attribIndex, bufferIndex);
 
         public void BindBuffer(uint index, DataBuffer buffer, uint offset, int stride) =>
+            Gl.VertexArrayVertexBuffer(_hdc, index, buffer.Raw(), (UIntPtr) offset, stride);
+        
+        public void BindBuffer(uint index, ConstDataBuffer buffer, uint offset, int stride) =>
             Gl.VertexArrayVertexBuffer(_hdc, index, buffer.Raw(), (UIntPtr) offset, stride);
 
         public uint Raw() => _hdc;

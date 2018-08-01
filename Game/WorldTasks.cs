@@ -17,7 +17,9 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
+using System.Collections.Generic;
 using Core;
+using Core.Math;
 
 namespace Game
 {
@@ -65,7 +67,7 @@ namespace Game
             }
         }
 
-        private class AddToWorldTask : IReadWriteTask
+        public class AddToWorldTask : IReadWriteTask
         {
             /**
              * \brief Add a constructed chunk into world.
@@ -136,7 +138,7 @@ namespace Game
                 // TODO: should try to load from local first
                 chunk = new Chunk(_chunkPosition, _world);
                 // Add addToWorldTask
-                srv.TaskDispatcher.AddReadWriteTask(new AddToWorldTask(_world.Id, chunk));
+                srv.TaskDispatcher.Add(new AddToWorldTask(_world.Id, chunk));
             }
 
             private World _world;
@@ -184,6 +186,8 @@ namespace Game
 
             public void Task(ChunkService cs)
             {
+                var list = new List<int>();
+                list.GetEnumerator();
                 var loadList = new OrderedListIntLess<Vec3<int>>(MaxChunkLoadCount);
                 var unloadList = new OrderedListIntGreater<Chunk>(MaxChunkUnloadCount);
                 var playerPos = _player.Position;
@@ -196,19 +200,18 @@ namespace Game
                 {
                     if (cs.IsAuthority)
                     {
-                        cs.TaskDispatcher.AddReadOnlyTask(new BuildOrLoadChunkTask(_world, loadPos.Value));
+                        cs.TaskDispatcher.Add(new BuildOrLoadChunkTask(_world, loadPos.Value));
                     }
                     else
                     {
-                        cs.TaskDispatcher.AddReadOnlyTask(new RpcGetChunkTask(_world, loadPos.Value));
+                        cs.TaskDispatcher.Add(new RpcGetChunkTask(_world, loadPos.Value));
                     }
                 }
 
                 foreach (var unloadChunk in unloadList)
                 {
                     // add a unload task.
-                    cs.TaskDispatcher.AddReadWriteTask(new UnloadChunkTask(_world, unloadChunk.Value.Position)
-                    );
+                    cs.TaskDispatcher.Add(new UnloadChunkTask(_world, unloadChunk.Value.Position));
                 }
             }
 
@@ -219,6 +222,6 @@ namespace Game
         }
 
         public void RegisterChunkTasks(ChunkService cs, Player player) =>
-            cs.TaskDispatcher.AddRegularReadOnlyTask(new LoadUnloadDetectorTask(this, player));
+            cs.TaskDispatcher.AddRegular(new LoadUnloadDetectorTask(this, player));
     }
 }
