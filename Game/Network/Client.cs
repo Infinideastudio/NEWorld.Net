@@ -17,7 +17,7 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
-namespace Game
+namespace Game.Network
 {
     public class Client
     {
@@ -35,7 +35,7 @@ namespace Game
         public readonly GetWorldInfo.Client GetWorldInfo;
         public static Client ThisClient { get; private set; }
 
-        static public void EnableClient(string address, int port) => ThisClient = new Client(address, port);
+        public static void EnableClient(string address, int port) => ThisClient = new Client(address, port);
 
         public void Stop()
         {

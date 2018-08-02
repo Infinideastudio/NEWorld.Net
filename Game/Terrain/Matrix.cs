@@ -18,9 +18,8 @@
 // 
 
 using Core.Math;
-using OpenGL;
 
-namespace NEWorld.Renderer
+namespace Game.Terrain
 {
     public static class Matrix
     {
@@ -55,7 +54,7 @@ namespace NEWorld.Renderer
 
         public static void ModelTranslate(Vec3<int> diff) => _model *= Mat4F.Translation(Conv(diff));
 
-        public static void Flush(DataBuffer buffer) => buffer.DataSection(0, (_model * _view * _projection).Data);
+        public static Mat4F Get() => _model * _view * _projection;
 
         private static Vec3<float> Conv(Vec3<double> v) => new Vec3<float>((float) v.X, (float) v.Y, (float) v.Z);
         

@@ -17,12 +17,11 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
+using System;
 using Core.Math;
 
-namespace Core
+namespace Game.Utilities
 {
-    using static System.Math;
-
     public struct Aabb
     {
         // Min bound, Max bound
@@ -73,9 +72,9 @@ namespace Core
             if (!(IntersectY(ref box) && IntersectZ(ref box)))
                 return orgmove;
             if (Min.X >= box.Max.X && orgmove < 0.0)
-                return Max(box.Max.X - Min.X, orgmove);
+                return Math.Max(box.Max.X - Min.X, orgmove);
             if (Max.X <= box.Min.X && orgmove > 0.0)
-                return Min(box.Min.X - Max.X, orgmove);
+                return Math.Min(box.Min.X - Max.X, orgmove);
 
             return orgmove;
         }
@@ -86,9 +85,9 @@ namespace Core
             if (!(IntersectX(ref box) && IntersectZ(ref box)))
                 return orgmove;
             if (Min.Y >= box.Max.Y && orgmove < 0.0)
-                return Max(box.Max.Y - Min.Y, orgmove);
+                return Math.Max(box.Max.Y - Min.Y, orgmove);
             if (Max.Y <= box.Min.Y && orgmove > 0.0)
-                return Min(box.Min.Y - Max.Y, orgmove);
+                return Math.Min(box.Min.Y - Max.Y, orgmove);
 
             return orgmove;
         }
@@ -99,9 +98,9 @@ namespace Core
             if (!(IntersectX(ref box) && IntersectY(ref box)))
                 return orgmove;
             if (Min.Z >= box.Max.Z && orgmove < 0.0)
-                return Max(box.Max.Z - Min.Z, orgmove);
+                return Math.Max(box.Max.Z - Min.Z, orgmove);
             if (Max.Z <= box.Min.Z && orgmove > 0.0)
-                return Min(box.Min.Z - Max.Z, orgmove);
+                return Math.Min(box.Min.Z - Max.Z, orgmove);
 
             return orgmove;
         }

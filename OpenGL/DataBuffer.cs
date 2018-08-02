@@ -15,7 +15,7 @@
 // limitations under the License.
 
 using System;
-using Core;
+using Core.Utilities;
 
 namespace OpenGL
 {

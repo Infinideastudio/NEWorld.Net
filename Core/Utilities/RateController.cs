@@ -20,7 +20,7 @@
 using System;
 using System.Threading;
 
-namespace Core
+namespace Core.Utilities
 {
     /**
      * \brief Rate Control Helper. Used to controll task execution rate

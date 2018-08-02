@@ -22,8 +22,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Core;
 using Core.Math;
+using Game.Utilities;
 
-namespace Game
+namespace Game.World
 {
     public partial class World
     {
@@ -95,8 +96,6 @@ namespace Game
 
         public Chunk ResetChunk(ref Vec3<int> pos, Chunk ptr) => Chunks[pos] = ptr;
 
-        public Chunk AddChunk(ref Vec3<int> chunkPos) => InsertChunk(ref chunkPos, new Chunk(chunkPos, this));
-
         private readonly Vec3<double> _hitboxOffset = new Vec3<double>(1.0, 1.0, 1.0);
 
         public List<Aabb> GetHitboxes(Aabb range)
@@ -132,16 +131,7 @@ namespace Game
                         Chunks.Remove(kvPair.Key);
             }
         }
-
-        /**
-         * \brief Find chunks that needs to be loaded or unloaded
-         * \param playerPosition the position of the player, which will be used
-         *                       as the center position.
-         * \note Read-only and does not involve OpenGL operation.
-         *       *this will be used as the target world.
-         * TODO: change to adapt multiplayer mode
-         */
-
+        
         protected static uint IdCount;
 
         // All Chunks (Chunk array)

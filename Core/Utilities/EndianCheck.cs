@@ -17,7 +17,7 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
-namespace Core
+namespace Core.Utilities
 {
     public static class EndianCheck
     {
@@ -30,7 +30,7 @@ namespace Core
             if (!_isEndianChecked)
             {
                 _isEndianChecked = true;
-                int nCheck = 0x01aa;
+                const int nCheck = 0x01aa;
                 _isBigEndian = (nCheck & 0xff) == 0x01;
             }
 

@@ -17,7 +17,7 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
-namespace Game
+namespace Game.World
 {
     public struct BlockData
     {

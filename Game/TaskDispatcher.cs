@@ -20,6 +20,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using Core;
+using Core.Utilities;
 
 namespace Game
 {
@@ -215,8 +216,10 @@ namespace Game
 
         // TODO: replace it with lock-free structure.
         private readonly object _mutex;
-        private List<IReadOnlyTask> _readOnlyTasks, _nextReadOnlyTasks, _regularReadOnlyTasks;
-        private List<IReadWriteTask> _readWriteTasks, _nextReadWriteTasks, _regularReadWriteTasks;
+        private List<IReadOnlyTask> _readOnlyTasks, _nextReadOnlyTasks;
+        private readonly List<IReadOnlyTask> _regularReadOnlyTasks;
+        private List<IReadWriteTask> _readWriteTasks, _nextReadWriteTasks;
+        private readonly List<IReadWriteTask> _regularReadWriteTasks;
         private List<IRenderTask> _renderTasks, _nextRenderTasks;
         private List<Thread> _threads;
         private readonly int _threadNumber;
@@ -224,6 +227,6 @@ namespace Game
         private int _numberOfUnfinishedThreads;
         private bool _shouldExit;
 
-        private ChunkService _chunkService;
+        private readonly ChunkService _chunkService;
     }
 }

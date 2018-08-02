@@ -17,13 +17,36 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
-using Core;
+using System;
+using System.Runtime.InteropServices;
 using Core.Math;
-using Game;
+using Core.Utilities;
+using Game.Terrain;
+using Game.World;
 using OpenGL;
 
 namespace NEWorld.Renderer
 {
+    public class VertexBuilder : IVertexBuilder
+    {
+        public VertexBuilder(int size) => Data = Marshal.AllocHGlobal(size * sizeof(float));
+
+        ~VertexBuilder() => Marshal.FreeHGlobal(Data);
+
+        public void AddPrimitive(int verts, params float[] data)
+        {
+            VertCount += verts;
+            Marshal.Copy(data, 0, Data + Size * sizeof(float), data.Length);
+            Size += data.Length;
+        }
+
+        public ConstDataBuffer Dump() => VertCount > 0 ? new ConstDataBuffer(Size * sizeof(float), Data) : null;
+
+        public int Size;
+        public int VertCount;
+        public readonly IntPtr Data;
+    }
+
     /**
      * \brief It stores all the render data (VA) used to render a chunk.
      *        But it does not involve OpenGL operations so it can be
@@ -52,14 +75,14 @@ namespace NEWorld.Renderer
             {
                 var b = chunk[tmp];
                 var target = Blocks.Index[b.Id].IsTranslucent ? VaTranslucent : VaOpacity;
-                BlockRendererManager.Render(target, b.Id, chunk, tmp);
+                BlockRenderers.Render(target, b.Id, chunk, tmp);
             }
         }
 
         public VertexBuilder VaOpacity { get; } // {262144, VertexFormat(2, 3, 0, 3)};
 
         public VertexBuilder VaTranslucent { get; } //{262144, VertexFormat(2, 3, 0, 3)};
-    };
+    }
 
     /**
      * \brief The renderer that can be used to render directly. It includes
@@ -78,8 +101,7 @@ namespace NEWorld.Renderer
          */
         public void Update(ChunkRenderData data)
         {
-            if (_buffer.Valid()) _buffer.Dispose();
-            if (_bufferTrans.Valid()) _bufferTrans.Dispose();
+            Release();
             _buffer = data.VaOpacity.Dump();
             _bufferTrans = data.VaTranslucent.Dump();
             _normCount = data.VaOpacity.VertCount;
@@ -88,8 +110,8 @@ namespace NEWorld.Renderer
 
         protected override void Release()
         {
-            if (_buffer.Valid()) _buffer.Dispose();
-            if (_bufferTrans.Valid()) _bufferTrans.Dispose();
+            _buffer?.Dispose();
+            _bufferTrans?.Dispose();
         }
 
         // Draw call
@@ -118,5 +140,5 @@ namespace NEWorld.Renderer
         // Vertex buffer object
         private int _normCount, _transCount;
         private ConstDataBuffer _buffer, _bufferTrans;
-    };
+    }
 }

@@ -48,10 +48,10 @@ namespace Core
             foreach (var point in args)
             {
                 object boxX = point.X, boxY = point.Y;
-                MinEqual(ref minX, boxX);
-                MinEqual(ref minY, boxY);
-                MaxEqual(ref maxX, boxX);
-                MaxEqual(ref maxY, boxY);
+                MinEqual(minX, boxX);
+                MinEqual(minY, boxY);
+                MaxEqual(maxX, boxX);
+                MaxEqual(maxY, boxY);
             }
 
             Min = new Vec2<T>((T) minX, (T) minY);
@@ -65,10 +65,10 @@ namespace Core
             for (var i = 2; i < args.Length; ++i)
             {
                 object boxX = args[i++], boxY = args[i];
-                MinEqual(ref minX, boxX);
-                MinEqual(ref minY, boxY);
-                MaxEqual(ref maxX, boxX);
-                MaxEqual(ref maxY, boxY);
+                MinEqual(minX, boxX);
+                MinEqual(minY, boxY);
+                MaxEqual(maxX, boxX);
+                MaxEqual(maxY, boxY);
             }
 
             Min = new Vec2<T>((T) minX, (T) minY);

@@ -18,9 +18,8 @@
 // 
 
 using System;
-using SDL2;
 using OpenGL;
-using static NuklearSharp.Nuklear;
+using SDL2;
 
 namespace NEWorld
 {
@@ -142,11 +141,11 @@ namespace NEWorld
         public static Window GetInstance(string title = "", int width = 0, int height = 0) => 
             _win ?? (_win = new Window(title, width, height));
 
-        private string _title;
+        private readonly string _title;
         private int _width, _height;
         private MouseState _mouse, _prevMouse;
         private bool _shouldQuit;
         private readonly IntPtr _window, _context;
         private readonly NkSdl _nuklearContext;
-    };
+    }
 }

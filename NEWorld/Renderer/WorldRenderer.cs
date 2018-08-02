@@ -22,6 +22,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Math;
 using Game;
+using Game.Terrain;
+using Game.World;
 using OpenGL;
 
 namespace NEWorld.Renderer
@@ -63,19 +65,9 @@ namespace NEWorld.Renderer
                             var crd = new ChunkRenderData();
                             crd.Generate(chunk);
                             cs.TaskDispatcher.Add(new VboGenerateTask(world, chunkPosition, crd,
-                                _worldRenderer.ChunkRenderers));
+                                _worldRenderer._chunkRenderers));
                             if (counter++ == 3) break;
                         }
-                    }
-                    else
-                    {
-                        // TODO: Unload unneeded VBO.
-                        //       We can't do it here since it's not thread safe
-                        /*
-                        auto iter = mChunkRenderers.find(chunkPosition);
-                        if (iter != mChunkRenderers.end())
-                        mChunkRenderers.erase(iter);
-                        */
                     }
                 }
             }
@@ -130,12 +122,11 @@ namespace NEWorld.Renderer
             private readonly Dictionary<Vec3<int>, ChunkRenderer> _chunkRenderers;
         }
 
-
         public WorldRenderer(World world, int renderDistance)
         {
             _world = world;
             RenderDist = renderDistance;
-            ChunkRenderers = new Dictionary<Vec3<int>, ChunkRenderer>();
+            _chunkRenderers = new Dictionary<Vec3<int>, ChunkRenderer>();
             _prog = new Program();
             using (Shader vertex = new Shader(Gl.VertexShader, @"
 #version 450 core
@@ -191,7 +182,7 @@ void main(){
             var chunkpos = World.GetChunkPos(position);
             _vao.Use();
             _ubo.BindBase(Gl.UniformBuffer, 0);
-            foreach (var c in ChunkRenderers)
+            foreach (var c in _chunkRenderers)
             {
                 if (chunkpos.ChebyshevDistance(c.Key) > RenderDist) continue;
                 c.Value.Render(c.Key, this);
@@ -214,7 +205,7 @@ void main(){
         public void RegisterTask(ChunkService chunkService, Player player) => 
             chunkService.TaskDispatcher.AddRegular(new RenderDetectorTask(this, _world.Id, player));
 
-        public void FlushMatrix() => Matrix.Flush(_ubo);
+        public void FlushMatrix() => _ubo.DataSection(0, Matrix.Get().Data);
 
         private readonly World _world;
 
@@ -222,17 +213,17 @@ void main(){
         public readonly int RenderDist;
 
         // Chunk Renderers
-        public Dictionary<Vec3<int>, ChunkRenderer> ChunkRenderers;
-        private Program _prog;
-        private VertexArray _vao;
-        private DataBuffer _ubo;
+        private readonly Dictionary<Vec3<int>, ChunkRenderer> _chunkRenderers;
+        private readonly Program _prog;
+        private readonly VertexArray _vao;
+        private readonly DataBuffer _ubo;
 
         public void Dispose()
         {
             _prog?.Dispose();
             _vao?.Dispose();
             _ubo?.Dispose();
-            foreach (var renderer in ChunkRenderers)
+            foreach (var renderer in _chunkRenderers)
                 renderer.Value.Dispose();
         }
     }

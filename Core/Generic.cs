@@ -17,8 +17,6 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
-using System;
-
 namespace Core
 {
     public static class Generic
@@ -56,12 +54,12 @@ namespace Core
         public static dynamic Min(dynamic a, dynamic b) => Less(a, b) ? a : b;
         public static dynamic Max(dynamic a, dynamic b) => Larger(a, b) ? a : b;
 
-        public static void MinEqual(ref dynamic a, dynamic b)
+        public static void MinEqual(dynamic a, dynamic b)
         {
             if (Less(b, a)) a = b;
         }
 
-        public static void MaxEqual(ref dynamic a, dynamic b)
+        public static void MaxEqual(dynamic a, dynamic b)
         {
             if (Larger(b, a)) a = b;
         }

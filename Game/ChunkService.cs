@@ -17,6 +17,8 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
+using Game.World;
+
 namespace Game
 {
     /**
@@ -42,7 +44,7 @@ namespace Game
             TaskDispatcher = new TaskDispatcher(4, this);
         }
 
-        private ChunkService() : this(false)
+        private ChunkService() : this(true)
         {
         }
 

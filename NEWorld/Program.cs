@@ -17,6 +17,11 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
+using System.Reflection;
+using Core;
+using Core.Module;
+using SDL2;
+
 namespace NEWorld
 {
     internal class NEWorld
@@ -24,6 +29,8 @@ namespace NEWorld
         public NEWorld()
         {
             Window.GetInstance("NEWorld", 852, 480);
+            Services.ScanAssembly(Assembly.GetCallingAssembly());
+            Modules.Instance.Load("Main");
         }
 
         public void Run()
@@ -41,7 +48,7 @@ namespace NEWorld
                 game.Render();
                 window.SwapBuffers();
                 if (shouldLimitFps) 
-                    SDL2.SDL.SDL_Delay(delayPerFrame);
+                    SDL.SDL_Delay(delayPerFrame);
             }
         }
 

@@ -111,7 +111,7 @@ namespace Core.Math
             new Vec3<T>(Divide(lhs.X, rhs), Divide(lhs.Y, rhs), Divide(lhs.Z, rhs));
 
         public T ChebyshevDistance(Vec3<T> rhs) =>
-            Max(Max(Abs(Substract(X, rhs.X)), Abs(Substract(Y, rhs.Y))), Abs(Substract(Z, rhs.Z)));
+            (T)Max(Max(Abs(Substract(X, rhs.X)), Abs(Substract(Y, rhs.Y))), Abs(Substract(Z, rhs.Z)));
 
         public bool Equals(Vec3<T> other) =>
             EqualityComparer<T>.Default.Equals(X, other.X) && EqualityComparer<T>.Default.Equals(Y, other.Y) &&

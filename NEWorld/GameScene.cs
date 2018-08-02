@@ -21,7 +21,11 @@ using System;
 using System.Threading;
 using Core;
 using Core.Math;
+using Core.Utilities;
 using Game;
+using Game.Network;
+using Game.Terrain;
+using Game.World;
 using NEWorld.Renderer;
 using OpenGL;
 using SDL2;
@@ -186,8 +190,8 @@ namespace NEWorld
             Singleton<ChunkService>.Instance.TaskDispatcher.AddRegular(new UpsCounter(_upsCounter));
 
             // Initialize rendering
-            _texture = BlockTextureBuilder.BuildAndFlush();
-            BlockRendererManager.FlushTextures();
+            _texture = BlockTextures.BuildAndFlush();
+            BlockRenderers.FlushTextures(Services.Get<IBlockTextures>("BlockTextures"));
             Gl.Enable(Gl.DepthTest);
             Gl.DepthFunc(Gl.Lequal);
 

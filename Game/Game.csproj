@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -30,6 +31,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
@@ -41,20 +43,23 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Blocks.cs" />
-    <Compile Include="Chunk.cs" />
     <Compile Include="ChunkService.cs" />
-    <Compile Include="Client.cs" />
-    <Compile Include="Object.cs" />
-    <Compile Include="OrderedList.cs" />
-    <Compile Include="Player.cs" />
-    <Compile Include="PlayerObject.cs" />
+    <Compile Include="Network\Client.cs" />
+    <Compile Include="Network\Protocols.cs" />
+    <Compile Include="Network\Server.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Protocols.cs" />
-    <Compile Include="Server.cs" />
+    <Compile Include="Terrain\Block.cs" />
+    <Compile Include="Terrain\Matrix.cs" />
     <Compile Include="TaskDispatcher.cs" />
-    <Compile Include="World.cs" />
-    <Compile Include="WorldTasks.cs" />
+    <Compile Include="Utilities\Aabb.cs" />
+    <Compile Include="Utilities\OrderedList.cs" />
+    <Compile Include="World\Blocks.cs" />
+    <Compile Include="World\Chunk.cs" />
+    <Compile Include="World\Object.cs" />
+    <Compile Include="World\Player.cs" />
+    <Compile Include="World\PlayerObject.cs" />
+    <Compile Include="World\World.cs" />
+    <Compile Include="World\WorldTasks.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj">

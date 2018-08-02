@@ -19,7 +19,7 @@
 
 using System;
 
-namespace Core
+namespace Core.Utilities
 {
     public class StrictDispose : IDisposable
     {

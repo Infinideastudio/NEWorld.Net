@@ -322,7 +322,7 @@ void main(){
         private nk_vec2 _scale;
         private int _height;
         private readonly List<Texture> _textures;
-        private FontAtlasWrapper _atlas;
+        private readonly FontAtlasWrapper _atlas;
         private uint _mask;
 
         public void Dispose()

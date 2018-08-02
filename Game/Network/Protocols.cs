@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using System.Net.Sockets;
-using Core;
 using Core.Math;
 using Core.Network;
+using Core.Utilities;
+using Game.World;
 using MsgPack.Serialization;
 
-namespace Game
+namespace Game.Network
 {
     public static class GetChunk
     {
@@ -38,8 +38,8 @@ namespace Game
                 }
                 catch (KeyNotFoundException)
                 {
-                    var chunk = new Chunk(position, world);
-                    chunkPtr = world.InsertChunkAndUpdate(position, chunk);
+                    chunkPtr = new Chunk(position, world);
+                    //chunkPtr = world.InsertChunkAndUpdate(position, chunk);
                 }
 
                 var chunkData = new byte[32768 * 4];
@@ -73,7 +73,7 @@ namespace Game
                     block.Brightness = (byte) (data[i + 1] | 0xF);
                     block.Data = (uint) (data[i + 2] << 8 | data[i + 3]);
                 }
-                srv.TaskDispatcher.Add(new World.AddToWorldTask((uint) req[0], chk));
+                srv.TaskDispatcher.Add(new World.World.AddToWorldTask((uint) req[0], chk));
             }
 
             public void Call(uint worldId, Vec3<int> position)
@@ -82,7 +82,7 @@ namespace Game
                 Send(_stream, Request(Id, From.PackSingleObjectAsBytes(data)));
             }
 
-            private NetworkStream _stream;
+            private readonly NetworkStream _stream;
         }
         private static readonly MessagePackSerializer<int[]> From = MessagePackSerializer.Get<int[]>();
         private static readonly int Size = From.PackSingleObject(new int[4]).Length;
@@ -118,7 +118,7 @@ namespace Game
                 return SerialReply.UnpackSingleObject(session.Value.Result);
             }
 
-            private NetworkStream _stream;
+            private readonly NetworkStream _stream;
         }
 
         private static readonly MessagePackSerializer<int> SerialSend = MessagePackSerializer.Get<int>();
@@ -161,7 +161,7 @@ namespace Game
                 return SerialReply.UnpackSingleObject(session.Value.Result);
             }
 
-            private NetworkStream _stream;
+            private readonly NetworkStream _stream;
         }
 
         private static readonly MessagePackSerializer<int[]> SerialSend = MessagePackSerializer.Get<int[]>();

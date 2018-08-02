@@ -17,16 +17,11 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
-using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using Game;
-using Core;
 using Core.Math;
-using OpenGL;
-using SDL2;
+using Game.World;
 
-namespace NEWorld.Renderer
+namespace Game.Terrain
 {
     public unsafe struct BlockTexCoord
     {
@@ -36,28 +31,19 @@ namespace NEWorld.Renderer
 
     public interface IBlockRenderer
     {
-        void FlushTexture();
-        void Render(VertexBuilder target, Chunk chunk, Vec3<int> pos);
+        void FlushTexture(IBlockTextures textures);
+        void Render(IVertexBuilder target, Chunk chunk, Vec3<int> pos);
     }
 
-    public class VertexBuilder
+    public interface IVertexBuilder
     {
-        public VertexBuilder(int size) => _data = Marshal.AllocHGlobal(size * sizeof(float));
-
-        ~VertexBuilder() => Marshal.FreeHGlobal(_data);
-
-        public void AddPrimitive(int verts, params float[] data)
-        {
-            VertCount += verts;
-            Marshal.Copy(data, 0, _data + _size * sizeof(float), data.Length);
-            _size += data.Length;
-        }
-
-        public ConstDataBuffer Dump() => VertCount > 0 ? new ConstDataBuffer(_size * sizeof(float), _data) : null;
-
-        private int _size;
-        public int VertCount;
-        private readonly IntPtr _data;
+        void AddPrimitive(int verts, params float[] data);
+    }
+    
+    public interface IBlockTextures
+    {
+        uint Add(string path);
+        unsafe void GetTexturePos(float* pos, uint id);
     }
 
     public class DefaultBlockRenderer : IBlockRenderer
@@ -69,14 +55,14 @@ namespace NEWorld.Renderer
                 _tex[i].Pos = data[i];
         }
 
-        public unsafe void FlushTexture()
+        public unsafe void FlushTexture(IBlockTextures textures)
         {
             for (var i = 0; i < 6; ++i)
                 fixed (float* tex = _tex[0].D)
-                    BlockTextureBuilder.GetTexturePos(tex, _tex[i].Pos);
+                    textures.GetTexturePos(tex, _tex[i].Pos);
         }
 
-        public unsafe void Render(VertexBuilder target, Chunk chunk, Vec3<int> pos)
+        public unsafe void Render(IVertexBuilder target, Chunk chunk, Vec3<int> pos)
         {
             var worldpos = chunk.Position * Chunk.Size + pos;
             var curr = chunk[pos];
@@ -168,146 +154,29 @@ namespace NEWorld.Renderer
         private readonly BlockTexCoord[] _tex;
     }
 
-    public unsafe class RawTexture
+    public static class BlockRenderers
     {
-        public RawTexture(string filename) => Surface = (SDL.SDL_Surface*) SDL_image.IMG_Load(filename);
-
-        public RawTexture(RawTexture other) => Surface =
-            (SDL.SDL_Surface*) SDL.SDL_ConvertSurfaceFormat((IntPtr) other.Surface, SDL.SDL_PIXELFORMAT_ABGR8888, 0);
-
-        ~RawTexture() => SDL.SDL_FreeSurface((IntPtr) Surface);
-
-        public SDL.SDL_Surface* Surface { get; }
-    };
-
-    public static class BlockTextureBuilder
-    {
-        public static int Capacity()
+        public static void Render(IVertexBuilder target, int id, Chunk chunk, Vec3<int> pos)
         {
-            var w = CapacityRaw() / _pixelPerTexture;
-            return w * w;
+            if (Renderers.Count > 0 && Renderers[id] != null)
+                Renderers[id].Render(target, chunk, pos);
         }
 
-        public static int CapacityRaw()
+        public static void Add(int pos, IBlockRenderer blockRenderer)
         {
-            int cap = 2048;
-            //glGetIntegerv(GL_MAX_TEXTURE_SIZE, &cap);
-            return cap;
+            while (pos >= Renderers.Count)
+                Renderers.Add(null);
+            Renderers[pos] = blockRenderer;
         }
 
-        public static void SetWidthPerTex(int wid) => _pixelPerTexture = wid;
-
-        public static int GetWidthPerTex() => _pixelPerTexture;
-
-        public static int AddTexture(RawTexture rawTexture)
+        public static void FlushTextures(IBlockTextures textures)
         {
-            RawTexs.Add(rawTexture);
-            return RawTexs.Count - 1;
-        }
-
-        public static unsafe Texture BuildAndFlush()
-        {
-            var count = RawTexs.Count;
-            _texturePerLine = 1 << (int) Math.Ceiling(Math.Log(Math.Ceiling(Math.Sqrt(count))) / Math.Log(2));
-            var wid = _texturePerLine * _pixelPerTexture;
-
-            var mask = EndianCheck.BigEndian
-                ? new uint[] {0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff}
-                : new uint[] {0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000};
-
-            var s = (SDL.SDL_Surface*) SDL.SDL_CreateRGBSurface(0, wid, wid, 32, mask[0], mask[1], mask[2], mask[3]);
-            for (var i = 0; i < count; ++i)
+            foreach (var x in Renderers)
             {
-                var x = i % _texturePerLine;
-                var y = i / _texturePerLine;
-                SDL.SDL_Rect r;
-                r.x = x * _pixelPerTexture;
-                r.y = y * _pixelPerTexture;
-                r.w = r.h = _pixelPerTexture;
-                SDL.SDL_BlitScaled((IntPtr) RawTexs[i].Surface, IntPtr.Zero, (IntPtr) s, (IntPtr) (&r));
-            }
-
-            RawTexs.Clear();
-            var levels = (int) (Math.Log(_pixelPerTexture) / Math.Log(2));
-            var ret = new Texture(levels, PixelInternalFormats.Rgba8, new Vec2<int>(wid, wid))
-            {
-                MinifyingFilter = Texture.Filter.NearestMipmapNearest,
-                MagnificationFilter = Texture.Filter.Nearest
-            };
-            Build2DMipmaps(ret, wid, wid, (int) (Math.Log(_pixelPerTexture) / Math.Log(2)), (byte*) s->pixels);
-            return ret;
-        }
-
-        private static int Align(int x, int al)
-        {
-            return x % al == 0 ? x : (x / al + 1) * al;
-        }
-
-        private static unsafe void Build2DMipmaps(Texture tex, int w, int h, int level, byte* src)
-        {
-            var scale = 1;
-            var cur = new byte[w * h * 4];
-            for (var i = 0; i <= level; i++)
-            {
-                int curW = w / scale, curH = h / scale;
-                for (var y = 0; y < curH; y++)
-                for (var x = 0; x < curW; x++)
-                for (var col = 0; col < 4; col++)
-                {
-                    var sum = 0;
-                    for (var yy = 0; yy < scale; yy++)
-                    for (var xx = 0; xx < scale; xx++)
-                        sum += src[(y * scale + yy) * Align(w * 4, 4) + (x * scale + xx) * 4 + col];
-                    cur[y * Align(curW * 4, 4) + x * 4 + col] = (byte) (sum / (scale * scale));
-                }
-
-                tex.Image(i, new Rect<int>(0, 0, curW, curH), PixelTypes.Rgba, PixelDataFormats.Byte, cur);
-                scale *= 2;
+                x?.FlushTexture(textures);
             }
         }
 
-        public static int AddTexture(string path) => AddTexture(new RawTexture(path));
-
-        public static int GetTexturePerLine() => _texturePerLine;
-
-        public static unsafe void GetTexturePos(float* pos, uint id)
-        {
-            var percentagePerTexture = 1.0f / _texturePerLine;
-            var x = id % _texturePerLine;
-            var y = id / _texturePerLine;
-            pos[0] = percentagePerTexture * x;
-            pos[1] = percentagePerTexture * y;
-            pos[2] = percentagePerTexture * (x + 1);
-            pos[3] = percentagePerTexture * (y + 1);
-        }
-
-        private static int _pixelPerTexture = 32, _texturePerLine = 8;
-        private static readonly List<RawTexture> RawTexs = new List<RawTexture>();
-    }
-
-    public static class BlockRendererManager
-    {
-        public static void Render(VertexBuilder target, int id, Chunk chunk, Vec3<int> pos)
-        {
-            if (BlockRenderers.Count > 0 && BlockRenderers[id] != null)
-                BlockRenderers[id].Render(target, chunk, pos);
-        }
-
-        public static void SetBlockRenderer(int pos, IBlockRenderer blockRenderer)
-        {
-            while (pos >= BlockRenderers.Count)
-                BlockRenderers.Add(null);
-            BlockRenderers[pos] = blockRenderer;
-        }
-
-        public static void FlushTextures()
-        {
-            foreach (var x in BlockRenderers)
-            {
-                x?.FlushTexture();
-            }
-        }
-
-        private static readonly List<IBlockRenderer> BlockRenderers = new List<IBlockRenderer>();
+        private static readonly List<IBlockRenderer> Renderers = new List<IBlockRenderer>();
     }
 }

@@ -17,10 +17,10 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
-using Core;
 using Core.Math;
+using Core.Utilities;
 
-namespace Game
+namespace Game.World
 {
     public class Player : PlayerObject
     {
@@ -91,7 +91,7 @@ namespace Game
             Position += _positionDelta;
         }
 
-        private static bool _rotationInteria = false;
+        private static readonly bool _rotationInteria = false;
 
         private void RotationMove()
         {

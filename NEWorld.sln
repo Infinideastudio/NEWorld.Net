@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NEWorld", "NEWorld\NEWorld.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenGL", "OpenGL\OpenGL.csproj", "{4EB6C361-3E67-4A4E-8B2B-9C8D29D8F852}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Modules", "Modules", "{0B6955CF-8C4C-4CD1-B8D6-D5F49E737BEB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Main", "Modules\Main\Main.csproj", "{645C6E67-C0BB-4885-914B-50679E3382FC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,11 +37,16 @@ Global
 		{4EB6C361-3E67-4A4E-8B2B-9C8D29D8F852}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4EB6C361-3E67-4A4E-8B2B-9C8D29D8F852}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4EB6C361-3E67-4A4E-8B2B-9C8D29D8F852}.Release|Any CPU.Build.0 = Release|Any CPU
+		{645C6E67-C0BB-4885-914B-50679E3382FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{645C6E67-C0BB-4885-914B-50679E3382FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{645C6E67-C0BB-4885-914B-50679E3382FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{645C6E67-C0BB-4885-914B-50679E3382FC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{645C6E67-C0BB-4885-914B-50679E3382FC} = {0B6955CF-8C4C-4CD1-B8D6-D5F49E737BEB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E9811B2A-F42A-4203-A546-4F70CE4F2927}

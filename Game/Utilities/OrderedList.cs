@@ -21,7 +21,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Game
+namespace Game.Utilities
 {
     public class OrderedListIntBase<TD> : IEnumerable<KeyValuePair<int, TD>>
     {
@@ -70,7 +70,7 @@ namespace Game
 
         private int _position = -1;
 
-        private OrderedListIntBase<TD> _base;
+        private readonly OrderedListIntBase<TD> _base;
     }
 
     public class OrderedListIntLess<TD> : OrderedListIntBase<TD>

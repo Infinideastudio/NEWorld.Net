@@ -19,8 +19,9 @@
 
 using Core;
 using Core.Math;
+using Game.Utilities;
 
-namespace Game
+namespace Game.World
 {
     public abstract class Object
     {

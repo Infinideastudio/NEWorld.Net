@@ -20,8 +20,9 @@
 using System;
 using Core;
 using Core.Math;
+using Game.Utilities;
 
-namespace Game
+namespace Game.World
 {
     public class PlayerObject : Object
     {
@@ -41,7 +42,8 @@ namespace Game
 
         public double Speed { get; set; }
 
-        private double _height, _width;
+        private readonly double _height;
+        private readonly double _width;
         private Vec3<double> _hitboxSize;
 
         private void RefreshHitbox()

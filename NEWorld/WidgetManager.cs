@@ -44,5 +44,5 @@ namespace NEWorld
         public void Add(Widget widget) => Add(widget.Name, widget);
 
         private readonly NkSdl _mNkContext;
-    };
+    }
 }

@@ -71,7 +71,7 @@ namespace NEWorld
 
         public override void Update() => _updateFunc?.Invoke();
 
-        private RenderCallback _renderFunc;
-        private UpdateCallback _updateFunc;
-    };
+        private readonly RenderCallback _renderFunc;
+        private readonly UpdateCallback _updateFunc;
+    }
 }

@@ -17,7 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Core;
+using Core.Utilities;
 
 namespace OpenGL
 {
@@ -139,7 +139,7 @@ namespace OpenGL
 
         public uint Raw() => _hdc;
 
-        private uint _hdc;
+        private readonly uint _hdc;
     }
 
     public class Program : StrictDispose

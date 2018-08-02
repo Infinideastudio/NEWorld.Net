@@ -22,7 +22,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Core.Math;
 
-namespace Game
+namespace Game.World
 {
     public class Chunk
     {
@@ -37,7 +37,7 @@ namespace Game
 
         public static void SetGenerator(Generator gen)
         {
-            if (_chunkGeneratorLoaded)
+            if (!_chunkGeneratorLoaded)
             {
                 _chunkGen = gen;
                 _chunkGeneratorLoaded = true;
