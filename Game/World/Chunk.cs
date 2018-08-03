@@ -85,7 +85,7 @@ namespace Game.World
         // Reference Counting
         public void MarkRequest() => _mLastRequestTime = DateTime.Now.Ticks;
 
-        public bool CheckReleaseable() => 
+        public bool CheckReleaseable() =>
             DateTime.Now - new DateTime(Interlocked.Read(ref _mLastRequestTime)) > TimeSpan.FromSeconds(10);
 
         // For Garbage Collection

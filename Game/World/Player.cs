@@ -91,7 +91,7 @@ namespace Game.World
             Position += _positionDelta;
         }
 
-        private static readonly bool _rotationInteria = false;
+        private static readonly bool RotationInteria = false;
 
         private void RotationMove()
         {
@@ -101,7 +101,7 @@ namespace Game.World
                 _rotationSpeed.X = -90.0 - Rotation.X;
             Rotation += _rotationSpeed;
             RotationDelta = _rotationSpeed;
-            if (_rotationInteria)
+            if (RotationInteria)
                 _rotationSpeed *= 0.6;
             else
                 _rotationSpeed *= 0;

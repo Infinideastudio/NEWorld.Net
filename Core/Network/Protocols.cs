@@ -85,7 +85,7 @@ namespace Core.Network
             SessionDispatch(GetSessionId(extraHead), dataSegment);
         }
 
-        public static KeyValuePair<int, Task<byte[]>> AllocSession() => 
+        public static KeyValuePair<int, Task<byte[]>> AllocSession() =>
             Singleton<ProtocolReply>.Instance.AllocSessionInternal();
 
         private KeyValuePair<int, Task<byte[]>> AllocSessionInternal()

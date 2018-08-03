@@ -15,6 +15,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Modules", "Modules", "{0B69
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Main", "Modules\Main\Main.csproj", "{645C6E67-C0BB-4885-914B-50679E3382FC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NEWorldShell", "NEWorldShell\NEWorldShell.csproj", "{0C30B20E-EBC8-46E2-ADEF-F4FC23C59DF4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,10 @@ Global
 		{645C6E67-C0BB-4885-914B-50679E3382FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{645C6E67-C0BB-4885-914B-50679E3382FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{645C6E67-C0BB-4885-914B-50679E3382FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C30B20E-EBC8-46E2-ADEF-F4FC23C59DF4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C30B20E-EBC8-46E2-ADEF-F4FC23C59DF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C30B20E-EBC8-46E2-ADEF-F4FC23C59DF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C30B20E-EBC8-46E2-ADEF-F4FC23C59DF4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

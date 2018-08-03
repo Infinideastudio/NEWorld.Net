@@ -18,9 +18,7 @@
 // 
 
 using System;
-using System.CodeDom;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Reflection;
 
 namespace Core
@@ -59,6 +57,8 @@ namespace Core
 
             public readonly List<IDisposable> List = new List<IDisposable>();
         }
+
+        static Services() => ScanAssembly(Assembly.GetCallingAssembly());
 
         public static void Inject<TP>() where TP : IDisposable => Inject(typeof(TP));
 
@@ -99,13 +99,14 @@ namespace Core
                 if (type.IsDefined(typeof(DeclareServiceAttribute), false))
                     Inject(type);
             }
-        }     
-        
+        }
+
         private static void Inject(Type tp)
-        {        
+        {
             var name = tp.GetCustomAttribute<DeclareServiceAttribute>().Name;
-            var dependents = tp.IsDefined(typeof(ServiceDependencyAttribute), false) ?
-                tp.GetCustomAttribute<ServiceDependencyAttribute>().Dependencies : new string[0];
+            var dependents = tp.IsDefined(typeof(ServiceDependencyAttribute), false)
+                ? tp.GetCustomAttribute<ServiceDependencyAttribute>().Dependencies
+                : new string[0];
             Providers.Add(name, tp);
             Dependencies.Add(name, dependents);
         }
@@ -115,11 +116,7 @@ namespace Core
             foreach (var dependent in Dependencies[name])
                 CreateService(dependent);
             var provider = Providers[name];
-            var constructor = provider.GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null,
-                new Type[0], null);
-            if (constructor == null || constructor.IsAssembly) // Also exclude internal constructors.
-                throw new Exception($"A private or protected constructor is missing for '{provider.Name}'.");
-            var instance = constructor.Invoke(null);
+            var instance = Activator.CreateInstance(provider);
             Dispose.List.Add((IDisposable) instance);
             Ready.Add(name, instance);
             return instance;

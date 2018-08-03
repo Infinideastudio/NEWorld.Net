@@ -1,5 +1,5 @@
 // 
-// GUI: gamescene.h
+// NEWorld: GameScene.cs
 // NEWorld: A Free Game with Similar Rules to Minecraft.
 // Copyright (C) 2015-2018 NEWorld Team
 // 
@@ -152,8 +152,7 @@ namespace NEWorld
 
         private static bool IsClient()
         {
-            return false;
-            
+            return true;
         }
 
         public GameScene(string name, Window window)
@@ -173,12 +172,13 @@ namespace NEWorld
             else
             {
                 // Initialize server
-                _server = new Server(31111);
-                _server.Run();
+                var server = Services.Get<Server>("Game.Server");
+                server.Enable(31111);
+                server.Run();
             }
 
             // Initialize connection
-            Client.EnableClient("127.0.0.1", 31111);
+            Services.Get<Client>("Game.Client").Enable("127.0.0.1", 31111);
 
             _currentWorld = Singleton<ChunkService>.Instance.Worlds.Get(RequestWorld());
             _worldRenderer = new WorldRenderer(_currentWorld, 4);
@@ -205,7 +205,7 @@ namespace NEWorld
                     {
                         // Update FPS & UPS
                         _fpsLatest = _fpsCounter;
-                        _upsLatest = (uint)_upsCounter;
+                        _upsLatest = (uint) _upsCounter;
                         _fpsCounter = 0;
                         Generic.MultiplyBy(ref _upsCounter, 0u);
                         _rateCounterScheduler.IncreaseTimer();
@@ -266,10 +266,10 @@ namespace NEWorld
             Gl.Clear(Gl.ColorBufferBit | Gl.DepthBufferBit);
             Gl.Viewport(0, 0, _window.GetWidth(), _window.GetHeight());
             Matrix.RestoreProjection();
-            Matrix.ApplyPerspective(70.0f, (float)_window.GetWidth() / _window.GetHeight(), 0.1f, 3000.0f);
-            Matrix.ViewRotate((float)-playerRenderedRotation.X, new Vec3<float>(1.0f, 0.0f, 0.0f));
-            Matrix.ViewRotate((float)-playerRenderedRotation.Y, new Vec3<float>(0.0f, 1.0f, 0.0f));
-            Matrix.ViewRotate((float)-playerRenderedRotation.Z, new Vec3<float>(0.0f, 0.0f, 1.0f));
+            Matrix.ApplyPerspective(70.0f, (float) _window.GetWidth() / _window.GetHeight(), 0.1f, 3000.0f);
+            Matrix.ViewRotate((float) -playerRenderedRotation.X, new Vec3<float>(1.0f, 0.0f, 0.0f));
+            Matrix.ViewRotate((float) -playerRenderedRotation.Y, new Vec3<float>(0.0f, 1.0f, 0.0f));
+            Matrix.ViewRotate((float) -playerRenderedRotation.Z, new Vec3<float>(0.0f, 0.0f, 1.0f));
             Matrix.ViewTranslate(-playerRenderedPosition);
 
             // Render
@@ -288,15 +288,14 @@ namespace NEWorld
             // TODO: change this
             if (IsClient())
             {
-                var client = Client.ThisClient;
-                var worldIds = client.GetAvailableWorldId.Call();
+                var worldIds = Client.GetAvailableWorldId.Call();
                 if (worldIds.Length == 0)
                 {
                     throw new Exception("The server didn't response with any valid worlds.");
                 }
 
-                var worldInfo = client.GetWorldInfo.Call(worldIds[0]);
-                
+                var worldInfo = Client.GetWorldInfo.Call(worldIds[0]);
+
                 Singleton<ChunkService>.Instance.Worlds.Add(worldInfo["name"]);
             }
 

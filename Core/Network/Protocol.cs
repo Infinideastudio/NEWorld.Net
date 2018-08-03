@@ -19,6 +19,7 @@
 
 using System;
 using System.Net.Sockets;
+using System.Threading;
 
 namespace Core.Network
 {
@@ -29,7 +30,7 @@ namespace Core.Network
         public abstract string Name();
 
         public abstract void HandleRequest(NetworkStream nstream);
-        
+
         protected static byte[] Request(int protocol) => new[]
         {
             (byte) 'N', (byte) 'W', (byte) 'R', (byte) 'C',
@@ -47,7 +48,7 @@ namespace Core.Network
             (byte) (protocol >> 18 & 0xFF),
             (byte) (protocol & 0xFF)
         });
-        
+
         protected static byte[] Reply(int requestSession, ArraySegment<byte> message) => Concat(message, new[]
         {
             (byte) 'N', (byte) 'W', (byte) 'R', (byte) 'C',
@@ -86,16 +87,37 @@ namespace Core.Network
 
     public abstract class FixedLengthProtocol : StandardProtocol
     {
-        protected FixedLengthProtocol(int length) => _packetLength = length;
+        private class LohOptimizedAlloc
+        {
+            private const int LohThreshold = 80000;
+
+            public LohOptimizedAlloc(int size)
+            {
+                Size = size;
+                if (size > LohThreshold)
+                    _cache = new ThreadLocal<byte[]>();
+            }
+
+            public byte[] Get() => _cache == null ? new byte[Size] : _cache.Value ?? (_cache.Value = new byte[Size]);
+
+            public readonly int Size;
+
+            private readonly ThreadLocal<byte[]> _cache;
+        }
+
+        protected FixedLengthProtocol(int length) => _alloc = new LohOptimizedAlloc(length);
 
         protected override byte[] PullRequestData(NetworkStream nstream)
         {
-            var ret = new byte[_packetLength];
-            nstream.Read(ret, 0, _packetLength);
+            // TODO : Provide Read Closure To All NetworkStream Readers
+            var ret = _alloc.Get();
+            var read = 0;
+            while (read < _alloc.Size)
+                read += nstream.Read(ret, read, _alloc.Size - read);
             return ret;
         }
 
-        private readonly int _packetLength;
+        private readonly LohOptimizedAlloc _alloc;
     }
 
     public abstract class StubProtocol : Protocol

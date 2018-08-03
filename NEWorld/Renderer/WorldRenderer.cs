@@ -1,5 +1,5 @@
 // 
-// GUI: worldrenderer.h
+// NEWorld: WorldRenderer.cs
 // NEWorld: A Free Game with Similar Rules to Minecraft.
 // Copyright (C) 2015-2018 NEWorld Team
 // 
@@ -49,7 +49,7 @@ namespace NEWorld.Renderer
                 var counter = 0;
                 // TODO: improve performance by adding multiple instances of this and set a step when itering the chunks.
                 var position = _player.Position;
-                var positionInt = new Vec3<int>((int)position.X, (int)position.Y, (int)position.Z);
+                var positionInt = new Vec3<int>((int) position.X, (int) position.Y, (int) position.Z);
                 var chunkpos = World.GetChunkPos(positionInt);
                 var world = cs.Worlds.Get(_currentWorldId);
                 foreach (var c in world.Chunks)
@@ -150,10 +150,10 @@ in vec2 Frag_UV;
 in vec4 Frag_Color;
 out vec4 Out_Color;
 void main(){
-   Out_Color = Frag_Color * texture(Texture, Frag_UV.st);
+   Out_Color = vec4(1.0, 1.0, 1.0, 1.0); //Frag_Color * texture(Texture, Frag_UV.st);
 }"))
                 _prog.Link(new[] {vertex, fragment});
-            
+
             _ubo = new DataBuffer(16 * sizeof(float));
             _vao = new VertexArray();
 
@@ -200,9 +200,9 @@ void main(){
             return chunkPending.Count;
         }
 
-        public int Render(Vec3<double> v) => Render(new Vec3<int>((int) v.X, (int) v.Y, (int) v.Z)); 
+        public int Render(Vec3<double> v) => Render(new Vec3<int>((int) v.X, (int) v.Y, (int) v.Z));
 
-        public void RegisterTask(ChunkService chunkService, Player player) => 
+        public void RegisterTask(ChunkService chunkService, Player player) =>
             chunkService.TaskDispatcher.AddRegular(new RenderDetectorTask(this, _world.Id, player));
 
         public void FlushMatrix() => _ubo.DataSection(0, Matrix.Get().Data);

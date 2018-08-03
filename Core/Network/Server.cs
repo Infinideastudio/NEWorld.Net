@@ -53,6 +53,8 @@ namespace Core.Network
 
         public void StopServer() => _exit = true;
 
+        public int CountConnections() => _connHost.CountConnections();
+
         private void Boot()
         {
             _exit = false;

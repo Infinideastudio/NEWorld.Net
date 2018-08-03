@@ -1,5 +1,5 @@
 // 
-// GUI: window.h
+// NEWorld: Window.cs
 // NEWorld: A Free Game with Similar Rules to Minecraft.
 // Copyright (C) 2015-2018 NEWorld Team
 // 
@@ -35,7 +35,7 @@ namespace NEWorld
         {
             _title = title;
             _width = width;
-            _height = height; 
+            _height = height;
             if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO) < 0)
                 throw new Exception("SDL could not initialize! SDL_Error: " + SDL.SDL_GetError());
             SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 4);
@@ -44,7 +44,7 @@ namespace NEWorld
             SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK,
                 (int) SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_CORE);
 
-            _window = SDL.SDL_CreateWindow(_title, 100, 100, _width, _height, 
+            _window = SDL.SDL_CreateWindow(_title, 100, 100, _width, _height,
                 SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL | SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE);
             _context = SDL.SDL_GL_CreateContext(_window);
             SDL.SDL_GL_SetSwapInterval(0); // VSync
@@ -52,7 +52,7 @@ namespace NEWorld
             Gl.Init(SDL.SDL_GL_GetProcAddress);
             _nuklearContext = new NkSdl(_window);
         }
-        
+
         ~Window()
         {
             SDL.SDL_DestroyWindow(_window);
@@ -125,7 +125,8 @@ namespace NEWorld
          * \brief Get the relative motion of mouse
          * \return The relative motion of mouse
          */
-        public MouseState GetMouseMotion()   {
+        public MouseState GetMouseMotion()
+        {
             var res = _mouse;
             res.X -= _prevMouse.X;
             res.Y -= _prevMouse.Y;
@@ -137,8 +138,8 @@ namespace NEWorld
         public static void UnlockCursor() => SDL.SDL_SetRelativeMouseMode(SDL.SDL_bool.SDL_FALSE);
 
         private static Window _win;
-        
-        public static Window GetInstance(string title = "", int width = 0, int height = 0) => 
+
+        public static Window GetInstance(string title = "", int width = 0, int height = 0) =>
             _win ?? (_win = new Window(title, width, height));
 
         private readonly string _title;

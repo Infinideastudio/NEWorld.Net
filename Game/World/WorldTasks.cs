@@ -27,16 +27,17 @@ namespace Game.World
     {
         private const int MaxChunkLoadCount = 64, MaxChunkUnloadCount = 64;
 
-        private static readonly Vec3<int> MiddleOffset = new Vec3<int>(Chunk.Size / 2 - 1, Chunk.Size / 2 - 1, Chunk.Size / 2 - 1);
-        
-        public class AddToWorldTask : IReadWriteTask
+        private static readonly Vec3<int> MiddleOffset =
+            new Vec3<int>(Chunk.Size / 2 - 1, Chunk.Size / 2 - 1, Chunk.Size / 2 - 1);
+
+        public class ResetChunkTask : IReadWriteTask
         {
             /**
              * \brief Add a constructed chunk into world.
              * \param worldID the target world's id
              * \param chunk the target chunk
              */
-            public AddToWorldTask(uint worldId, Chunk chunk)
+            public ResetChunkTask(uint worldId, Chunk chunk)
             {
                 _worldId = worldId;
                 _chunk = chunk;
@@ -47,7 +48,7 @@ namespace Game.World
             public void Task(ChunkService srv)
             {
                 var world = srv.Worlds.Get(_worldId);
-                world.InsertChunkAndUpdate(_chunk.Position, _chunk);
+                world.ResetChunkAndUpdate(_chunk.Position, _chunk);
             }
 
             private readonly uint _worldId;
@@ -81,6 +82,31 @@ namespace Game.World
 
         private class BuildOrLoadChunkTask : IReadOnlyTask
         {
+            private class AddToWorldTask : IReadWriteTask
+            {
+                /**
+                 * \brief Add a constructed chunk into world.
+                 * \param worldID the target world's id
+                 * \param chunk the target chunk
+                 */
+                public AddToWorldTask(uint worldId, Chunk chunk)
+                {
+                    _worldId = worldId;
+                    _chunk = chunk;
+                }
+
+                public IReadWriteTask Clone() => (IReadWriteTask) MemberwiseClone();
+
+                public void Task(ChunkService srv)
+                {
+                    var world = srv.Worlds.Get(_worldId);
+                    world.InsertChunkAndUpdate(_chunk.Position, _chunk);
+                }
+
+                private readonly uint _worldId;
+                private readonly Chunk _chunk;
+            }
+
             /**
              * \brief Given a chunk, it will try to load it or build it
              * \param world the target world
@@ -96,9 +122,8 @@ namespace Game.World
 
             public void Task(ChunkService srv)
             {
-                Chunk chunk;
                 // TODO: should try to load from local first
-                chunk = new Chunk(_chunkPosition, _world);
+                var chunk = new Chunk(_chunkPosition, _world);
                 srv.TaskDispatcher.Add(new AddToWorldTask(_world.Id, chunk));
             }
 
@@ -120,19 +145,14 @@ namespace Game.World
                 var unloadList = new OrderedListIntGreater<Chunk>(MaxChunkUnloadCount);
                 var playerPos = _player.Position;
                 var position = new Vec3<int>((int) playerPos.X, (int) playerPos.Y, (int) playerPos.Z);
-                GenerateLoadUnloadList(_world, position,
-                    4, //getJsonValue<uint>(getSettings()["server"]["load_distance"], 4),
-                    loadList, unloadList);
+                GenerateLoadUnloadList(_world, position, 4, loadList, unloadList);
 
                 foreach (var loadPos in loadList)
                 {
-                    if (cs.IsAuthority)
+                    cs.TaskDispatcher.Add(new BuildOrLoadChunkTask(_world, loadPos.Value));
+                    if (!cs.IsAuthority)
                     {
-                        cs.TaskDispatcher.Add(new BuildOrLoadChunkTask(_world, loadPos.Value));
-                    }
-                    else
-                    {
-                        Client.ThisClient.GetChunk.Call(_world.Id, loadPos.Value);
+                        Client.GetChunk.Call(_world.Id, loadPos.Value);
                     }
                 }
 
@@ -142,7 +162,7 @@ namespace Game.World
                     cs.TaskDispatcher.Add(new UnloadChunkTask(_world, unloadChunk.Value.Position));
                 }
             }
-            
+
             /**
              * \brief Find the nearest chunks in load range to load,
              *        fartherest chunks out of load range to unload.
@@ -175,7 +195,8 @@ namespace Game.World
                             var position = new Vec3<int>(x, y, z);
                             // In load range, pending to load
                             if (!world.IsChunkLoaded(position))
-                                loadList.Insert((position * Chunk.Size + MiddleOffset - centerPos).LengthSqr(), position);
+                                loadList.Insert((position * Chunk.Size + MiddleOffset - centerPos).LengthSqr(),
+                                    position);
                         }
                     }
                 }

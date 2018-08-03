@@ -1,18 +1,21 @@
+// 
 // OpenGL: DataBuffer.cs
-// Graphics.Net: General Application Framework API and GUI For .Net
+// NEWorld: A Free Game with Similar Rules to Minecraft.
 // Copyright (C) 2015-2018 NEWorld Team
 // 
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+// NEWorld is free software: you can redistribute it and/or modify it 
+// under the terms of the GNU Lesser General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or 
+// (at your option) any later version.
 // 
-//     http://www.apache.org/licenses/LICENSE-2.0
+// NEWorld is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+// or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General 
+// Public License for more details.
 // 
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// You should have received a copy of the GNU Lesser General Public License
+// along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
+// 
 
 using System;
 using Core.Utilities;
@@ -32,7 +35,7 @@ namespace OpenGL
         public const uint DynamicCopy = 0x88EA;
         public const uint UniformBuffer = 0x8A11;
         public const uint ElementArrayBuffer = 0x8893;
-        
+
         internal unsafe delegate void CreateBuffersProc(int n, uint* buffers);
 
         internal unsafe delegate void DeleteBuffersProc(int n, uint* buffers);
@@ -40,7 +43,7 @@ namespace OpenGL
         internal unsafe delegate void NamedBufferStorageProc(uint buffer, int size, void* data, uint flags);
 
         internal delegate void BindBufferBaseProc(uint target, uint index, uint buffer);
-        
+
         internal delegate void BindBufferProc(uint target, uint buffer);
 
         internal unsafe delegate void NamedBufferSubDataProc(uint buffer, UIntPtr offset, UIntPtr size,
@@ -89,7 +92,7 @@ namespace OpenGL
         public void AllocateWith(ushort[] data) => AllocateWith(data, data.Length);
 
         public void AllocateWith(float[] data) => AllocateWith(data, data.Length);
-        
+
         public unsafe void AllocateWith(byte[] data, int length)
         {
             fixed (byte* ptr = &data[0])
@@ -97,7 +100,7 @@ namespace OpenGL
                 AllocateRaw(length * sizeof(byte), ptr);
             }
         }
-        
+
         public unsafe void AllocateWith(ushort[] data, int length)
         {
             fixed (ushort* ptr = &data[0])
@@ -123,11 +126,11 @@ namespace OpenGL
         }
 
         public void Bind(uint usage) => Gl.BindBuffer(usage, _hdc);
-        
+
         public void BindBase(uint usage, uint index) => Gl.BindBufferBase(usage, index, _hdc);
-        
+
         public uint Raw() => _hdc;
-        
+
         private unsafe void AllocateRaw(int size, void* data) =>
             Gl.NamedBufferStorage(_hdc, size, data, 0x0100);
 
@@ -138,7 +141,7 @@ namespace OpenGL
 
         private uint _hdc;
     }
-    
+
     public class ConstDataBuffer : StrictDispose
     {
         public unsafe ConstDataBuffer(int size, IntPtr data)
@@ -160,7 +163,7 @@ namespace OpenGL
         }
 
         public void BindBase(uint usage, uint index) => Gl.BindBufferBase(usage, index, _hdc);
-        
+
         public uint Raw() => _hdc;
 
         private uint _hdc;

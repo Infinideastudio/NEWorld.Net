@@ -17,14 +17,17 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
+using System;
 using System.Threading.Tasks;
+using Core;
 using Core.Utilities;
 
 namespace Game.Network
 {
-    public class Server
+    [DeclareService("Game.Server")]
+    public class Server : IDisposable
     {
-        public Server(int port)
+        public void Enable(int port)
         {
             _server = new Core.Network.Server(port);
             _server.RegisterProtocol(new GetChunk.Server());
@@ -32,11 +35,13 @@ namespace Game.Network
             _server.RegisterProtocol(new GetWorldInfo.Server());
             Singleton<ChunkService>.Instance.Worlds.Add("test world");
         }
-        
+
         public void Run()
         {
             _wait = _server.RunAsync();
         }
+
+        public int CountConnections() => _server.CountConnections();
 
         public void Stop()
         {
@@ -45,6 +50,12 @@ namespace Game.Network
         }
 
         private Task _wait;
-        private readonly Core.Network.Server _server;
+        private Core.Network.Server _server;
+
+        public void Dispose()
+        {
+            Stop();
+            _wait?.Dispose();
+        }
     }
 }

@@ -28,7 +28,7 @@ namespace Game.World
             Data = 0;
             Unused = 0;
         }
-        
+
         public ushort Id;
         public byte Brightness;
         public byte Unused;

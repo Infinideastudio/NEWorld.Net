@@ -1,3 +1,22 @@
+// 
+// NEWorld: BlockTextures.cs
+// NEWorld: A Free Game with Similar Rules to Minecraft.
+// Copyright (C) 2015-2018 NEWorld Team
+// 
+// NEWorld is free software: you can redistribute it and/or modify it 
+// under the terms of the GNU Lesser General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or 
+// (at your option) any later version.
+// 
+// NEWorld is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+// or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General 
+// Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public License
+// along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
+// 
+
 using System;
 using System.Collections.Generic;
 using Core;
@@ -13,7 +32,7 @@ namespace NEWorld.Renderer
     public class BlockTextures : IBlockTextures, IDisposable
     {
         private unsafe class RawTexture
-        {       
+        {
             public RawTexture(string filename) => Surface = (SDL.SDL_Surface*) SDL_image.IMG_Load(filename);
 
             ~RawTexture() => SDL.SDL_FreeSurface((IntPtr) Surface);
@@ -21,16 +40,16 @@ namespace NEWorld.Renderer
             public SDL.SDL_Surface* Surface { get; }
         }
 
-        private BlockTextures()
+        public BlockTextures()
         {
             SDL_image.IMG_Init(SDL_image.IMG_InitFlags.IMG_INIT_PNG);
         }
-        
+
         public void Dispose()
         {
             SDL_image.IMG_Quit();
         }
-        
+
         private static int Capacity()
         {
             var w = CapacityRaw() / _pixelPerTexture;

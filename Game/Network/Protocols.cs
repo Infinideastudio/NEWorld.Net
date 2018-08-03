@@ -1,5 +1,25 @@
-﻿using System.Collections.Generic;
+﻿// 
+// Game: Protocols.cs
+// NEWorld: A Free Game with Similar Rules to Minecraft.
+// Copyright (C) 2015-2018 NEWorld Team
+// 
+// NEWorld is free software: you can redistribute it and/or modify it 
+// under the terms of the GNU Lesser General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or 
+// (at your option) any later version.
+// 
+// NEWorld is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+// or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General 
+// Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public License
+// along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
+// 
+
+using System.Collections.Generic;
 using System.Net.Sockets;
+using System.Threading;
 using Core.Math;
 using Core.Network;
 using Core.Utilities;
@@ -27,6 +47,8 @@ namespace Game.Network
                 Send(stream, chunkData);
             }
 
+            private static readonly ThreadLocal<byte[]> LocalMemCache = new ThreadLocal<byte[]>();
+
             private static byte[] Get(uint worldId, Vec3<int> position)
             {
                 // TODO: empty chunk optimization
@@ -38,11 +60,11 @@ namespace Game.Network
                 }
                 catch (KeyNotFoundException)
                 {
-                    chunkPtr = new Chunk(position, world);
-                    //chunkPtr = world.InsertChunkAndUpdate(position, chunk);
+                    var chunk = new Chunk(position, world);
+                    chunkPtr = world.InsertChunkAndUpdate(position, chunk);
                 }
 
-                var chunkData = new byte[32768 * 4];
+                var chunkData = LocalMemCache.Value ?? (LocalMemCache.Value = new byte[32768 * 4]);
                 for (var i = 0; i < 32768 * 4; ++i)
                 {
                     var block = chunkPtr.Blocks[i >> 2];
@@ -51,8 +73,9 @@ namespace Game.Network
                     chunkData[i++] = (byte) (block.Data >> 8);
                     chunkData[i] = (byte) block.Data;
                 }
+
                 return chunkData;
-            }           
+            }
         }
 
         public class Client : FixedLengthProtocol
@@ -73,7 +96,8 @@ namespace Game.Network
                     block.Brightness = (byte) (data[i + 1] | 0xF);
                     block.Data = (uint) (data[i + 2] << 8 | data[i + 3]);
                 }
-                srv.TaskDispatcher.Add(new World.World.AddToWorldTask((uint) req[0], chk));
+
+                srv.TaskDispatcher.Add(new World.World.ResetChunkTask((uint) req[0], chk));
             }
 
             public void Call(uint worldId, Vec3<int> position)
@@ -84,22 +108,23 @@ namespace Game.Network
 
             private readonly NetworkStream _stream;
         }
+
         private static readonly MessagePackSerializer<int[]> From = MessagePackSerializer.Get<int[]>();
         private static readonly int Size = From.PackSingleObject(new int[4]).Length;
     }
-    
+
     public static class GetAvailableWorldId
     {
         public class Server : FixedLengthProtocol
         {
             public Server() : base(Size)
-            {  
+            {
             }
 
             protected override void HandleRequestData(byte[] data, NetworkStream stream)
             {
                 var request = SerialSend.UnpackSingleObject(data);
-                Send(stream, Reply(request, SerialReply.PackSingleObjectAsBytes(new uint[]{0})));
+                Send(stream, Reply(request, SerialReply.PackSingleObjectAsBytes(new uint[] {0})));
             }
 
             public override string Name() => "GetAvailableWorldId";
@@ -108,7 +133,7 @@ namespace Game.Network
         public class Client : StubProtocol
         {
             public Client(ConnectionHost.Connection conn) => _stream = conn.Stream;
-            
+
             public override string Name() => "GetAvailableWorldId";
 
             public uint[] Call()
@@ -135,7 +160,7 @@ namespace Game.Network
             public Server() : base(Size)
             {
             }
-            
+
             protected override void HandleRequestData(byte[] data, NetworkStream stream)
             {
                 var ret = new Dictionary<string, string>();
@@ -151,13 +176,13 @@ namespace Game.Network
         public class Client : StubProtocol
         {
             public Client(ConnectionHost.Connection conn) => _stream = conn.Stream;
-            
+
             public override string Name() => "GetWorldInfo";
 
             public Dictionary<string, string> Call(uint wid)
             {
                 var session = ProtocolReply.AllocSession();
-                Send(_stream, Request(Id, SerialSend.PackSingleObjectAsBytes(new []{session.Key, (int) wid})));
+                Send(_stream, Request(Id, SerialSend.PackSingleObjectAsBytes(new[] {session.Key, (int) wid})));
                 return SerialReply.UnpackSingleObject(session.Value.Result);
             }
 
@@ -169,8 +194,6 @@ namespace Game.Network
         private static readonly MessagePackSerializer<Dictionary<string, string>> SerialReply =
             MessagePackSerializer.Get<Dictionary<string, string>>();
 
-        private static readonly int Size = SerialSend.PackSingleObject(new[]{0}).Length;
+        private static readonly int Size = SerialSend.PackSingleObject(new int[2]).Length;
     }
-
-    
 }

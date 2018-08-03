@@ -1,5 +1,5 @@
 // 
-// Core: Arithmetic.cs
+// Core: Generic.cs
 // NEWorld: A Free Game with Similar Rules to Minecraft.
 // Copyright (C) 2015-2018 NEWorld Team
 // 
@@ -38,19 +38,19 @@ namespace Core
         public static dynamic Decrease(dynamic a) => --a;
         public static dynamic IncreaseAfter(dynamic a) => a++;
         public static dynamic DecreaseAfter(dynamic a) => a--;
-                
+
         public static bool Less(dynamic a, dynamic b) => a < b;
         public static bool LessEqual(dynamic a, dynamic b) => a <= b;
         public static bool Larger(dynamic a, dynamic b) => a > b;
         public static bool LargerEqual(dynamic a, dynamic b) => a >= b;
         public static bool Equal(dynamic a, dynamic b) => a == b;
-        
+
         public static double Sqrt(dynamic a) => System.Math.Sqrt((double) a);
         public static double Sin(dynamic a) => System.Math.Sin((double) a);
         public static double Cos(dynamic a) => System.Math.Cos((double) a);
         public static double Tan(dynamic a) => System.Math.Tan((double) a);
         public static double Abs(dynamic a) => System.Math.Abs(a);
-        
+
         public static dynamic Min(dynamic a, dynamic b) => Less(a, b) ? a : b;
         public static dynamic Max(dynamic a, dynamic b) => Larger(a, b) ? a : b;
 

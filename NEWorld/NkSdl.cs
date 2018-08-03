@@ -1,8 +1,21 @@
-/*
- * Nuklear - 1.32.0 - public domain
- * no warrenty implied; use at your own risk.
- * authored from 2015-2016 by Micha Mettke
- */
+// 
+// NEWorld: NkSdl.cs
+// NEWorld: A Free Game with Similar Rules to Minecraft.
+// Copyright (C) 2015-2018 NEWorld Team
+// 
+// NEWorld is free software: you can redistribute it and/or modify it 
+// under the terms of the GNU Lesser General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or 
+// (at your option) any later version.
+// 
+// NEWorld is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+// or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General 
+// Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public License
+// along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
+// 
 
 using System;
 using System.Collections.Generic;
@@ -300,7 +313,7 @@ void main(){
 
         protected override void Draw(int x, int y, int w, int h, int textureId, int startIndex, int primitiveCount)
         {
-            Texture.UseRaw(0, textureId != 0? (uint) textureId : _mask);
+            Texture.UseRaw(0, textureId != 0 ? (uint) textureId : _mask);
             //Gl.Scissor((int) (x * _scale.x), (int) ((_height - (y + h)) * _scale.y),
             //    (int) (w * _scale.x), (int) (h * _scale.y));
             Gl.DrawElements(Gl.Triangles, primitiveCount * 3, Gl.UnsignedShort, (IntPtr) startIndex);

@@ -1,5 +1,5 @@
-// 
-// NEWorld: WidgetManager.cs
+﻿// 
+// NEWorldShell: Program.cs
 // NEWorld: A Free Game with Similar Rules to Minecraft.
 // Copyright (C) 2015-2018 NEWorld Team
 // 
@@ -17,31 +17,24 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
-using System.Collections.Generic;
+using System.Reflection;
+using Core;
+using Core.Module;
+using Game.Network;
 
-namespace NEWorld
+namespace NEWorldShell
 {
-    internal class WidgetManager : Dictionary<string, Widget>
+    internal class Program
     {
-        public WidgetManager(NkSdl nkctx) => _mNkContext = nkctx;
-
-        public void Render()
+        public static void Main(string[] args)
         {
-            foreach (var widget in this)
-                widget.Value._render(_mNkContext);
-            _mNkContext.End();
-            // TODO: add an option to adjust the arguments
-            _mNkContext.Draw();
+            Services.ScanAssembly(Assembly.Load("Game"));
+            Modules.Instance.Load("Main");
+            var cli = new ServerCommandLine();
+            var server = Services.Get<Server>("Game.Server");
+            server.Enable(31111);
+            server.Run();
+            cli.Start();
         }
-
-        public void Update()
-        {
-            foreach (var widget in this)
-                widget.Value.Update();
-        }
-
-        public void Add(Widget widget) => Add(widget.Name, widget);
-
-        private readonly NkSdl _mNkContext;
     }
 }

@@ -19,7 +19,6 @@
 
 using System;
 using System.Reflection;
-using System.Runtime.Serialization;
 
 // ReSharper disable InconsistentlySynchronizedField
 
@@ -32,16 +31,8 @@ namespace Core.Utilities
     /// http://msdn.microsoft.com/en-us/library/ms229064(VS.80).aspx
     /// </remarks>
     [Serializable]
-    public class SingletonException
-        : Exception
+    public class SingletonException : Exception
     {
-        /// <summary>
-        /// Initializes a new instance.
-        /// </summary>
-        public SingletonException()
-        {
-        }
-
         /// <summary>
         /// Initializes a new instance with a specified error message.
         /// </summary>
@@ -77,26 +68,6 @@ namespace Core.Utilities
             : base(message, innerException)
         {
         }
-
-#if !WindowsCE
-        /// <summary>
-        /// Initializes a new instance with serialized data.
-        /// </summary>
-        /// <param name="info">
-        /// The <see cref="System.Runtime.Serialization.SerializationInfo"/> that holds the 
-        /// serialized object data about the exception being thrown.
-        /// </param>
-        /// <param name="context">
-        /// The <see cref="System.Runtime.Serialization.StreamingContext"/> that contains 
-        /// contextual information about the source or destination.
-        /// </param>
-        /// <exception cref="System.ArgumentNullException">The info parameter is null.</exception>
-        /// <exception cref="System.Runtime.Serialization.SerializationException">The class name is null or System.Exception.HResult is zero (0).</exception>
-        protected SingletonException(SerializationInfo info, StreamingContext context)
-            : base(info, context)
-        {
-        }
-#endif
     }
 
     /// <summary>

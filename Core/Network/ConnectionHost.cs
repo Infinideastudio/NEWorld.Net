@@ -57,14 +57,22 @@ namespace Core.Network
                     {
                         var bytesRead = await Stream.ReadAsync(headerCache, 0, 8);
                         if (VerifyPackageValidity(headerCache, bytesRead))
-                            _server.Protocols[GetProtocolId(headerCache)].HandleRequest(Stream);
+                            try
+                            {
+                                _server.Protocols[GetProtocolId(headerCache)].HandleRequest(Stream);
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine(e.ToString());
+                            }
                         else
-                            break;
+                            throw new Exception("Bad Package Recieved");
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
                         if (_client.Connected == false)
                             break;
+                        Console.WriteLine($"Encountering Exception {e}");
                         throw;
                     }
                 }
@@ -148,5 +156,7 @@ namespace Core.Network
             foreach (var hd in _clients)
                 hd.Value.Close();
         }
+
+        public int CountConnections() => _clients.Count - _invalidConnections;
     }
 }

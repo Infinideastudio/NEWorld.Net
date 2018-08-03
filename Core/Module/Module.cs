@@ -43,7 +43,7 @@ namespace Core.Module
         }
 
         public void SetBasePath(string path) => _basePath = path;
-        
+
         public void Load(string moduleFile)
         {
             var assembly = Assembly.Load(moduleFile);
@@ -52,11 +52,20 @@ namespace Core.Module
             {
                 if (type.IsDefined(typeof(DeclareModuleAttribute), false) && typeof(IModule).IsAssignableFrom(type))
                 {
-                    var module = (IModule)Activator.CreateInstance(type);
-                    module.CoInitialize();
-                    _modules.Add(type.FullName ?? "", new KeyValuePair<IModule, Assembly>(module, assembly));
-                }        
+                    try
+                    {
+                        var module = (IModule) Activator.CreateInstance(type);
+                        module.CoInitialize();
+                        _modules.Add(type.FullName ?? "", new KeyValuePair<IModule, Assembly>(module, assembly));
+                        Console.WriteLine($"Loaded Module : {type}");
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"Module {type} Load Failure : {e}");
+                    }
+                }
             }
+
             Services.ScanAssembly(assembly);
         }
 
@@ -72,7 +81,7 @@ namespace Core.Module
         public static Modules Instance => Singleton<Modules>.Instance;
 
         private string _basePath = Path.Modules();
-        
+
         private readonly Dictionary<string, KeyValuePair<IModule, Assembly>> _modules;
     }
 }

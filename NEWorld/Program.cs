@@ -29,6 +29,7 @@ namespace NEWorld
         public NEWorld()
         {
             Window.GetInstance("NEWorld", 852, 480);
+            Services.ScanAssembly(Assembly.Load("Game"));
             Services.ScanAssembly(Assembly.GetCallingAssembly());
             Modules.Instance.Load("Main");
         }
@@ -37,7 +38,7 @@ namespace NEWorld
         {
             var fps = 60;
             var shouldLimitFps = true;
-            var delayPerFrame = (uint)(1000 / fps - 0.5);
+            var delayPerFrame = (uint) (1000 / fps - 0.5);
             var window = Window.GetInstance("NEWorld", 852, 480);
             var game = new GameScene("TestWorld", window);
             while (!window.ShouldQuit())
@@ -47,7 +48,7 @@ namespace NEWorld
                 // Render
                 game.Render();
                 window.SwapBuffers();
-                if (shouldLimitFps) 
+                if (shouldLimitFps)
                     SDL.SDL_Delay(delayPerFrame);
             }
         }

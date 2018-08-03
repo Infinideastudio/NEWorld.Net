@@ -1,18 +1,21 @@
+// 
 // OpenGL: Others.cs
-// Graphics.Net: General Application Framework API and GUI For .Net
+// NEWorld: A Free Game with Similar Rules to Minecraft.
 // Copyright (C) 2015-2018 NEWorld Team
 // 
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+// NEWorld is free software: you can redistribute it and/or modify it 
+// under the terms of the GNU Lesser General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or 
+// (at your option) any later version.
 // 
-//     http://www.apache.org/licenses/LICENSE-2.0
+// NEWorld is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+// or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General 
+// Public License for more details.
 // 
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// You should have received a copy of the GNU Lesser General Public License
+// along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
+// 
 
 using System;
 
@@ -22,7 +25,7 @@ namespace OpenGL
     {
         // Draw
         public delegate void DrawArraysProc(uint mode, int first, int count);
-        
+
         public delegate void DrawElementsProc(uint mode, int count, uint type, IntPtr indicies);
 
         public static DrawArraysProc DrawArrays;
@@ -33,7 +36,7 @@ namespace OpenGL
         public delegate void ViewportProc(int x, int y, int width, int height);
 
         public delegate void ClearColorProc(float red, float green, float blue, float alpha);
-        
+
         public delegate void ClearDepthProc(float depth);
 
         public delegate void ClearProc(uint mask);
@@ -43,9 +46,9 @@ namespace OpenGL
         public delegate void EnableProc(uint cap);
 
         public delegate void DisableProc(uint cap);
-        
+
         public delegate void DepthFuncProc(uint cap);
-        
+
         public delegate void CullFaceProc(uint cap);
 
         public delegate void BlendEquationProc(uint mode);

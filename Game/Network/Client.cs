@@ -17,11 +17,15 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
+using System;
+using Core;
+
 namespace Game.Network
 {
-    public class Client
+    [DeclareService("Game.Client")]
+    public class Client : IDisposable
     {
-        public Client(string address, int port)
+        public void Enable(string address, int port)
         {
             _client = new Core.Network.Client(address, port);
             _client.RegisterProtocol(GetChunk = new GetChunk.Client(_client.GetConnection()));
@@ -30,18 +34,21 @@ namespace Game.Network
             _client.NegotiateProtocols();
         }
 
-        public readonly GetChunk.Client GetChunk;
-        public readonly GetAvailableWorldId.Client GetAvailableWorldId;
-        public readonly GetWorldInfo.Client GetWorldInfo;
-        public static Client ThisClient { get; private set; }
-
-        public static void EnableClient(string address, int port) => ThisClient = new Client(address, port);
+        public static GetChunk.Client GetChunk;
+        public static GetAvailableWorldId.Client GetAvailableWorldId;
+        public static GetWorldInfo.Client GetWorldInfo;
 
         public void Stop()
         {
             _client.Close();
         }
 
-        private readonly Core.Network.Client _client;
+        public void Dispose()
+        {
+            _client?.Close();
+            _client?.Dispose();
+        }
+
+        private Core.Network.Client _client;
     }
 }

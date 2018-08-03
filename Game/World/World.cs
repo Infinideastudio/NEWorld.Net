@@ -20,7 +20,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Core;
 using Core.Math;
 using Game.Utilities;
 
@@ -72,9 +71,13 @@ namespace Game.World
 
         public void SetBlock(ref Vec3<int> pos, BlockData block) => Chunks.SetBlock(pos, block);
 
-        public Chunk InsertChunk(ref Vec3<int> pos, Chunk chunk)
+        private Chunk InsertChunk(ref Vec3<int> pos, Chunk chunk)
         {
-            Chunks.Add(pos, chunk);
+            if (!Chunks.IsLoaded(pos))
+                Chunks.Add(pos, chunk);
+            else
+                // TODO : FIX THIS GOD DAMNED ERROR, IT SHOULD NOT HAPPEN
+                Console.WriteLine($"Warning: Dumplicate Chunk Adding on [{pos.X},{pos.Y},{pos.Z}]");
             return Chunks[pos];
         }
 
@@ -131,11 +134,19 @@ namespace Game.World
                         Chunks.Remove(kvPair.Key);
             }
         }
-        
+
         protected static uint IdCount;
 
         // All Chunks (Chunk array)
         private readonly object _mutex = new object();
+
+        private void ResetChunkAndUpdate(Vec3<int> pos, Chunk chunk)
+        {
+            ResetChunk(ref pos, chunk);
+            foreach (var dt in Delta)
+                if (Chunks.TryGetValue(pos + dt, out var target))
+                    target.IsUpdated = true;
+        }
     }
 
     public class WorldManager : List<World>

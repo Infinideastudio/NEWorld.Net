@@ -1,5 +1,5 @@
 ﻿// 
-// OpenGL: AssemblyInfo.cs
+// NEWorldShell: AssemblyInfo.cs
 // NEWorld: A Free Game with Similar Rules to Minecraft.
 // Copyright (C) 2015-2018 NEWorld Team
 // 
@@ -23,11 +23,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("OpenGL")]
+[assembly: AssemblyTitle("NEWorldShell")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("OpenGL")]
+[assembly: AssemblyProduct("NEWorldShell")]
 [assembly: AssemblyCopyright("Copyright ©  2018")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -38,7 +38,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("4EB6C361-3E67-4A4E-8B2B-9C8D29D8F852")]
+[assembly: Guid("0C30B20E-EBC8-46E2-ADEF-F4FC23C59DF4")]
 
 // Version information for an assembly consists of the following four values:
 //

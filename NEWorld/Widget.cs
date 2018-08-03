@@ -1,5 +1,5 @@
 // 
-// GUI: widget.h
+// NEWorld: Widget.cs
 // NEWorld: A Free Game with Similar Rules to Minecraft.
 // Copyright (C) 2015-2018 NEWorld Team
 // 
@@ -24,7 +24,7 @@ namespace NEWorld
     // widget base class
     public abstract class Widget
     {
-        public Widget(string name,  Nuklear.nk_rect size, uint flags)
+        public Widget(string name, Nuklear.nk_rect size, uint flags)
         {
             Name = name;
             _size = size;
@@ -43,7 +43,7 @@ namespace NEWorld
 
         public abstract void Update();
 
-        public bool Open { get; set; } 
+        public bool Open { get; set; }
 
         public string Name { get; }
 
