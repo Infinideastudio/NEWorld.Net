@@ -28,7 +28,6 @@ namespace NEWorldShell
     {
         public static void Main(string[] args)
         {
-            Services.ScanAssembly(Assembly.Load("Game"));
             Modules.Instance.Load("Main");
             var cli = new ServerCommandLine();
             var server = Services.Get<Server>("Game.Server");

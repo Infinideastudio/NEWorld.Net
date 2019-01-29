@@ -42,7 +42,6 @@ namespace Core.Network
                 foreach (var prot in protocols)
                     reply[current++] = new KeyValuePair<string, int>(prot.Name(), prot.Id);
                 Send(stream, Reply(request, SerialReply.PackSingleObjectAsBytes(reply)));
-                LogPort.Debug($"Client Connected, Protocol Handshake Proceeding on Client Session{request}");
             }
 
             public override string Name() => "FetchProtocols";

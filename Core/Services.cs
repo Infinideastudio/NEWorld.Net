@@ -25,16 +25,22 @@ namespace Core
 {
     public sealed class DeclareServiceAttribute : Attribute
     {
-        public DeclareServiceAttribute(string name) => Name = name;
-
         public readonly string Name;
+
+        public DeclareServiceAttribute(string name)
+        {
+            Name = name;
+        }
     }
 
     public sealed class ServiceDependencyAttribute : Attribute
     {
-        public ServiceDependencyAttribute(params string[] dependencies) => Dependencies = dependencies;
-
         public readonly string[] Dependencies;
+
+        public ServiceDependencyAttribute(params string[] dependencies)
+        {
+            Dependencies = dependencies;
+        }
     }
 
     [Serializable]
@@ -47,20 +53,23 @@ namespace Core
 
     public static class Services
     {
-        private class DisposeList
-        {
-            ~DisposeList()
-            {
-                foreach (var disposable in List)
-                    disposable.Dispose();
-            }
+        // Only for conflict resolve for multi-thread load
+        private static HashSet<AssemblyName> _processed = new HashSet<AssemblyName>();
 
-            public readonly List<IDisposable> List = new List<IDisposable>();
+        private static readonly DisposeList Dispose = new DisposeList();
+        private static readonly Dictionary<string, object> Ready = new Dictionary<string, object>();
+        private static readonly Dictionary<string, Type> Providers = new Dictionary<string, Type>();
+        private static readonly Dictionary<string, string[]> Dependencies = new Dictionary<string, string[]>();
+
+        static Services()
+        {
+            UpdateDomainAssemblies();
         }
 
-        static Services() => ScanAssembly(Assembly.GetExecutingAssembly());
-
-        public static void Inject<TP>() where TP : IDisposable => Inject(typeof(TP));
+        public static void Inject<TP>() where TP : IDisposable
+        {
+            Inject(typeof(TP));
+        }
 
         public static TI Get<TI>(string name)
         {
@@ -78,6 +87,33 @@ namespace Core
             }
         }
 
+        private static void UpdateDomainAssemblies()
+        {
+            AppDomain.CurrentDomain.AssemblyLoad += OnAssemblyLoadServiceRegisterAgent;
+            var snapshot = AppDomain.CurrentDomain.GetAssemblies();
+            foreach (var assembly in snapshot)
+                if (!CheckIfAssemblyProcessed(assembly))
+                    ScanAssembly(assembly);
+
+            lock (_processed)
+            {
+                _processed = null;
+            }
+        }
+
+        private static bool CheckIfAssemblyProcessed(Assembly assembly)
+        {
+            lock (_processed)
+            {
+                return _processed?.Contains(assembly.GetName()) ?? false;
+            }
+        }
+
+        private static void OnAssemblyLoadServiceRegisterAgent(object sender, AssemblyLoadEventArgs args)
+        {
+            ScanAssembly(args.LoadedAssembly);
+        }
+
         public static bool TryGet<TI>(string name, out TI ins)
         {
             try
@@ -92,13 +128,16 @@ namespace Core
             }
         }
 
-        public static void ScanAssembly(Assembly assembly)
+        private static void ScanAssembly(Assembly assembly)
         {
-            foreach (var type in assembly.GetExportedTypes())
+            lock (assembly)
             {
+                _processed?.Add(assembly.GetName(true));
+            }
+
+            foreach (var type in assembly.GetExportedTypes())
                 if (type.IsDefined(typeof(DeclareServiceAttribute), false))
                     Inject(type);
-            }
         }
 
         private static void Inject(Type tp)
@@ -122,9 +161,15 @@ namespace Core
             return instance;
         }
 
-        private static readonly DisposeList Dispose = new DisposeList();
-        private static readonly Dictionary<string, object> Ready = new Dictionary<string, object>();
-        private static readonly Dictionary<string, Type> Providers = new Dictionary<string, Type>();
-        private static readonly Dictionary<string, string[]> Dependencies = new Dictionary<string, string[]>();
+        private class DisposeList
+        {
+            public readonly List<IDisposable> List = new List<IDisposable>();
+
+            ~DisposeList()
+            {
+                foreach (var disposable in List)
+                    disposable.Dispose();
+            }
+        }
     }
 }

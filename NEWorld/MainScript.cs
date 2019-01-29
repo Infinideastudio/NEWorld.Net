@@ -127,8 +127,6 @@ namespace NEWorld
     {
         private void InitializeModules()
         {
-            Core.Services.ScanAssembly(Assembly.Load("Core"));
-            Core.Services.ScanAssembly(Assembly.Load("Game"));
             Core.Module.Modules.Instance.Load("Main");
         }
 
