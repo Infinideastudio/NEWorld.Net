@@ -17,6 +17,7 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net.Sockets;
@@ -31,32 +32,34 @@ namespace Core.Network
     {
         public class Server : FixedLengthProtocol
         {
-            public Server(List<Protocol> protocols) : base(Size) => _protocols = protocols;
+            public Server(List<Protocol> protocols) : base(Size) => this.protocols = protocols;
 
             protected override void HandleRequestData(byte[] data, NetworkStream stream)
             {
                 var request = SerialSend.UnpackSingleObject(data);
                 var current = 0;
-                var reply = new KeyValuePair<string, int>[_protocols.Count];
-                foreach (var prot in _protocols)
+                var reply = new KeyValuePair<string, int>[protocols.Count];
+                foreach (var prot in protocols)
                     reply[current++] = new KeyValuePair<string, int>(prot.Name(), prot.Id);
                 Send(stream, Reply(request, SerialReply.PackSingleObjectAsBytes(reply)));
+                LogPort.Debug($"Client Connected, Protocol Handshake Proceeding on Client Session{request}");
             }
 
             public override string Name() => "FetchProtocols";
 
-            private readonly List<Protocol> _protocols;
+            private readonly List<Protocol> protocols;
         }
 
         public class Client : StubProtocol
         {
             public override string Name() => "FetchProtocols";
 
-            public static KeyValuePair<string, int>[] Get(ConnectionHost.Connection conn)
+            public static async Task<KeyValuePair<string, int>[]> Get(ConnectionHost.Connection conn)
             {
                 var session = ProtocolReply.AllocSession();
                 Send(conn.Stream, Request(1, SerialSend.PackSingleObjectAsBytes(session.Key)));
-                return SerialReply.UnpackSingleObject(session.Value.Result);
+                var result = await session.Value;
+                return SerialReply.UnpackSingleObject(result);
             }
         }
 
@@ -90,26 +93,26 @@ namespace Core.Network
 
         private KeyValuePair<int, Task<byte[]>> AllocSessionInternal()
         {
-            if (!_sessionIds.TryDequeue(out var newId))
-                newId = Interlocked.Increment(ref _idTop) - 1;
+            if (!sessionIds.TryDequeue(out var newId))
+                newId = Interlocked.Increment(ref idTop) - 1;
 
             var completionSource = new TaskCompletionSource<byte[]>();
-            while (!_sessions.TryAdd(newId, completionSource)) ;
+            while (!sessions.TryAdd(newId, completionSource)) ;
             return new KeyValuePair<int, Task<byte[]>>(newId, completionSource.Task);
         }
 
         private void SessionDispatch(int sessionId, byte[] dataSegment)
         {
             TaskCompletionSource<byte[]> completion;
-            while (!_sessions.TryRemove(sessionId, out completion)) ;
+            while (!sessions.TryRemove(sessionId, out completion)) ;
             completion.SetResult(dataSegment);
-            _sessionIds.Enqueue(sessionId);
+            sessionIds.Enqueue(sessionId);
         }
 
-        private int _idTop;
-        private readonly ConcurrentQueue<int> _sessionIds = new ConcurrentQueue<int>();
+        private int idTop;
+        private readonly ConcurrentQueue<int> sessionIds = new ConcurrentQueue<int>();
 
-        private readonly ConcurrentDictionary<int, TaskCompletionSource<byte[]>> _sessions =
+        private readonly ConcurrentDictionary<int, TaskCompletionSource<byte[]>> sessions =
             new ConcurrentDictionary<int, TaskCompletionSource<byte[]>>();
 
         private static int GetSessionId(byte[] head) => head[0] << 24 | head[1] << 16 | head[2] << 8 | head[3];

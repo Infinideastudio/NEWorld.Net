@@ -58,7 +58,7 @@ namespace NEWorldShell
                 cmd =>
                 {
                     Services.Get<Server>("Game.Server").Stop();
-                    Console.WriteLine("Server RPC stopped.");
+                    LogPort.Debug("Server RPC stopped.");
                     _commands.SetRunningStatus(false);
                     return new CommandExecuteStat(true, "");
                 });
@@ -73,7 +73,7 @@ namespace NEWorldShell
             _commands.RegisterCommand("server.connections", new CommandInfo("internal", "Count Connections."),
                 cmd =>
                 {
-                    Console.WriteLine(Services.Get<Server>("Game.Server").CountConnections());
+                    LogPort.Debug($"{Services.Get<Server>("Game.Server").CountConnections()}");
                     return new CommandExecuteStat(true, "");
                 });
 
@@ -100,7 +100,7 @@ namespace NEWorldShell
                     GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
                     GC.Collect();
                     GC.WaitForFullGCComplete();
-                    Console.WriteLine("GC Completed");
+                    LogPort.Debug("GC Completed");
                     return new CommandExecuteStat(true, "");
                 });
         }

@@ -20,11 +20,12 @@
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Threading;
-using Core.Math;
+using System.Threading.Tasks;
 using Core.Network;
 using Core.Utilities;
 using Game.World;
 using MsgPack.Serialization;
+using Xenko.Core.Mathematics;
 
 namespace Game.Network
 {
@@ -41,7 +42,7 @@ namespace Game.Network
             protected override void HandleRequestData(byte[] data, NetworkStream stream)
             {
                 var request = From.UnpackSingleObject(data);
-                var chunkData = Get((uint) request[0], new Vec3<int>(request[1], request[2], request[3]));
+                var chunkData = Get((uint) request[0], new Int3(request[1], request[2], request[3]));
                 Send(stream, Request(Id));
                 Send(stream, data);
                 Send(stream, chunkData);
@@ -49,7 +50,7 @@ namespace Game.Network
 
             private static readonly ThreadLocal<byte[]> LocalMemCache = new ThreadLocal<byte[]>();
 
-            private static byte[] Get(uint worldId, Vec3<int> position)
+            private static byte[] Get(uint worldId, Int3 position)
             {
                 // TODO: empty chunk optimization
                 var world = Singleton<ChunkService>.Instance.Worlds.Get(worldId);
@@ -82,13 +83,13 @@ namespace Game.Network
         {
             public override string Name() => "GetChunk";
 
-            public Client(ConnectionHost.Connection conn) : base(32768 * 4 + Size) => _stream = conn.Stream;
+            public Client(ConnectionHost.Connection conn) : base(32768 * 4 + Size) => stream = conn.Stream;
 
             protected override void HandleRequestData(byte[] data, NetworkStream stream)
             {
                 var req = From.UnpackSingleObject(data);
                 var srv = Singleton<ChunkService>.Instance;
-                var chk = new Chunk(new Vec3<int>(req[1], req[2], req[3]), srv.Worlds.Get((uint) req[0]));
+                var chk = new Chunk(new Int3(req[1], req[2], req[3]), srv.Worlds.Get((uint) req[0]));
                 for (var i = Size; i < 32768 * 4 + Size; i += 4)
                 {
                     ref var block = ref chk.Blocks[(i - Size) >> 2];
@@ -100,13 +101,13 @@ namespace Game.Network
                 srv.TaskDispatcher.Add(new World.World.ResetChunkTask((uint) req[0], chk));
             }
 
-            public void Call(uint worldId, Vec3<int> position)
+            public void Call(uint worldId, Int3 position)
             {
                 var data = new[] {(int) worldId, position.X, position.Y, position.Z};
-                Send(_stream, Request(Id, From.PackSingleObjectAsBytes(data)));
+                Send(stream, Request(Id, From.PackSingleObjectAsBytes(data)));
             }
 
-            private readonly NetworkStream _stream;
+            private readonly NetworkStream stream;
         }
 
         private static readonly MessagePackSerializer<int[]> From = MessagePackSerializer.Get<int[]>();
@@ -132,18 +133,19 @@ namespace Game.Network
 
         public class Client : StubProtocol
         {
-            public Client(ConnectionHost.Connection conn) => _stream = conn.Stream;
+            public Client(ConnectionHost.Connection conn) => stream = conn.Stream;
 
             public override string Name() => "GetAvailableWorldId";
 
-            public uint[] Call()
+            public async Task<uint[]> Call()
             {
                 var session = ProtocolReply.AllocSession();
-                Send(_stream, Request(Id, SerialSend.PackSingleObjectAsBytes(session.Key)));
-                return SerialReply.UnpackSingleObject(session.Value.Result);
+                Send(stream, Request(Id, SerialSend.PackSingleObjectAsBytes(session.Key)));
+                var result = await session.Value;
+                return SerialReply.UnpackSingleObject(result);
             }
 
-            private readonly NetworkStream _stream;
+            private readonly NetworkStream stream;
         }
 
         private static readonly MessagePackSerializer<int> SerialSend = MessagePackSerializer.Get<int>();
@@ -175,18 +177,19 @@ namespace Game.Network
 
         public class Client : StubProtocol
         {
-            public Client(ConnectionHost.Connection conn) => _stream = conn.Stream;
+            public Client(ConnectionHost.Connection conn) => stream = conn.Stream;
 
             public override string Name() => "GetWorldInfo";
 
-            public Dictionary<string, string> Call(uint wid)
+            public async Task<Dictionary<string, string>> Call(uint wid)
             {
                 var session = ProtocolReply.AllocSession();
-                Send(_stream, Request(Id, SerialSend.PackSingleObjectAsBytes(new[] {session.Key, (int) wid})));
-                return SerialReply.UnpackSingleObject(session.Value.Result);
+                Send(stream, Request(Id, SerialSend.PackSingleObjectAsBytes(new[] {session.Key, (int) wid})));
+                var result = await session.Value;
+                return SerialReply.UnpackSingleObject(result);
             }
 
-            private readonly NetworkStream _stream;
+            private readonly NetworkStream stream;
         }
 
         private static readonly MessagePackSerializer<int[]> SerialSend = MessagePackSerializer.Get<int[]>();

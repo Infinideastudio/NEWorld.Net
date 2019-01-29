@@ -23,6 +23,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Xenko.Rendering;
 
 namespace Core.Network
 {
@@ -32,11 +33,11 @@ namespace Core.Network
         {
             public Connection(ulong cid, TcpClient client, ConnectionHost server)
             {
-                _cid = cid;
-                _client = client;
-                _server = server;
+                this.cid = cid;
+                this.client = client;
+                this.server = server;
                 Stream = client.GetStream();
-                _finalize = Start();
+                finalize = Start();
             }
 
             public bool Valid { get; private set; }
@@ -44,39 +45,46 @@ namespace Core.Network
             public void Close()
             {
                 CloseDown();
-                _finalize.Wait();
+                finalize.Wait();
             }
 
             private async Task Start()
             {
                 Valid = true;
+                LogPort.Debug("Connection Start");
                 var headerCache = new byte[8]; // ["NWRC"] + Int32BE(Protocol Id)
                 while (Valid)
                 {
                     try
                     {
-                        var bytesRead = await Stream.ReadAsync(headerCache, 0, 8);
+                        int bytesRead;
+                        do
+                        {
+                            bytesRead = await Stream.ReadAsync(headerCache, 0, 8);
+                        } while (bytesRead != 8);
+                        LogPort.Debug("Read Complete");
                         if (VerifyPackageValidity(headerCache, bytesRead))
                             try
                             {
-                                _server.Protocols[GetProtocolId(headerCache)].HandleRequest(Stream);
+                                server.Protocols[GetProtocolId(headerCache)].HandleRequest(Stream);
                             }
                             catch (Exception e)
                             {
-                                Console.WriteLine(e.ToString());
+                                LogPort.Debug(e.ToString());
                             }
                         else
                             throw new Exception("Bad Package Recieved");
                     }
                     catch (Exception e)
                     {
-                        if (_client.Connected == false)
+                        if (client.Connected == false)
                             break;
-                        Console.WriteLine($"Encountering Exception {e}");
+                        LogPort.Debug($"Encountering Exception {e}");
                         throw;
                     }
                 }
-
+                
+                LogPort.Debug("Connection CloseDown");
                 CloseDown();
             }
 
@@ -85,8 +93,8 @@ namespace Core.Network
                 if (!Valid) return;
                 Valid = false;
                 Stream.Close(); // Cancellation Token Doesn't Work. Hard Close is adopted.
-                _client.Close();
-                Interlocked.Increment(ref _server._invalidConnections);
+                client.Close();
+                Interlocked.Increment(ref server.invalidConnections);
             }
 
             public NetworkStream Stream { get; }
@@ -96,25 +104,25 @@ namespace Core.Network
             private static bool VerifyPackageValidity(byte[] head, int read) =>
                 head[0] == 'N' && head[1] == 'W' && head[2] == 'R' && head[3] == 'C' && read == 8;
 
-            private ulong _cid;
-            private readonly TcpClient _client;
-            private readonly ConnectionHost _server;
-            private readonly Task _finalize;
+            private ulong cid;
+            private readonly TcpClient client;
+            private readonly ConnectionHost server;
+            private readonly Task finalize;
         }
 
         public ConnectionHost()
         {
-            _clients = new Dictionary<ulong, Connection>();
+            clients = new Dictionary<ulong, Connection>();
             Protocols = new List<Protocol>();
         }
 
-        public object Lock => _protocolLock;
+        public object Lock => protocolLock;
 
         private const double UtilizationThreshold = 0.75;
 
         public void RegisterProtocol(Protocol newProtocol)
         {
-            lock (_protocolLock)
+            lock (protocolLock)
             {
                 Protocols.Add(newProtocol);
             }
@@ -122,41 +130,41 @@ namespace Core.Network
 
         public void SweepInvalidConnectionsIfNecessary()
         {
-            var utilization = 1.0 - (double) _invalidConnections / _clients.Count;
+            var utilization = 1.0 - (double) invalidConnections / clients.Count;
             if (utilization < UtilizationThreshold)
                 SweepInvalidConnections();
         }
 
-        public Connection GetConnection(ulong id) => _clients[id];
+        public Connection GetConnection(ulong id) => clients[id];
 
         private void SweepInvalidConnections()
         {
-            foreach (var hd in _clients.ToList())
+            foreach (var hd in clients.ToList())
                 if (!hd.Value.Valid)
                 {
-                    _clients.Remove(hd.Key);
-                    Interlocked.Decrement(ref _invalidConnections);
+                    clients.Remove(hd.Key);
+                    Interlocked.Decrement(ref invalidConnections);
                 }
         }
 
         public void AddConnection(TcpClient conn)
         {
-            _clients.Add(_sessionIdTop, new Connection(_sessionIdTop, conn, this));
-            ++_sessionIdTop;
+            clients.Add(sessionIdTop, new Connection(sessionIdTop, conn, this));
+            ++sessionIdTop;
         }
 
-        private ulong _sessionIdTop;
-        private int _invalidConnections;
+        private ulong sessionIdTop;
+        private int invalidConnections;
         public readonly List<Protocol> Protocols;
-        private readonly Dictionary<ulong, Connection> _clients;
-        private readonly object _protocolLock = new object();
+        private readonly Dictionary<ulong, Connection> clients;
+        private readonly object protocolLock = new object();
 
         public void CloseAll()
         {
-            foreach (var hd in _clients)
+            foreach (var hd in clients)
                 hd.Value.Close();
         }
 
-        public int CountConnections() => _clients.Count - _invalidConnections;
+        public int CountConnections() => clients.Count - invalidConnections;
     }
 }

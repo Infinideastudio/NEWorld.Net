@@ -95,29 +95,29 @@ namespace Core.Network
             {
                 Size = size;
                 if (size > LohThreshold)
-                    _cache = new ThreadLocal<byte[]>();
+                    cache = new ThreadLocal<byte[]>();
             }
 
-            public byte[] Get() => _cache == null ? new byte[Size] : _cache.Value ?? (_cache.Value = new byte[Size]);
+            public byte[] Get() => cache == null ? new byte[Size] : cache.Value ?? (cache.Value = new byte[Size]);
 
             public readonly int Size;
 
-            private readonly ThreadLocal<byte[]> _cache;
+            private readonly ThreadLocal<byte[]> cache;
         }
 
-        protected FixedLengthProtocol(int length) => _alloc = new LohOptimizedAlloc(length);
+        protected FixedLengthProtocol(int length) => alloc = new LohOptimizedAlloc(length);
 
         protected override byte[] PullRequestData(NetworkStream nstream)
         {
             // TODO : Provide Read Closure To All NetworkStream Readers
-            var ret = _alloc.Get();
+            var ret = alloc.Get();
             var read = 0;
-            while (read < _alloc.Size)
-                read += nstream.Read(ret, read, _alloc.Size - read);
+            while (read < alloc.Size)
+                read += nstream.Read(ret, read, alloc.Size - read);
             return ret;
         }
 
-        private readonly LohOptimizedAlloc _alloc;
+        private readonly LohOptimizedAlloc alloc;
     }
 
     public abstract class StubProtocol : Protocol

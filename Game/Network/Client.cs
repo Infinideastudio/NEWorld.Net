@@ -18,6 +18,7 @@
 // 
 
 using System;
+using System.Threading.Tasks;
 using Core;
 
 namespace Game.Network
@@ -25,13 +26,13 @@ namespace Game.Network
     [DeclareService("Game.Client")]
     public class Client : IDisposable
     {
-        public void Enable(string address, int port)
+        public async Task Enable(string address, int port)
         {
-            _client = new Core.Network.Client(address, port);
-            _client.RegisterProtocol(GetChunk = new GetChunk.Client(_client.GetConnection()));
-            _client.RegisterProtocol(GetAvailableWorldId = new GetAvailableWorldId.Client(_client.GetConnection()));
-            _client.RegisterProtocol(GetWorldInfo = new GetWorldInfo.Client(_client.GetConnection()));
-            _client.NegotiateProtocols();
+            client = new Core.Network.Client(address, port);
+            client.RegisterProtocol(GetChunk = new GetChunk.Client(client.GetConnection()));
+            client.RegisterProtocol(GetAvailableWorldId = new GetAvailableWorldId.Client(client.GetConnection()));
+            client.RegisterProtocol(GetWorldInfo = new GetWorldInfo.Client(client.GetConnection()));
+            await client.NegotiateProtocols();
         }
 
         public static GetChunk.Client GetChunk;
@@ -40,15 +41,15 @@ namespace Game.Network
 
         public void Stop()
         {
-            _client.Close();
+            client.Close();
         }
 
         public void Dispose()
         {
-            _client?.Close();
-            _client?.Dispose();
+            client?.Close();
+            client?.Dispose();
         }
 
-        private Core.Network.Client _client;
+        private Core.Network.Client client;
     }
 }

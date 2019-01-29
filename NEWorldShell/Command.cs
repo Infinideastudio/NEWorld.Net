@@ -95,7 +95,7 @@ namespace NEWorldShell
                 _waitingForInput = false;
                 var result = HandleCommand(new Command(input));
                 if (result.Info != "")
-                    Console.WriteLine(result.Info);
+                    Core.LogPort.Debug(result.Info);
             }
         }
 
