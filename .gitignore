@@ -3,3 +3,5 @@
 */obj
 .vs/
 packages/
+/bin/Debug
+/Modules/Main/obj/Debug
