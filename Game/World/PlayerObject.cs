@@ -28,8 +28,8 @@ namespace Game.World
         public PlayerObject(uint worldId) :
             base(worldId, new Vec3<double>(), new Vec3<double>(), new Vec3<double>(1.0, 1.0, 1.0), new Aabb())
         {
-            _height = 1.6;
-            _width = 0.6;
+            height = 1.6;
+            width = 0.6;
             Speed = 0.2;
             RefreshHitbox();
         }
@@ -41,14 +41,14 @@ namespace Game.World
 
         public double Speed { get; set; }
 
-        private readonly double _height;
-        private readonly double _width;
-        private Vec3<double> _hitboxSize;
+        private readonly double height;
+        private readonly double width;
+        private Vec3<double> hitboxSize;
 
         private void RefreshHitbox()
         {
-            _hitboxSize = new Vec3<double>(_width, _height, _width);
-            Hitbox = new Aabb(-_hitboxSize / 2, _hitboxSize / 2);
+            hitboxSize = new Vec3<double>(width, height, width);
+            Hitbox = new Aabb(-hitboxSize / 2, hitboxSize / 2);
         }
 
         public override void Render()

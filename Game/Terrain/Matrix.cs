@@ -52,7 +52,7 @@ namespace Game.Terrain
 
         public static void ModelRotate(float degree, Vec3<int> axis) => _model *= Mat4F.Rotation(degree, Conv(axis));
 
-        public static void ModelTranslate(Vec3<int> diff) => _model *= Mat4F.Translation(Conv(diff));
+        public static void ModelSetTranslate(Vec3<int> diff) => _model = Mat4F.Translation(Conv(diff));
 
         public static Mat4F Get() => _model * _view * _projection;
 

@@ -69,73 +69,73 @@ namespace Game
          */
         public TaskDispatcher(int threadNumber, ChunkService chunkService)
         {
-            _threadNumber = threadNumber;
-            _chunkService = chunkService;
+            this.threadNumber = threadNumber;
+            this.chunkService = chunkService;
             TimeUsed = new int[threadNumber];
-            _mutex = new object();
-            _readOnlyTasks = new List<IReadOnlyTask>();
-            _nextReadOnlyTasks = new List<IReadOnlyTask>();
-            _regularReadOnlyTasks = new List<IReadOnlyTask>();
-            _readWriteTasks = new List<IReadWriteTask>();
-            _nextReadWriteTasks = new List<IReadWriteTask>();
-            _regularReadWriteTasks = new List<IReadWriteTask>();
-            _renderTasks = new List<IRenderTask>();
-            _nextRenderTasks = new List<IRenderTask>();
+            mutex = new object();
+            readOnlyTasks = new List<IReadOnlyTask>();
+            nextReadOnlyTasks = new List<IReadOnlyTask>();
+            regularReadOnlyTasks = new List<IReadOnlyTask>();
+            readWriteTasks = new List<IReadWriteTask>();
+            nextReadWriteTasks = new List<IReadWriteTask>();
+            regularReadWriteTasks = new List<IReadWriteTask>();
+            renderTasks = new List<IRenderTask>();
+            nextRenderTasks = new List<IRenderTask>();
         }
 
         ~TaskDispatcher()
         {
-            if (!_shouldExit) Stop();
+            if (!shouldExit) Stop();
         }
 
         public void Start()
         {
-            _shouldExit = false;
-            _roundNumber = 0;
-            _numberOfUnfinishedThreads = _threadNumber;
-            _threads = new List<Thread>(_threadNumber);
-            for (var i = 0; i < _threadNumber; ++i)
+            shouldExit = false;
+            roundNumber = 0;
+            numberOfUnfinishedThreads = threadNumber;
+            threads = new List<Thread>(threadNumber);
+            for (var i = 0; i < threadNumber; ++i)
             {
                 var i1 = i;
                 var trd = new Thread(() => { Worker(i1); });
                 trd.Start();
-                _threads.Add(trd);
+                threads.Add(trd);
             }
         }
 
         public void Add(IReadOnlyTask task)
         {
-            lock (_mutex)
-                _nextReadOnlyTasks.Add(task);
+            lock (mutex)
+                nextReadOnlyTasks.Add(task);
         }
 
         public void Add(IReadWriteTask task)
         {
-            lock (_mutex)
-                _nextReadWriteTasks.Add(task);
+            lock (mutex)
+                nextReadWriteTasks.Add(task);
         }
 
         public void Add(IRenderTask task)
         {
-            lock (_mutex)
-                _nextRenderTasks.Add(task);
+            lock (mutex)
+                nextRenderTasks.Add(task);
         }
 
         public void AddRegular(IReadOnlyTask task)
         {
-            lock (_mutex)
-                _regularReadOnlyTasks.Add(task);
+            lock (mutex)
+                regularReadOnlyTasks.Add(task);
         }
 
         public void AddRegular(IReadWriteTask task)
         {
-            lock (_mutex)
-                _regularReadWriteTasks.Add(task);
+            lock (mutex)
+                regularReadWriteTasks.Add(task);
         }
 
-        public int GetRegularReadOnlyTaskCount() => _regularReadOnlyTasks.Count;
+        public int GetRegularReadOnlyTaskCount() => regularReadOnlyTasks.Count;
 
-        public int GetRegularReadWriteTaskCount() => _regularReadWriteTasks.Count;
+        public int GetRegularReadWriteTaskCount() => regularReadWriteTasks.Count;
 
         /**
          * \brief Process render tasks.
@@ -143,12 +143,12 @@ namespace Game
          */
         public void ProcessRenderTasks()
         {
-            lock (_mutex)
+            lock (mutex)
             {
-                foreach (var task in _renderTasks)
-                    task.Task(_chunkService);
-                _renderTasks.Clear();
-                Generic.Swap(ref _renderTasks, ref _nextRenderTasks);
+                foreach (var task in renderTasks)
+                    task.Task(chunkService);
+                renderTasks.Clear();
+                Generic.Swap(ref renderTasks, ref nextRenderTasks);
             }
         }
 
@@ -156,77 +156,77 @@ namespace Game
 
         public void Stop()
         {
-            _shouldExit = true;
-            foreach (var thread in _threads)
+            shouldExit = true;
+            foreach (var thread in threads)
                 thread.Join();
         }
 
         private void Worker(int threadId)
         {
             var meter = new RateController(30);
-            while (!_shouldExit)
+            while (!shouldExit)
             {
                 // A tick starts
-                var currentRoundNumber = _roundNumber;
+                var currentRoundNumber = roundNumber;
                 // Process read-only work.
-                for (var i = threadId; i < _readOnlyTasks.Count; i += _threadNumber)
+                for (var i = threadId; i < readOnlyTasks.Count; i += threadNumber)
                 {
-                    _readOnlyTasks[i].Task(_chunkService);
+                    readOnlyTasks[i].Task(chunkService);
                 }
 
                 // Finish the tick
                 TimeUsed[threadId] = meter.GetDeltaTimeMs();
 
                 // The last finished thread is responsible to do writing jobs
-                if (Interlocked.Decrement(ref _numberOfUnfinishedThreads) == 0)
+                if (Interlocked.Decrement(ref numberOfUnfinishedThreads) == 0)
                 {
                     // All other threads have finished?
-                    foreach (var task in _readWriteTasks)
+                    foreach (var task in readWriteTasks)
                     {
-                        task.Task(_chunkService);
+                        task.Task(chunkService);
                     }
 
                     // ...and finish up!
-                    _readOnlyTasks.Clear();
-                    _readWriteTasks.Clear();
-                    foreach (var task in _regularReadOnlyTasks)
-                        _nextReadOnlyTasks.Add(task.Clone());
-                    foreach (var task in _regularReadWriteTasks)
-                        _nextReadWriteTasks.Add(task.Clone());
-                    Generic.Swap(ref _readOnlyTasks, ref _nextReadOnlyTasks);
-                    Generic.Swap(ref _readWriteTasks, ref _nextReadWriteTasks);
+                    readOnlyTasks.Clear();
+                    readWriteTasks.Clear();
+                    foreach (var task in regularReadOnlyTasks)
+                        nextReadOnlyTasks.Add(task.Clone());
+                    foreach (var task in regularReadWriteTasks)
+                        nextReadWriteTasks.Add(task.Clone());
+                    Generic.Swap(ref readOnlyTasks, ref nextReadOnlyTasks);
+                    Generic.Swap(ref readWriteTasks, ref nextReadWriteTasks);
 
                     // Limit UPS
                     meter.Yield();
 
                     // Time to move to next tick!
                     // Notify other threads that we are good to go
-                    _numberOfUnfinishedThreads = _threadNumber;
-                    Interlocked.Increment(ref _roundNumber);
+                    numberOfUnfinishedThreads = threadNumber;
+                    Interlocked.Increment(ref roundNumber);
                 }
                 else
                 {
                     meter.Yield();
                     // Wait for other threads...
-                    while (_roundNumber == currentRoundNumber)
+                    while (roundNumber == currentRoundNumber)
                         Thread.Yield();
                 }
             }
         }
 
         // TODO: replace it with lock-free structure.
-        private readonly object _mutex;
-        private List<IReadOnlyTask> _readOnlyTasks, _nextReadOnlyTasks;
-        private readonly List<IReadOnlyTask> _regularReadOnlyTasks;
-        private List<IReadWriteTask> _readWriteTasks, _nextReadWriteTasks;
-        private readonly List<IReadWriteTask> _regularReadWriteTasks;
-        private List<IRenderTask> _renderTasks, _nextRenderTasks;
-        private List<Thread> _threads;
-        private readonly int _threadNumber;
-        private int _roundNumber;
-        private int _numberOfUnfinishedThreads;
-        private bool _shouldExit;
+        private readonly object mutex;
+        private List<IReadOnlyTask> readOnlyTasks, nextReadOnlyTasks;
+        private readonly List<IReadOnlyTask> regularReadOnlyTasks;
+        private List<IReadWriteTask> readWriteTasks, nextReadWriteTasks;
+        private readonly List<IReadWriteTask> regularReadWriteTasks;
+        private List<IRenderTask> renderTasks, nextRenderTasks;
+        private List<Thread> threads;
+        private readonly int threadNumber;
+        private int roundNumber;
+        private int numberOfUnfinishedThreads;
+        private bool shouldExit;
 
-        private readonly ChunkService _chunkService;
+        private readonly ChunkService chunkService;
     }
 }

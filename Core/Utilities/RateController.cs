@@ -33,35 +33,35 @@ namespace Core.Utilities
          */
         public RateController(int rate = 0)
         {
-            _rate = rate;
-            _last = _due = DateTime.Now;
+            this.rate = rate;
+            last = due = DateTime.Now;
         }
 
         /**
          * \brief Synchronize the internal timer with system clock. For cases that the timer doesn't keep up or forced resets
          */
-        public void Sync() => _last = _due = DateTime.Now;
+        public void Sync() => last = due = DateTime.Now;
 
         /**
          * \brief Get elapsed time from the start of the tick, in milliseconds
          * \return Elapsed time from the start of the tick, in milliseconds
          */
-        public int GetDeltaTimeMs() => (DateTime.Now - _last).Milliseconds;
+        public int GetDeltaTimeMs() => (DateTime.Now - last).Milliseconds;
 
         /**
          * \brief Check if the deadline of the current tick has pased
          * \return true if the deadline is passed, false otherwise
          */
-        public bool IsDue() => _rate <= 0 || DateTime.Now >= _due;
+        public bool IsDue() => rate <= 0 || DateTime.Now >= due;
 
         /**
          * \brief Increase the internal timer by one tick. Sets the current due time as the starting time of the next tick
          */
         public void IncreaseTimer()
         {
-            if (_rate <= 0) return;
-            _last = _due;
-            _due += TimeSpan.FromMilliseconds(1000 / _rate);
+            if (rate <= 0) return;
+            last = due;
+            due += TimeSpan.FromMilliseconds(1000 / rate);
         }
 
         /**
@@ -70,13 +70,13 @@ namespace Core.Utilities
         public void Yield()
         {
             if (!IsDue())
-                Thread.Sleep(_due - DateTime.Now);
+                Thread.Sleep(due - DateTime.Now);
             else
                 Sync();
             IncreaseTimer();
         }
 
-        private readonly int _rate;
-        private DateTime _due, _last;
+        private readonly int rate;
+        private DateTime due, last;
     }
 }

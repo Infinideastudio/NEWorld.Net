@@ -29,12 +29,12 @@ namespace Core.Network
         public Server(int port) : base(IPAddress.Any, port)
         {
             RegisterProtocol(Singleton<ProtocolReply>.Instance);
-            RegisterProtocol(new ProtocolFetchProtocol.Server(_connHost.Protocols));
+            RegisterProtocol(new ProtocolFetchProtocol.Server(connHost.Protocols));
         }
 
         public void Run()
         {
-            lock (_connHost.Lock)
+            lock (connHost.Lock)
             {
                 Boot();
                 ListenConnections().Wait();
@@ -49,15 +49,15 @@ namespace Core.Network
             ShutDown();
         }
 
-        public void RegisterProtocol(Protocol newProtocol) => _connHost.RegisterProtocol(newProtocol);
+        public void RegisterProtocol(Protocol newProtocol) => connHost.RegisterProtocol(newProtocol);
 
-        public void StopServer() => _exit = true;
+        public void StopServer() => exit = true;
 
-        public int CountConnections() => _connHost.CountConnections();
+        public int CountConnections() => connHost.CountConnections();
 
         private void Boot()
         {
-            _exit = false;
+            exit = false;
             AssignProtocolIdentifiers();
             Start();
         }
@@ -66,31 +66,31 @@ namespace Core.Network
 
         private async Task ListenConnections()
         {
-            while (!_exit)
+            while (!exit)
             {
                 try
                 {
-                    _connHost.AddConnection(await AcceptTcpClientAsync());
+                    connHost.AddConnection(await AcceptTcpClientAsync());
                 }
                 catch
                 {
                     // ignored
                 }
 
-                _connHost.SweepInvalidConnectionsIfNecessary();
+                connHost.SweepInvalidConnectionsIfNecessary();
             }
 
-            _connHost.CloseAll();
+            connHost.CloseAll();
         }
 
         private void AssignProtocolIdentifiers()
         {
             var current = 0;
-            foreach (var protocol in _connHost.Protocols)
+            foreach (var protocol in connHost.Protocols)
                 protocol.Id = current++;
         }
 
-        private bool _exit;
-        private readonly ConnectionHost _connHost = new ConnectionHost();
+        private bool exit;
+        private readonly ConnectionHost connHost = new ConnectionHost();
     }
 }

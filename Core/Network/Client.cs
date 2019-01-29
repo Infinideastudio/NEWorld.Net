@@ -19,6 +19,7 @@
 
 using System.Collections.Generic;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 using Core.Utilities;
 
 namespace Core.Network
@@ -29,27 +30,28 @@ namespace Core.Network
         {
             RegisterProtocol(Singleton<ProtocolReply>.Instance);
             RegisterProtocol(new ProtocolFetchProtocol.Client());
-            _connHost.AddConnection(this);
+            connHost.AddConnection(this);
         }
 
-        public void RegisterProtocol(Protocol newProtocol) => _connHost.RegisterProtocol(newProtocol);
+        public void RegisterProtocol(Protocol newProtocol) => connHost.RegisterProtocol(newProtocol);
 
-        public void NegotiateProtocols()
+        public async Task NegotiateProtocols()
         {
             var skvm = new Dictionary<string, Protocol>();
-            foreach (var protocol in _connHost.Protocols)
+            foreach (var protocol in connHost.Protocols)
                 skvm.Add(protocol.Name(), protocol);
-            foreach (var entry in ProtocolFetchProtocol.Client.Get(GetConnection()))
+            var reply = await ProtocolFetchProtocol.Client.Get(GetConnection());
+            foreach (var entry in reply)
                 skvm[entry.Key].Id = entry.Value;
-            _connHost.Protocols.Sort(ProtocolSorter);
+            connHost.Protocols.Sort(ProtocolSorter);
         }
 
-        public ConnectionHost.Connection GetConnection() => _connHost.GetConnection(0);
+        public ConnectionHost.Connection GetConnection() => connHost.GetConnection(0);
 
-        public new void Close() => _connHost.CloseAll();
+        public new void Close() => connHost.CloseAll();
 
         private static int ProtocolSorter(Protocol x, Protocol y) => Comparer<int>.Default.Compare(x.Id, y.Id);
 
-        private readonly ConnectionHost _connHost = new ConnectionHost();
+        private readonly ConnectionHost connHost = new ConnectionHost();
     }
 }

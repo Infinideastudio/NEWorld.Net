@@ -20,13 +20,13 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Core.Math;
+using Xenko.Core.Mathematics;
 
 namespace Game.World
 {
     public class Chunk
     {
-        public delegate void Generator(Vec3<int> chunkPos, BlockData[] chunkData, int daylightBrightness);
+        public delegate void Generator(Int3 chunkPos, BlockData[] chunkData, int daylightBrightness);
 
         // Chunk size
         private static bool _chunkGeneratorLoaded;
@@ -48,7 +48,7 @@ namespace Game.World
             }
         }
 
-        public Chunk(Vec3<int> position, World world)
+        public Chunk(Int3 position, World world)
         {
             Position = position;
             World = world;
@@ -59,13 +59,13 @@ namespace Game.World
         // TODO: somehow avoid it! not safe.
         public bool IsUpdated { get; set; }
 
-        public Vec3<int> Position { get; }
+        public Int3 Position { get; }
 
         public World World { get; }
 
         public BlockData[] Blocks { get; }
 
-        public BlockData this[Vec3<int> pos]
+        public BlockData this[Int3 pos]
         {
             get => Blocks[pos.X * Size * Size + pos.Y * Size + pos.Z];
             set
@@ -83,36 +83,36 @@ namespace Game.World
         }
 
         // Reference Counting
-        public void MarkRequest() => _mLastRequestTime = DateTime.Now.Ticks;
+        public void MarkRequest() => mLastRequestTime = DateTime.Now.Ticks;
 
         public bool CheckReleaseable() =>
-            DateTime.Now - new DateTime(Interlocked.Read(ref _mLastRequestTime)) > TimeSpan.FromSeconds(10);
+            DateTime.Now - new DateTime(Interlocked.Read(ref mLastRequestTime)) > TimeSpan.FromSeconds(10);
 
         // For Garbage Collection
-        private long _mLastRequestTime;
+        private long mLastRequestTime;
     }
 
     [Serializable]
-    public class ChunkManager : Dictionary<Vec3<int>, Chunk>
+    public class ChunkManager : Dictionary<Int3, Chunk>
     {
-        public bool IsLoaded(Vec3<int> chunkPos) => ContainsKey(chunkPos);
+        public bool IsLoaded(Int3 chunkPos) => ContainsKey(chunkPos);
 
         // Convert world position to chunk coordinate (one axis)
         public static int GetAxisPos(int pos) => pos >> Chunk.SizeLog2;
 
         // Convert world position to chunk coordinate (all axes)
-        public static Vec3<int> GetPos(Vec3<int> pos) =>
-            new Vec3<int>(GetAxisPos(pos.X), GetAxisPos(pos.Y), GetAxisPos(pos.Z));
+        public static Int3 GetPos(Int3 pos) =>
+            new Int3(GetAxisPos(pos.X), GetAxisPos(pos.Y), GetAxisPos(pos.Z));
 
         // Convert world position to block coordinate in chunk (one axis)
         public static int GetBlockAxisPos(int pos) => pos & (Chunk.Size - 1);
 
         // Convert world position to block coordinate in chunk (all axes)
-        public static Vec3<int> GetBlockPos(Vec3<int> pos) =>
-            new Vec3<int>(GetBlockAxisPos(pos.X), GetBlockAxisPos(pos.Y), GetBlockAxisPos(pos.Z));
+        public static Int3 GetBlockPos(Int3 pos) =>
+            new Int3(GetBlockAxisPos(pos.X), GetBlockAxisPos(pos.Y), GetBlockAxisPos(pos.Z));
 
-        public BlockData GetBlock(Vec3<int> pos) => this[GetPos(pos)][GetBlockPos(pos)];
+        public BlockData GetBlock(Int3 pos) => this[GetPos(pos)][GetBlockPos(pos)];
 
-        public void SetBlock(Vec3<int> pos, BlockData block) => this[GetPos(pos)][GetBlockPos(pos)] = block;
+        public void SetBlock(Int3 pos, BlockData block) => this[GetPos(pos)][GetBlockPos(pos)] = block;
     }
 }

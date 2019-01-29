@@ -56,11 +56,11 @@ namespace Game.Utilities
     {
         public OrderedListIntBaseEnum(OrderedListIntBase<TD> host) => _base = host;
 
-        public bool MoveNext() => ++_position < _base.Size;
+        public bool MoveNext() => ++position < _base.Size;
 
-        public void Reset() => _position = -1;
+        public void Reset() => position = -1;
 
-        public KeyValuePair<int, TD> Current => _base.Data[_position];
+        public KeyValuePair<int, TD> Current => _base.Data[position];
 
         object IEnumerator.Current => Current;
 
@@ -68,7 +68,7 @@ namespace Game.Utilities
         {
         }
 
-        private int _position = -1;
+        private int position = -1;
 
         private readonly OrderedListIntBase<TD> _base;
     }

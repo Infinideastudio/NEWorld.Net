@@ -29,33 +29,33 @@ namespace Game.Network
     {
         public void Enable(int port)
         {
-            _server = new Core.Network.Server(port);
-            _server.RegisterProtocol(new GetChunk.Server());
-            _server.RegisterProtocol(new GetAvailableWorldId.Server());
-            _server.RegisterProtocol(new GetWorldInfo.Server());
+            server = new Core.Network.Server(port);
+            server.RegisterProtocol(new GetChunk.Server());
+            server.RegisterProtocol(new GetAvailableWorldId.Server());
+            server.RegisterProtocol(new GetWorldInfo.Server());
             Singleton<ChunkService>.Instance.Worlds.Add("test world");
         }
 
         public void Run()
         {
-            _wait = _server.RunAsync();
+            wait = server.RunAsync();
         }
 
-        public int CountConnections() => _server.CountConnections();
+        public int CountConnections() => server.CountConnections();
 
         public void Stop()
         {
-            _server.StopServer();
-            _wait.Wait();
+            server.StopServer();
+            wait.Wait();
         }
 
-        private Task _wait;
-        private Core.Network.Server _server;
+        private Task wait;
+        private Core.Network.Server server;
 
         public void Dispose()
         {
             Stop();
-            _wait?.Dispose();
+            wait?.Dispose();
         }
     }
 }

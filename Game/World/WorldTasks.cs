@@ -17,9 +17,11 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
+using System;
 using Core.Math;
 using Game.Network;
 using Game.Utilities;
+using Xenko.Core.Mathematics;
 
 namespace Game.World
 {
@@ -27,8 +29,8 @@ namespace Game.World
     {
         private const int MaxChunkLoadCount = 64, MaxChunkUnloadCount = 64;
 
-        private static readonly Vec3<int> MiddleOffset =
-            new Vec3<int>(Chunk.Size / 2 - 1, Chunk.Size / 2 - 1, Chunk.Size / 2 - 1);
+        private static readonly Int3 MiddleOffset =
+            new Int3(Chunk.Size / 2 - 1, Chunk.Size / 2 - 1, Chunk.Size / 2 - 1);
 
         public class ResetChunkTask : IReadWriteTask
         {
@@ -39,20 +41,20 @@ namespace Game.World
              */
             public ResetChunkTask(uint worldId, Chunk chunk)
             {
-                _worldId = worldId;
-                _chunk = chunk;
+                this.worldId = worldId;
+                this.chunk = chunk;
             }
 
             public IReadWriteTask Clone() => (IReadWriteTask) MemberwiseClone();
 
             public void Task(ChunkService srv)
             {
-                var world = srv.Worlds.Get(_worldId);
-                world.ResetChunkAndUpdate(_chunk.Position, _chunk);
+                var world = srv.Worlds.Get(worldId);
+                world.ResetChunkAndUpdate(chunk.Position, chunk);
             }
 
-            private readonly uint _worldId;
-            private readonly Chunk _chunk;
+            private readonly uint worldId;
+            private readonly Chunk chunk;
         }
 
         private class UnloadChunkTask : IReadWriteTask
@@ -62,10 +64,10 @@ namespace Game.World
             * \param world the target world
             * \param chunkPosition the position of the chunk
             */
-            public UnloadChunkTask(World world, Vec3<int> chunkPosition)
+            public UnloadChunkTask(World world, Int3 chunkPosition)
             {
-                _world = world;
-                _chunkPosition = chunkPosition;
+                this.world = world;
+                this.chunkPosition = chunkPosition;
             }
 
             public IReadWriteTask Clone() => (IReadWriteTask) MemberwiseClone();
@@ -73,11 +75,11 @@ namespace Game.World
             public void Task(ChunkService srv)
             {
                 //TODO: for multiplayer situation, it should decrease ref counter instead of deleting
-                _world.DeleteChunk(_chunkPosition);
+                world.DeleteChunk(chunkPosition);
             }
 
-            private readonly World _world;
-            private readonly Vec3<int> _chunkPosition;
+            private readonly World world;
+            private readonly Int3 chunkPosition;
         }
 
         private class BuildOrLoadChunkTask : IReadOnlyTask
@@ -91,20 +93,20 @@ namespace Game.World
                  */
                 public AddToWorldTask(uint worldId, Chunk chunk)
                 {
-                    _worldId = worldId;
-                    _chunk = chunk;
+                    this.worldId = worldId;
+                    this.chunk = chunk;
                 }
 
                 public IReadWriteTask Clone() => (IReadWriteTask) MemberwiseClone();
 
                 public void Task(ChunkService srv)
                 {
-                    var world = srv.Worlds.Get(_worldId);
-                    world.InsertChunkAndUpdate(_chunk.Position, _chunk);
+                    var world = srv.Worlds.Get(worldId);
+                    world.InsertChunkAndUpdate(chunk.Position, chunk);
                 }
 
-                private readonly uint _worldId;
-                private readonly Chunk _chunk;
+                private readonly uint worldId;
+                private readonly Chunk chunk;
             }
 
             /**
@@ -112,10 +114,10 @@ namespace Game.World
              * \param world the target world
              * \param chunkPosition the position of the chunk
              */
-            public BuildOrLoadChunkTask(World world, Vec3<int> chunkPosition)
+            public BuildOrLoadChunkTask(World world, Int3 chunkPosition)
             {
-                _world = world;
-                _chunkPosition = chunkPosition;
+                this.world = world;
+                this.chunkPosition = chunkPosition;
             }
 
             public IReadOnlyTask Clone() => (IReadOnlyTask) MemberwiseClone();
@@ -123,43 +125,43 @@ namespace Game.World
             public void Task(ChunkService srv)
             {
                 // TODO: should try to load from local first
-                var chunk = new Chunk(_chunkPosition, _world);
-                srv.TaskDispatcher.Add(new AddToWorldTask(_world.Id, chunk));
+                var chunk = new Chunk(chunkPosition, world);
+                srv.TaskDispatcher.Add(new AddToWorldTask(world.Id, chunk));
             }
 
-            private readonly World _world;
-            private readonly Vec3<int> _chunkPosition;
+            private readonly World world;
+            private readonly Int3 chunkPosition;
         }
 
         private class LoadUnloadDetectorTask : IReadOnlyTask
         {
             public LoadUnloadDetectorTask(World world, Player player)
             {
-                _player = player;
-                _world = world;
+                this.player = player;
+                this.world = world;
             }
 
             public void Task(ChunkService cs)
             {
-                var loadList = new OrderedListIntLess<Vec3<int>>(MaxChunkLoadCount);
+                var loadList = new OrderedListIntLess<Int3>(MaxChunkLoadCount);
                 var unloadList = new OrderedListIntGreater<Chunk>(MaxChunkUnloadCount);
-                var playerPos = _player.Position;
-                var position = new Vec3<int>((int) playerPos.X, (int) playerPos.Y, (int) playerPos.Z);
-                GenerateLoadUnloadList(_world, position, 4, loadList, unloadList);
+                var playerPos = player.Position;
+                var position = new Int3((int) playerPos.X, (int) playerPos.Y, (int) playerPos.Z);
+                GenerateLoadUnloadList(world, position, 4, loadList, unloadList);
 
                 foreach (var loadPos in loadList)
                 {
-                    cs.TaskDispatcher.Add(new BuildOrLoadChunkTask(_world, loadPos.Value));
+                    cs.TaskDispatcher.Add(new BuildOrLoadChunkTask(world, loadPos.Value));
                     if (!cs.IsAuthority)
                     {
-                        Client.GetChunk.Call(_world.Id, loadPos.Value);
+                        Client.GetChunk.Call(world.Id, loadPos.Value);
                     }
                 }
 
                 foreach (var unloadChunk in unloadList)
                 {
                     // add a unload task.
-                    cs.TaskDispatcher.Add(new UnloadChunkTask(_world, unloadChunk.Value.Position));
+                    cs.TaskDispatcher.Add(new UnloadChunkTask(world, unloadChunk.Value.Position));
                 }
             }
 
@@ -172,8 +174,8 @@ namespace Game.World
              * \param loadList (Output) Chunk load list [position, distance]
              * \param unloadList (Output) Chunk unload list [pointer, distance]
              */
-            private static void GenerateLoadUnloadList(World world, Vec3<int> centerPos, int loadRange,
-                OrderedListIntLess<Vec3<int>> loadList, OrderedListIntGreater<Chunk> unloadList)
+            private static void GenerateLoadUnloadList(World world, Int3 centerPos, int loadRange,
+                OrderedListIntLess<Int3> loadList, OrderedListIntGreater<Chunk> unloadList)
             {
                 // centerPos to chunk coords
                 var centerCPos = GetChunkPos(centerPos);
@@ -182,8 +184,8 @@ namespace Game.World
                 {
                     var curPos = chunk.Value.Position;
                     // Out of load range, pending to unload
-                    if (centerCPos.ChebyshevDistance(curPos) > loadRange)
-                        unloadList.Insert((curPos * Chunk.Size + MiddleOffset - centerPos).LengthSqr(), chunk.Value);
+                    if (ChebyshevDistance(centerCPos, curPos) > loadRange)
+                        unloadList.Insert((curPos * Chunk.Size + MiddleOffset - centerPos).LengthSquared(), chunk.Value);
                 }
 
                 for (var x = centerCPos.X - loadRange; x <= centerCPos.X + loadRange; x++)
@@ -192,20 +194,23 @@ namespace Game.World
                     {
                         for (var z = centerCPos.Z - loadRange; z <= centerCPos.Z + loadRange; z++)
                         {
-                            var position = new Vec3<int>(x, y, z);
+                            var position = new Int3(x, y, z);
                             // In load range, pending to load
                             if (!world.IsChunkLoaded(position))
-                                loadList.Insert((position * Chunk.Size + MiddleOffset - centerPos).LengthSqr(),
+                                loadList.Insert((position * Chunk.Size + MiddleOffset - centerPos).LengthSquared(),
                                     position);
                         }
                     }
                 }
             }
 
+            // TODO: Remove Type1 Clone
+            private static int ChebyshevDistance(Int3 l, Int3 r) => Math.Max(Math.Max(Math.Abs(l.X - r.X), Math.Abs(l.Y - r.Y)), Math.Abs(l.Z - r.Z));
+
             public IReadOnlyTask Clone() => (IReadOnlyTask) MemberwiseClone();
 
-            private readonly Player _player;
-            private readonly World _world;
+            private readonly Player player;
+            private readonly World world;
         }
 
         public void RegisterChunkTasks(ChunkService cs, Player player) =>

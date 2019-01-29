@@ -27,24 +27,24 @@ namespace Core.Utilities
 
         protected T Inject<T>(T target) where T : StrictDispose
         {
-            if (_first != null)
-                target._sibling = _first;
-            _first = target;
+            if (first != null)
+                target.sibling = first;
+            first = target;
             return target;
         }
 
         protected void Reject<T>(T target, bool disposeNow = true) where T : StrictDispose
         {
-            if (target == _first)
+            if (target == first)
             {
-                _first = target._sibling;
+                first = target.sibling;
                 return;
             }
 
-            var current = _first;
-            while (current._sibling != target)
-                current = current._sibling;
-            current._sibling = target._sibling;
+            var current = first;
+            while (current.sibling != target)
+                current = current.sibling;
+            current.sibling = target.sibling;
 
             if (disposeNow)
                 target.Dispose();
@@ -56,23 +56,23 @@ namespace Core.Utilities
 
         private void TravelRelease()
         {
-            for (var current = _first; current != null; current = current._sibling)
+            for (var current = first; current != null; current = current.sibling)
                 current.Dispose();
         }
 
         public void Dispose()
         {
-            if (_released)
+            if (released)
                 return;
             TravelRelease();
             Release();
-            _released = true;
+            released = true;
         }
 
-        public bool Valid() => !_released;
+        public bool Valid() => !released;
 
-        private StrictDispose _first, _sibling;
+        private StrictDispose first, sibling;
 
-        private bool _released;
+        private bool released;
     }
 }

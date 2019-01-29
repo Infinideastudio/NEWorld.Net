@@ -39,10 +39,10 @@ namespace Core.Module
     {
         private Modules()
         {
-            _modules = new Dictionary<string, KeyValuePair<IModule, Assembly>>();
+            modules = new Dictionary<string, KeyValuePair<IModule, Assembly>>();
         }
 
-        public void SetBasePath(string path) => _basePath = path;
+        public void SetBasePath(string path) => basePath = path;
 
         public void Load(string moduleFile)
         {
@@ -56,12 +56,12 @@ namespace Core.Module
                     {
                         var module = (IModule) Activator.CreateInstance(type);
                         module.CoInitialize();
-                        _modules.Add(type.FullName ?? "", new KeyValuePair<IModule, Assembly>(module, assembly));
-                        Console.WriteLine($"Loaded Module : {type}");
+                        modules.Add(type.FullName ?? "", new KeyValuePair<IModule, Assembly>(module, assembly));
+                        LogPort.Debug($"Loaded Module : {type}");
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine($"Module {type} Load Failure : {e}");
+                        LogPort.Debug($"Module {type} Load Failure : {e}");
                     }
                 }
             }
@@ -69,19 +69,19 @@ namespace Core.Module
             Services.ScanAssembly(assembly);
         }
 
-        public IModule this[string name] => _modules[name].Key;
+        public IModule this[string name] => modules[name].Key;
 
         public void UnloadAll()
         {
-            foreach (var module in _modules)
+            foreach (var module in modules)
                 module.Value.Key.CoFinalize();
-            _modules.Clear();
+            modules.Clear();
         }
 
         public static Modules Instance => Singleton<Modules>.Instance;
 
-        private string _basePath = Path.Modules();
+        private string basePath = Path.Modules();
 
-        private readonly Dictionary<string, KeyValuePair<IModule, Assembly>> _modules;
+        private readonly Dictionary<string, KeyValuePair<IModule, Assembly>> modules;
     }
 }

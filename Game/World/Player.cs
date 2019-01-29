@@ -28,28 +28,28 @@ namespace Game.World
         {
             public PlayerUpdateTask(Player player, uint worldId)
             {
-                _player = player;
-                _worldId = worldId;
+                this.player = player;
+                this.worldId = worldId;
             }
 
-            public void Task(ChunkService srv) => _player.Update(srv.Worlds.Get(_worldId));
+            public void Task(ChunkService srv) => player.Update(srv.Worlds.Get(worldId));
 
             IReadOnlyTask IReadOnlyTask.Clone() => (IReadOnlyTask) MemberwiseClone();
 
-            private readonly Player _player;
-            private readonly uint _worldId;
+            private readonly Player player;
+            private readonly uint worldId;
         }
 
         public Player(uint worldId) : base(worldId) =>
             Singleton<ChunkService>.Instance.TaskDispatcher.AddRegular(new PlayerUpdateTask(this, WorldId));
 
-        public void Accelerate(Vec3<double> acceleration) => _speed += acceleration;
+        public void Accelerate(Vec3<double> acceleration) => speed += acceleration;
 
-        public void AccelerateRotation(Vec3<double> acceleration) => _rotationSpeed += acceleration;
+        public void AccelerateRotation(Vec3<double> acceleration) => rotationSpeed += acceleration;
 
-        public void SetSpeed(Vec3<double> speed) => _speed = speed;
+        public void SetSpeed(Vec3<double> speed) => this.speed = speed;
 
-        public Vec3<double> PositionDelta => _positionDelta;
+        public Vec3<double> PositionDelta => positionDelta;
 
         public Vec3<double> RotationDelta { get; private set; }
 
@@ -57,8 +57,8 @@ namespace Game.World
         {
         }
 
-        private Vec3<double> _speed, _rotationSpeed;
-        private Vec3<double> _positionDelta;
+        private Vec3<double> speed, rotationSpeed;
+        private Vec3<double> positionDelta;
 
         public override void Update(World world)
         {
@@ -69,42 +69,42 @@ namespace Game.World
 
         private void Move(World world)
         {
-            _positionDelta = Mat4D.Rotation(Rotation.Y, new Vec3<double>(0.0f, 1.0f, 0.0f)).Transform(_speed, 0.0).Key;
-            var originalDelta = _positionDelta;
-            var hitboxes = world.GetHitboxes(Hitbox.Expand(_positionDelta));
+            positionDelta = Mat4D.Rotation(Rotation.Y, new Vec3<double>(0.0f, 1.0f, 0.0f)).Transform(speed, 0.0).Key;
+            var originalDelta = positionDelta;
+            var hitboxes = world.GetHitboxes(Hitbox.Expand(positionDelta));
 
             foreach (var curr in hitboxes)
-                _positionDelta.X = Hitbox.MaxMoveOnXclip(curr, _positionDelta.X);
-            MoveHitbox(new Vec3<double>(_positionDelta.X, 0.0, 0.0));
-            if (_positionDelta.X != originalDelta.X) _speed.X = 0.0;
+                positionDelta.X = Hitbox.MaxMoveOnXclip(curr, positionDelta.X);
+            MoveHitbox(new Vec3<double>(positionDelta.X, 0.0, 0.0));
+            if (positionDelta.X != originalDelta.X) speed.X = 0.0;
 
             foreach (var curr in hitboxes)
-                _positionDelta.Z = Hitbox.MaxMoveOnZclip(curr, _positionDelta.Z);
-            MoveHitbox(new Vec3<double>(0.0, 0.0, _positionDelta.Z));
-            if (_positionDelta.Z != originalDelta.Z) _speed.Z = 0.0;
+                positionDelta.Z = Hitbox.MaxMoveOnZclip(curr, positionDelta.Z);
+            MoveHitbox(new Vec3<double>(0.0, 0.0, positionDelta.Z));
+            if (positionDelta.Z != originalDelta.Z) speed.Z = 0.0;
 
             foreach (var curr in hitboxes)
-                _positionDelta.Y = Hitbox.MaxMoveOnYclip(curr, _positionDelta.Y);
-            MoveHitbox(new Vec3<double>(0.0, _positionDelta.Y, 0.0));
-            if (_positionDelta.Y != originalDelta.Y) _speed.Y = 0.0;
+                positionDelta.Y = Hitbox.MaxMoveOnYclip(curr, positionDelta.Y);
+            MoveHitbox(new Vec3<double>(0.0, positionDelta.Y, 0.0));
+            if (positionDelta.Y != originalDelta.Y) speed.Y = 0.0;
 
-            Position += _positionDelta;
+            Position += positionDelta;
         }
 
         private static readonly bool RotationInteria = false;
 
         private void RotationMove()
         {
-            if (Rotation.X + _rotationSpeed.X > 90.0)
-                _rotationSpeed.X = 90.0 - Rotation.X;
-            if (Rotation.X + _rotationSpeed.X < -90.0)
-                _rotationSpeed.X = -90.0 - Rotation.X;
-            Rotation += _rotationSpeed;
-            RotationDelta = _rotationSpeed;
+            if (Rotation.X + rotationSpeed.X > 90.0)
+                rotationSpeed.X = 90.0 - Rotation.X;
+            if (Rotation.X + rotationSpeed.X < -90.0)
+                rotationSpeed.X = -90.0 - Rotation.X;
+            Rotation += rotationSpeed;
+            RotationDelta = rotationSpeed;
             if (RotationInteria)
-                _rotationSpeed *= 0.6;
+                rotationSpeed *= 0.6;
             else
-                _rotationSpeed *= 0;
+                rotationSpeed *= 0;
         }
     }
 }

@@ -58,7 +58,7 @@ namespace Core
             public readonly List<IDisposable> List = new List<IDisposable>();
         }
 
-        static Services() => ScanAssembly(Assembly.GetCallingAssembly());
+        static Services() => ScanAssembly(Assembly.GetExecutingAssembly());
 
         public static void Inject<TP>() where TP : IDisposable => Inject(typeof(TP));
 
@@ -87,7 +87,7 @@ namespace Core
             }
             catch (ServiceManagerException)
             {
-                ins = default;
+                ins = default(TI);
                 return false;
             }
         }

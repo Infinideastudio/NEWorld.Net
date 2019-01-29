@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Math;
 using Game.Utilities;
+using Xenko.Core.Mathematics;
 
 namespace Game.World
 {
@@ -53,42 +54,42 @@ namespace Game.World
         // Alias declearations for Chunk management
         public int GetChunkCount() => Chunks.Count;
 
-        public Chunk GetChunk(ref Vec3<int> chunkPos) => Chunks[chunkPos];
+        public Chunk GetChunk(ref Int3 chunkPos) => Chunks[chunkPos];
 
-        public bool IsChunkLoaded(Vec3<int> chunkPos) => Chunks.IsLoaded(chunkPos);
+        public bool IsChunkLoaded(Int3 chunkPos) => Chunks.IsLoaded(chunkPos);
 
-        public void DeleteChunk(Vec3<int> chunkPos) => Chunks.Remove(chunkPos);
+        public void DeleteChunk(Int3 chunkPos) => Chunks.Remove(chunkPos);
 
         public static int GetChunkAxisPos(int pos) => ChunkManager.GetAxisPos(pos);
 
-        public static Vec3<int> GetChunkPos(Vec3<int> pos) => ChunkManager.GetPos(pos);
+        public static Int3 GetChunkPos(Int3 pos) => ChunkManager.GetPos(pos);
 
         public static int GetBlockAxisPos(int pos) => ChunkManager.GetBlockAxisPos(pos);
 
-        public static Vec3<int> GetBlockPos(ref Vec3<int> pos) => ChunkManager.GetBlockPos(pos);
+        public static Int3 GetBlockPos(ref Int3 pos) => ChunkManager.GetBlockPos(pos);
 
-        public BlockData GetBlock(Vec3<int> pos) => Chunks.GetBlock(pos);
+        public BlockData GetBlock(Int3 pos) => Chunks.GetBlock(pos);
 
-        public void SetBlock(ref Vec3<int> pos, BlockData block) => Chunks.SetBlock(pos, block);
+        public void SetBlock(ref Int3 pos, BlockData block) => Chunks.SetBlock(pos, block);
 
-        private Chunk InsertChunk(ref Vec3<int> pos, Chunk chunk)
+        private Chunk InsertChunk(ref Int3 pos, Chunk chunk)
         {
             if (!Chunks.IsLoaded(pos))
                 Chunks.Add(pos, chunk);
             else
                 // TODO : FIX THIS GOD DAMNED ERROR, IT SHOULD NOT HAPPEN
-                Console.WriteLine($"Warning: Dumplicate Chunk Adding on [{pos.X},{pos.Y},{pos.Z}]");
+                Core.LogPort.Debug($"Warning: Dumplicate Chunk Adding on [{pos.X},{pos.Y},{pos.Z}]");
             return Chunks[pos];
         }
 
-        private static readonly Vec3<int>[] Delta =
+        private static readonly Int3[] Delta =
         {
-            new Vec3<int>(1, 0, 0), new Vec3<int>(-1, 0, 0),
-            new Vec3<int>(0, 1, 0), new Vec3<int>(0, -1, 0),
-            new Vec3<int>(0, 0, 1), new Vec3<int>(0, 0, -1)
+            new Int3(1, 0, 0), new Int3(-1, 0, 0),
+            new Int3(0, 1, 0), new Int3(0, -1, 0),
+            new Int3(0, 0, 1), new Int3(0, 0, -1)
         };
 
-        public Chunk InsertChunkAndUpdate(Vec3<int> pos, Chunk chunk)
+        public Chunk InsertChunkAndUpdate(Int3 pos, Chunk chunk)
         {
             var ret = InsertChunk(ref pos, chunk);
             foreach (var dt in Delta)
@@ -97,14 +98,14 @@ namespace Game.World
             return ret;
         }
 
-        public Chunk ResetChunk(ref Vec3<int> pos, Chunk ptr) => Chunks[pos] = ptr;
+        public Chunk ResetChunk(ref Int3 pos, Chunk ptr) => Chunks[pos] = ptr;
 
-        private readonly Vec3<double> _hitboxOffset = new Vec3<double>(1.0, 1.0, 1.0);
+        private readonly Vec3<double> hitboxOffset = new Vec3<double>(1.0, 1.0, 1.0);
 
         public List<Aabb> GetHitboxes(Aabb range)
         {
             var res = new List<Aabb>();
-            Vec3<int> curr;
+            Int3 curr;
             for (curr.X = (int) Math.Floor(range.Min.X); curr.X < (int) Math.Ceiling(range.Max.X); curr.X++)
             {
                 for (curr.Y = (int) Math.Floor(range.Min.Y); curr.Y < (int) Math.Ceiling(range.Max.Y); curr.Y++)
@@ -117,7 +118,7 @@ namespace Game.World
                         if (GetBlock(curr).Id == 0)
                             continue;
                         var currd = new Vec3<double>(curr.X, curr.Y, curr.Z);
-                        res.Add(new Aabb(currd, currd + _hitboxOffset));
+                        res.Add(new Aabb(currd, currd + hitboxOffset));
                     }
                 }
             }
@@ -127,7 +128,7 @@ namespace Game.World
 
         public void UpdateChunkLoadStatus()
         {
-            lock (_mutex)
+            lock (mutex)
             {
                 foreach (var kvPair in Chunks.ToList())
                     if (kvPair.Value.CheckReleaseable())
@@ -138,9 +139,9 @@ namespace Game.World
         protected static uint IdCount;
 
         // All Chunks (Chunk array)
-        private readonly object _mutex = new object();
+        private readonly object mutex = new object();
 
-        private void ResetChunkAndUpdate(Vec3<int> pos, Chunk chunk)
+        private void ResetChunkAndUpdate(Int3 pos, Chunk chunk)
         {
             ResetChunk(ref pos, chunk);
             foreach (var dt in Delta)
