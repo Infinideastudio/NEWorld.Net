@@ -51,7 +51,6 @@ namespace Core.Network
             private async Task Start()
             {
                 Valid = true;
-                LogPort.Debug("Connection Start");
                 var headerCache = new byte[8]; // ["NWRC"] + Int32BE(Protocol Id)
                 while (Valid)
                 {
@@ -62,7 +61,6 @@ namespace Core.Network
                         {
                             bytesRead = await Stream.ReadAsync(headerCache, 0, 8);
                         } while (bytesRead != 8);
-                        LogPort.Debug("Read Complete");
                         if (VerifyPackageValidity(headerCache, bytesRead))
                             try
                             {
@@ -84,7 +82,6 @@ namespace Core.Network
                     }
                 }
                 
-                LogPort.Debug("Connection CloseDown");
                 CloseDown();
             }
 

@@ -65,8 +65,6 @@ namespace Core.Module
                     }
                 }
             }
-
-            Services.ScanAssembly(assembly);
         }
 
         public IModule this[string name] => modules[name].Key;
