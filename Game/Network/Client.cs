@@ -20,36 +20,41 @@
 using System;
 using System.Threading.Tasks;
 using Core;
+using Core.Network;
 
 namespace Game.Network
 {
     [DeclareService("Game.Client")]
     public class Client : IDisposable
     {
-        public async Task Enable(string address, int port)
-        {
-            client = new Core.Network.Client(address, port);
-            client.RegisterProtocol(GetChunk = new GetChunk.Client(client.GetConnection()));
-            client.RegisterProtocol(GetAvailableWorldId = new GetAvailableWorldId.Client(client.GetConnection()));
-            client.RegisterProtocol(GetWorldInfo = new GetWorldInfo.Client(client.GetConnection()));
-            await client.NegotiateProtocols();
-        }
-
         public static GetChunk.Client GetChunk;
         public static GetAvailableWorldId.Client GetAvailableWorldId;
         public static GetWorldInfo.Client GetWorldInfo;
 
-        public void Stop()
-        {
-            client.Close();
-        }
+        private static Core.Network.Client _client;
 
         public void Dispose()
         {
-            client?.Close();
-            client?.Dispose();
+            _client?.Dispose();
         }
 
-        private Core.Network.Client client;
+        public async Task Enable(string address, int port)
+        {
+            _client = new Core.Network.Client(address, port);
+            _client.RegisterProtocol(GetChunk = new GetChunk.Client());
+            _client.RegisterProtocol(GetAvailableWorldId = new GetAvailableWorldId.Client());
+            _client.RegisterProtocol(GetWorldInfo = new GetWorldInfo.Client());
+            await _client.HandShake();
+        }
+
+        public static Session.Send CreateMessage(uint protocol)
+        {
+            return _client.CreateMessage(protocol);
+        }
+
+        public void Stop()
+        {
+            _client.Close();
+        }
     }
 }

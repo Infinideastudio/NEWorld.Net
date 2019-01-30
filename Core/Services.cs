@@ -66,11 +66,6 @@ namespace Core
             UpdateDomainAssemblies();
         }
 
-        public static void Inject<TP>() where TP : IDisposable
-        {
-            Inject(typeof(TP));
-        }
-
         public static TI Get<TI>(string name)
         {
             try
@@ -156,7 +151,7 @@ namespace Core
                 CreateService(dependent);
             var provider = Providers[name];
             var instance = Activator.CreateInstance(provider);
-            Dispose.List.Add((IDisposable) instance);
+            if (typeof(IDisposable).IsAssignableFrom(Providers[name])) Dispose.List.Add((IDisposable) instance);
             Ready.Add(name, instance);
             return instance;
         }

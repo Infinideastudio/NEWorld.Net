@@ -71,8 +71,6 @@ namespace NEWorld.Renderer
             // TODO: Remove Type1 Clone
             private static int ChebyshevDistance(Int3 l, Int3 r) => Math.Max(Math.Max(Math.Abs(l.X - r.X), Math.Abs(l.Y - r.Y)), Math.Abs(l.Z - r.Z));
 
-            public IReadOnlyTask Clone() => (IReadOnlyTask) MemberwiseClone();
-
             private static readonly Int3[] Delta =
             {
                 new Int3(1, 0, 0), new Int3(-1, 0, 0),
@@ -114,8 +112,6 @@ namespace NEWorld.Renderer
                     chunkRenderers.Add(position, renderer);
                 }
             }
-
-            public IRenderTask Clone() => (IRenderTask) MemberwiseClone();
 
             private readonly World world;
             private readonly Int3 position;

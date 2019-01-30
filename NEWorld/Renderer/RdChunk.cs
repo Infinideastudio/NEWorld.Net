@@ -22,7 +22,6 @@ using Xenko.Core.Mathematics;
 using Xenko.Engine;
 using Xenko.Rendering;
 
-
 namespace NEWorld.Renderer
 {
     /**
@@ -32,33 +31,33 @@ namespace NEWorld.Renderer
      */
     public class ChunkRenderData
     {
-        public ChunkRenderData()
-        {
-            VaOpacity = new VertexBuilder(262144 * (2 + 3 + 0 + 3));
-            VaTranslucent = new VertexBuilder(262144 * (2 + 3 + 0 + 3));
-        }
+        public Model Model { get; private set; }
 
         /**
          * \brief Generate the render data, namely VA, from a chunk.
          *        Does not involve OpenGL functions.
          * \param chunk the chunk to be rendered.
          */
-        public void Generate(Game.World.Chunk chunk)
+        public void Generate(Chunk chunk)
         {
+            var vaOpacity = new VertexBuilder(262144 * (2 + 1 + 3));
+            var vaTranslucent = new VertexBuilder(262144 * (2 + 1 + 3));
             var tmp = new Int3();
-            for (tmp.X = 0; tmp.X < Game.World.Chunk.Size; ++tmp.X)
-            for (tmp.Y = 0; tmp.Y < Game.World.Chunk.Size; ++tmp.Y)
-            for (tmp.Z = 0; tmp.Z < Game.World.Chunk.Size; ++tmp.Z)
+            for (tmp.X = 0; tmp.X < Chunk.Size; ++tmp.X)
+            for (tmp.Y = 0; tmp.Y < Chunk.Size; ++tmp.Y)
+            for (tmp.Z = 0; tmp.Z < Chunk.Size; ++tmp.Z)
             {
                 var b = chunk[tmp];
-                var target = Blocks.Index[b.Id].IsTranslucent ? VaTranslucent : VaOpacity;
+                var target = Blocks.Index[b.Id].IsTranslucent ? vaTranslucent : vaOpacity;
                 BlockRenderers.Render(target, b.Id, chunk, tmp);
             }
+
+            var mesh0 = vaOpacity.Dump();
+            var mesh1 = vaTranslucent.Dump();
+            Model = (mesh0 != null && mesh1 != null) ? new Model {new MaterialInstance(Context.Material)} : null;
+            if (mesh0 != null) Model?.Add(mesh0);
+            if (mesh1 != null) Model?.Add(mesh1);
         }
-
-        public VertexBuilder VaOpacity { get; } // {262144, VertexFormat(2, 3, 0, 3)};
-
-        public VertexBuilder VaTranslucent { get; } //{262144, VertexFormat(2, 3, 0, 3)};
     }
 
     /**
@@ -70,10 +69,12 @@ namespace NEWorld.Renderer
     {
         public RdChunk(ChunkRenderData data, Vector3 chunkPosition)
         {
-            Update(data);
             Entity = new Entity();
-            Entity.GetOrCreate<TransformComponent>().Position = chunkPosition * Game.World.Chunk.Size;
+            Update(data);
+            Entity.GetOrCreate<TransformComponent>().Position = chunkPosition * Chunk.Size;
         }
+
+        public Entity Entity { get; }
 
         /**
          * \brief Generate VBO from VA. Note that this function will call
@@ -83,12 +84,11 @@ namespace NEWorld.Renderer
          */
         public void Update(ChunkRenderData data)
         {
-            var model = new Model();
-            model.Add(data.VaOpacity.Dump());
-            model.Add(data.VaTranslucent.Dump());
-            Entity.GetOrCreate<ModelComponent>().Model = model;  
+            var model = data.Model;
+            if (model != null)
+                Entity.GetOrCreate<ModelComponent>().Model = data.Model;
+            else
+                Entity.Remove<ModelComponent>();
         }
-        
-        public Entity Entity { get; }
     }
 }

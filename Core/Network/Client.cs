@@ -17,41 +17,66 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
+using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using Core.Utilities;
 
 namespace Core.Network
 {
-    public class Client : TcpClient
+    public sealed class Client : IDisposable
     {
-        public Client(string address, int port) : base(address, port)
+        private readonly ConnectionHost.Connection connection;
+        private readonly List<Protocol> protocols;
+
+        public Client(string address, int port)
         {
-            RegisterProtocol(Singleton<ProtocolReply>.Instance);
-            RegisterProtocol(new ProtocolFetchProtocol.Client());
-            connHost.AddConnection(this);
+            var client = new TcpClient(address, port);
+            protocols = new List<Protocol>();
+            RegisterProtocol(new Reply());
+            RegisterProtocol(new Handshake.Client());
+            connection = ConnectionHost.Add(client, protocols);
         }
 
-        public void RegisterProtocol(Protocol newProtocol) => connHost.RegisterProtocol(newProtocol);
+        public void Dispose()
+        {
+            Close();
+        }
 
-        public async Task NegotiateProtocols()
+        public void RegisterProtocol(Protocol newProtocol)
+        {
+            protocols.Add(newProtocol);
+        }
+
+        public async Task HandShake()
         {
             var skvm = new Dictionary<string, Protocol>();
-            foreach (var protocol in connHost.Protocols)
+            foreach (var protocol in protocols)
                 skvm.Add(protocol.Name(), protocol);
-            var reply = await ProtocolFetchProtocol.Client.Get(GetConnection());
+            var reply = await Handshake.Get(GetConnection().Session);
             foreach (var entry in reply)
                 skvm[entry.Key].Id = entry.Value;
-            connHost.Protocols.Sort(ProtocolSorter);
+            protocols.Sort(ProtocolSorter);
         }
 
-        public ConnectionHost.Connection GetConnection() => connHost.GetConnection(0);
+        public Session.Send CreateMessage(uint protocol)
+        {
+            return GetConnection().Session.CreateMessage(protocol);
+        }
 
-        public new void Close() => connHost.CloseAll();
+        public void Close()
+        {
+            connection.Close();
+        }
 
-        private static int ProtocolSorter(Protocol x, Protocol y) => Comparer<int>.Default.Compare(x.Id, y.Id);
+        public ConnectionHost.Connection GetConnection()
+        {
+            return connection;
+        }
 
-        private readonly ConnectionHost connHost = new ConnectionHost();
+        private static int ProtocolSorter(Protocol x, Protocol y)
+        {
+            return Comparer<uint>.Default.Compare(x.Id, y.Id);
+        }
     }
 }

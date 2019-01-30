@@ -19,24 +19,287 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
+using System.IO;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using Xenko.Rendering;
 
 namespace Core.Network
 {
-    public class ConnectionHost
+    public sealed class Session : IDisposable
     {
-        public class Connection
+        private readonly TcpClient conn;
+        private readonly NetworkStream ios;
+        private readonly MemoryStream writeBuffer = new MemoryStream(new byte[8192], 0, 8192, true, true);
+        private MemoryStream buffer;
+        private byte[] storage = new byte[8192];
+
+        internal Session(TcpClient io)
         {
-            public Connection(ulong cid, TcpClient client, ConnectionHost server)
+            conn = io;
+            ios = io.GetStream();
+            buffer = new MemoryStream(storage, 0, storage.Length, false, true);
+        }
+
+        public bool Live => conn.Connected;
+
+        public void Dispose()
+        {
+            ios.Close();
+        }
+
+        internal Receive WaitMessage()
+        {
+            return new Receive(this);
+        }
+
+        public Send CreateMessage(uint protocol)
+        {
+            return new Send(this, protocol);
+        }
+
+        public sealed class Receive : IDisposable
+        {
+            private Stream ios;
+
+            internal Receive(Session s)
             {
-                this.cid = cid;
-                this.client = client;
-                this.server = server;
-                Stream = client.GetStream();
+                Session = s;
+                ios = Session.ios;
+                Raw = Session.storage;
+            }
+
+            public byte[] Raw { get; private set; }
+
+            public Session Session { get; }
+
+            public void Dispose()
+            {
+            }
+
+            internal async Task LoadExpected(int length)
+            {
+                if (length == 0) return;
+
+                if (length > Raw.Length)
+                {
+                    Session.storage = Raw =
+                        new byte[1 << (int) System.Math.Ceiling(System.Math.Log(length) / System.Math.Log(2))];
+                    Session.buffer = new MemoryStream(Raw, 0, Raw.Length, false, true);
+                }
+                else
+                {
+                    Session.buffer.Seek(0, SeekOrigin.Begin);
+                }
+
+                await ReadAsync(Raw, 0, length);
+                ios = Session.buffer;
+            }
+
+            internal async Task<int> Wait()
+            {
+                await ReadAsync(Raw, 0, 8);
+                if (!VerifyPackageValidity(Raw))
+                    throw new Exception("Bad Package Received");
+                return GetProtocolId(Raw);
+            }
+
+            private static int GetProtocolId(byte[] head)
+            {
+                return (head[4] << 24) | (head[5] << 16) | (head[6] << 8) | head[7];
+            }
+
+            private static bool VerifyPackageValidity(byte[] head)
+            {
+                return head[0] == 'N' && head[1] == 'W' && head[2] == 'R' && head[3] == 'C';
+            }
+
+            public byte ReadU8()
+            {
+                var ret = ios.ReadByte();
+                if (ret >= 0)
+                    return (byte) ret;
+                throw new EndOfStreamException();
+            }
+
+            public char ReadChar()
+            {
+                return (char) ReadU16();
+            }
+
+            public ushort ReadU16()
+            {
+                return (ushort) ((ReadU8() << 8) | ReadU8());
+            }
+
+            public uint ReadU32()
+            {
+                return (uint) ((ReadU16() << 16) | ReadU16());
+            }
+
+            public ulong ReadU64()
+            {
+                return (ReadU32() << 32) | ReadU32();
+            }
+
+            public void Read(byte[] buffer, int begin, int end)
+            {
+                while (begin != end)
+                {
+                    var read = ios.Read(buffer, begin, end - begin);
+                    if (read > 0)
+                        begin += read;
+                    else
+                        throw new EndOfStreamException();
+                }
+            }
+
+            public async Task ReadAsync(byte[] buffer, int begin, int end)
+            {
+                while (begin != end) begin += await ios.ReadAsync(buffer, begin, end - begin);
+            }
+        }
+
+        public sealed class Send : IDisposable
+        {
+            private readonly MemoryStream buffer;
+            private readonly NetworkStream ios;
+
+            internal Send(Session session, uint protocol)
+            {
+                Session = session;
+                ios = Session.ios;
+                buffer = Session.writeBuffer;
+                Write((byte) 'N');
+                Write((byte) 'W');
+                Write((byte) 'R');
+                Write((byte) 'C');
+                Write(protocol);
+            }
+
+            public Session Session { get; }
+
+            public void Dispose()
+            {
+                FlushBuffer();
+            }
+
+            public void Write(byte val)
+            {
+                buffer.WriteByte(val);
+            }
+
+            public void Write(char val)
+            {
+                Write((byte) (val >> 8));
+                Write((byte) (val & 0xFF));
+            }
+
+            public void Write(ushort val)
+            {
+                Write((byte) (val >> 8));
+                Write((byte) (val & 0xFF));
+            }
+
+            public void Write(uint val)
+            {
+                Write((ushort) (val >> 16));
+                Write((ushort) (val & 0xFFFF));
+            }
+
+            public void Write(ulong val)
+            {
+                Write((uint) (val >> 32));
+                Write((uint) (val & 0xFFFFFFFF));
+            }
+
+            public void Write(byte[] input, int begin, int end)
+            {
+                FlushBuffer();
+                ios.Write(input, begin, end - begin);
+            }
+
+            public async Task ReadAsync(byte[] input, int begin, int end)
+            {
+                FlushBuffer();
+                await ios.WriteAsync(input, begin, end - begin);
+            }
+
+            private void FlushBuffer()
+            {
+                if (buffer.Length > 0)
+                {
+                    ios.Write(buffer.GetBuffer(), 0, (int) buffer.Seek(0, SeekOrigin.Current));
+                    buffer.Seek(0, SeekOrigin.Begin);
+                }
+            }
+
+            public void Write(ArraySegment<byte> bytes)
+            {
+                FlushBuffer();
+                Debug.Assert(bytes.Array != null, "bytes.Array != null");
+                ios.Write(bytes.Array, bytes.Offset, bytes.Count);
+            }
+        }
+    }
+
+    [DeclareService("Core.Network.ConnectionHost")]
+    public sealed class ConnectionHost : IDisposable
+    {
+        private const double UtilizationThreshold = 0.25;
+        private static int _connectionCounter;
+        private static List<Connection> _connections;
+
+        static ConnectionHost()
+        {
+            _connections = new List<Connection>();
+        }
+
+        public void Dispose()
+        {
+            foreach (var hd in _connections)
+                hd.Close();
+        }
+
+        private static void SweepInvalidConnectionsIfNecessary()
+        {
+            var utilization = (double) _connectionCounter / _connections.Count;
+            if (utilization < UtilizationThreshold)
+                SweepInvalidConnections();
+        }
+
+        private static void SweepInvalidConnections()
+        {
+            var swap = new List<Connection>();
+            foreach (var hd in _connections)
+                if (hd.Valid)
+                    swap.Add(hd);
+            _connections = swap;
+        }
+
+        public static Connection Add(TcpClient conn, List<Protocol> protocols)
+        {
+            var connect = new Connection(conn, protocols);
+            _connections.Add(connect);
+            return connect;
+        }
+
+        public static int CountConnections()
+        {
+            return _connectionCounter;
+        }
+
+        public sealed class Connection
+        {
+            private readonly Task finalize;
+            private readonly List<Protocol> protocols;
+            internal readonly Session Session;
+
+            public Connection(TcpClient client, List<Protocol> protocols)
+            {
+                this.protocols = protocols;
+                Session = new Session(client);
                 finalize = Start();
             }
 
@@ -51,117 +314,35 @@ namespace Core.Network
             private async Task Start()
             {
                 Valid = true;
-                var headerCache = new byte[8]; // ["NWRC"] + Int32BE(Protocol Id)
+                Interlocked.Increment(ref _connectionCounter);
                 while (Valid)
-                {
                     try
                     {
-                        int bytesRead;
-                        do
-                        {
-                            bytesRead = await Stream.ReadAsync(headerCache, 0, 8);
-                        } while (bytesRead != 8);
-                        if (VerifyPackageValidity(headerCache, bytesRead))
-                            try
-                            {
-                                server.Protocols[GetProtocolId(headerCache)].HandleRequest(Stream);
-                            }
-                            catch (Exception e)
-                            {
-                                LogPort.Debug(e.ToString());
-                            }
-                        else
-                            throw new Exception("Bad Package Recieved");
+                        var message = Session.WaitMessage();
+                        await ProcessRequest(await message.Wait(), message);
                     }
                     catch (Exception e)
                     {
-                        if (client.Connected == false)
-                            break;
-                        LogPort.Debug($"Encountering Exception {e}");
-                        throw;
+                        if (Session.Live) LogPort.Debug($"Encountering Exception {e}");
                     }
-                }
-                
+
                 CloseDown();
+            }
+
+            private async Task ProcessRequest(int protocol, Session.Receive message)
+            {
+                var handle = protocols[protocol];
+                await message.LoadExpected(handle.Expecting);
+                handle.HandleRequest(message);
             }
 
             private void CloseDown()
             {
                 if (!Valid) return;
                 Valid = false;
-                Stream.Close(); // Cancellation Token Doesn't Work. Hard Close is adopted.
-                client.Close();
-                Interlocked.Increment(ref server.invalidConnections);
-            }
-
-            public NetworkStream Stream { get; }
-
-            private static int GetProtocolId(byte[] head) => head[4] << 24 | head[5] << 16 | head[6] << 8 | head[7];
-
-            private static bool VerifyPackageValidity(byte[] head, int read) =>
-                head[0] == 'N' && head[1] == 'W' && head[2] == 'R' && head[3] == 'C' && read == 8;
-
-            private ulong cid;
-            private readonly TcpClient client;
-            private readonly ConnectionHost server;
-            private readonly Task finalize;
-        }
-
-        public ConnectionHost()
-        {
-            clients = new Dictionary<ulong, Connection>();
-            Protocols = new List<Protocol>();
-        }
-
-        public object Lock => protocolLock;
-
-        private const double UtilizationThreshold = 0.75;
-
-        public void RegisterProtocol(Protocol newProtocol)
-        {
-            lock (protocolLock)
-            {
-                Protocols.Add(newProtocol);
+                Interlocked.Decrement(ref _connectionCounter);
+                SweepInvalidConnectionsIfNecessary();
             }
         }
-
-        public void SweepInvalidConnectionsIfNecessary()
-        {
-            var utilization = 1.0 - (double) invalidConnections / clients.Count;
-            if (utilization < UtilizationThreshold)
-                SweepInvalidConnections();
-        }
-
-        public Connection GetConnection(ulong id) => clients[id];
-
-        private void SweepInvalidConnections()
-        {
-            foreach (var hd in clients.ToList())
-                if (!hd.Value.Valid)
-                {
-                    clients.Remove(hd.Key);
-                    Interlocked.Decrement(ref invalidConnections);
-                }
-        }
-
-        public void AddConnection(TcpClient conn)
-        {
-            clients.Add(sessionIdTop, new Connection(sessionIdTop, conn, this));
-            ++sessionIdTop;
-        }
-
-        private ulong sessionIdTop;
-        private int invalidConnections;
-        public readonly List<Protocol> Protocols;
-        private readonly Dictionary<ulong, Connection> clients;
-        private readonly object protocolLock = new object();
-
-        public void CloseAll()
-        {
-            foreach (var hd in clients)
-                hd.Value.Close();
-        }
-
-        public int CountConnections() => clients.Count - invalidConnections;
     }
 }

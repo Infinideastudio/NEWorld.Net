@@ -25,6 +25,9 @@ namespace Core.Utilities
 
         private static bool _isEndianChecked;
 
+        public static bool BigEndian => IsBigEndian();
+        public static bool LittleEndian => !IsBigEndian();
+
         private static bool IsBigEndian()
         {
             if (!_isEndianChecked)
@@ -36,8 +39,5 @@ namespace Core.Utilities
 
             return _isBigEndian;
         }
-
-        public static bool BigEndian => IsBigEndian();
-        public static bool LittleEndian => !IsBigEndian();
     }
 }

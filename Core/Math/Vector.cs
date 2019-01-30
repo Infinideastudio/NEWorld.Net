@@ -34,9 +34,15 @@ namespace Core.Math
 
         public T X, Y;
 
-        public double LengthSqr() => Square(X) + Square(Y);
+        public double LengthSqr()
+        {
+            return Square(X) + Square(Y);
+        }
 
-        public double Length() => System.Math.Sqrt(LengthSqr());
+        public double Length()
+        {
+            return System.Math.Sqrt(LengthSqr());
+        }
 
         public void Normalize()
         {
@@ -45,14 +51,20 @@ namespace Core.Math
             Y = Divide(Y, length);
         }
 
-        public static Vec2<T> operator +(Vec2<T> lhs, Vec2<T> rhs) =>
-            new Vec2<T>(Add(lhs.X, rhs.X), Add(lhs.Y, rhs.Y));
+        public static Vec2<T> operator +(Vec2<T> lhs, Vec2<T> rhs)
+        {
+            return new Vec2<T>(Add(lhs.X, rhs.X), Add(lhs.Y, rhs.Y));
+        }
 
-        public static Vec2<T> operator -(Vec2<T> lhs, Vec2<T> rhs) =>
-            new Vec2<T>(Substract(lhs.X, rhs.X), Substract(lhs.Y, rhs.Y));
+        public static Vec2<T> operator -(Vec2<T> lhs, Vec2<T> rhs)
+        {
+            return new Vec2<T>(Substract(lhs.X, rhs.X), Substract(lhs.Y, rhs.Y));
+        }
 
-        public bool Equals(Vec2<T> other) =>
-            EqualityComparer<T>.Default.Equals(X, other.X) && EqualityComparer<T>.Default.Equals(Y, other.Y);
+        public bool Equals(Vec2<T> other)
+        {
+            return EqualityComparer<T>.Default.Equals(X, other.X) && EqualityComparer<T>.Default.Equals(Y, other.Y);
+        }
 
         public override bool Equals(object obj)
         {
@@ -82,9 +94,15 @@ namespace Core.Math
         public T Y;
         public T Z;
 
-        public T LengthSqr() => Square(X) + Square(Y) + Square(Z);
+        public T LengthSqr()
+        {
+            return Square(X) + Square(Y) + Square(Z);
+        }
 
-        public double Length() => Sqrt(LengthSqr());
+        public double Length()
+        {
+            return Sqrt(LengthSqr());
+        }
 
         public void Normalize()
         {
@@ -95,24 +113,36 @@ namespace Core.Math
         }
 
 
-        public static Vec3<T> operator +(Vec3<T> lhs, Vec3<T> rhs) =>
-            new Vec3<T>(Add(lhs.X, rhs.X), Add(lhs.Y, rhs.Y), Add(lhs.Z, rhs.Z));
+        public static Vec3<T> operator +(Vec3<T> lhs, Vec3<T> rhs)
+        {
+            return new Vec3<T>(Add(lhs.X, rhs.X), Add(lhs.Y, rhs.Y), Add(lhs.Z, rhs.Z));
+        }
 
-        public static Vec3<T> operator -(Vec3<T> lhs, Vec3<T> rhs) =>
-            new Vec3<T>(Substract(lhs.X, rhs.X), Substract(lhs.Y, rhs.Y), Substract(lhs.Z, rhs.Z));
+        public static Vec3<T> operator -(Vec3<T> lhs, Vec3<T> rhs)
+        {
+            return new Vec3<T>(Substract(lhs.X, rhs.X), Substract(lhs.Y, rhs.Y), Substract(lhs.Z, rhs.Z));
+        }
 
-        public static Vec3<T> operator -(Vec3<T> lhs) =>
-            new Vec3<T>(Negate(lhs.X), Negate(lhs.Y), Negate(lhs.Z));
+        public static Vec3<T> operator -(Vec3<T> lhs)
+        {
+            return new Vec3<T>(Negate(lhs.X), Negate(lhs.Y), Negate(lhs.Z));
+        }
 
-        public static Vec3<T> operator *(Vec3<T> lhs, T rhs) =>
-            new Vec3<T>(Multiply(lhs.X, rhs), Multiply(lhs.Y, rhs), Multiply(lhs.Z, rhs));
+        public static Vec3<T> operator *(Vec3<T> lhs, T rhs)
+        {
+            return new Vec3<T>(Multiply(lhs.X, rhs), Multiply(lhs.Y, rhs), Multiply(lhs.Z, rhs));
+        }
 
-        public static Vec3<T> operator /(Vec3<T> lhs, T rhs) =>
-            new Vec3<T>(Divide(lhs.X, rhs), Divide(lhs.Y, rhs), Divide(lhs.Z, rhs));
+        public static Vec3<T> operator /(Vec3<T> lhs, T rhs)
+        {
+            return new Vec3<T>(Divide(lhs.X, rhs), Divide(lhs.Y, rhs), Divide(lhs.Z, rhs));
+        }
 
-        public bool Equals(Vec3<T> other) =>
-            EqualityComparer<T>.Default.Equals(X, other.X) && EqualityComparer<T>.Default.Equals(Y, other.Y) &&
-            EqualityComparer<T>.Default.Equals(Z, other.Z);
+        public bool Equals(Vec3<T> other)
+        {
+            return EqualityComparer<T>.Default.Equals(X, other.X) && EqualityComparer<T>.Default.Equals(Y, other.Y) &&
+                   EqualityComparer<T>.Default.Equals(Z, other.Z);
+        }
 
         public override bool Equals(object obj)
         {
@@ -131,5 +161,4 @@ namespace Core.Math
             }
         }
     }
-
 }

@@ -37,21 +37,30 @@ namespace Core.Module
 
     public class Modules
     {
+        private readonly Dictionary<string, KeyValuePair<IModule, Assembly>> modules;
+
+        private string basePath = Path.Modules();
+
         private Modules()
         {
             modules = new Dictionary<string, KeyValuePair<IModule, Assembly>>();
         }
 
-        public void SetBasePath(string path) => basePath = path;
+        public IModule this[string name] => modules[name].Key;
+
+        public static Modules Instance => Singleton<Modules>.Instance;
+
+        public void SetBasePath(string path)
+        {
+            basePath = path;
+        }
 
         public void Load(string moduleFile)
         {
             var assembly = Assembly.Load(moduleFile);
             var possibleTypes = assembly.GetExportedTypes();
             foreach (var type in possibleTypes)
-            {
                 if (type.IsDefined(typeof(DeclareModuleAttribute), false) && typeof(IModule).IsAssignableFrom(type))
-                {
                     try
                     {
                         var module = (IModule) Activator.CreateInstance(type);
@@ -63,11 +72,7 @@ namespace Core.Module
                     {
                         LogPort.Debug($"Module {type} Load Failure : {e}");
                     }
-                }
-            }
         }
-
-        public IModule this[string name] => modules[name].Key;
 
         public void UnloadAll()
         {
@@ -75,11 +80,5 @@ namespace Core.Module
                 module.Value.Key.CoFinalize();
             modules.Clear();
         }
-
-        public static Modules Instance => Singleton<Modules>.Instance;
-
-        private string basePath = Path.Modules();
-
-        private readonly Dictionary<string, KeyValuePair<IModule, Assembly>> modules;
     }
 }

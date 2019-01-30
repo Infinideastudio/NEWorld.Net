@@ -17,29 +17,22 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using Core.Utilities;
 
 namespace Core.Network
 {
     public class Server : TcpListener
     {
+        private readonly List<Protocol> protocols;
+
         public Server(int port) : base(IPAddress.Any, port)
         {
-            RegisterProtocol(Singleton<ProtocolReply>.Instance);
-            RegisterProtocol(new ProtocolFetchProtocol.Server(connHost.Protocols));
-        }
-
-        public void Run()
-        {
-            lock (connHost.Lock)
-            {
-                Boot();
-                ListenConnections().Wait();
-                ShutDown();
-            }
+            protocols = new List<Protocol>();
+            RegisterProtocol(new Reply());
+            RegisterProtocol(new Handshake.Server(protocols));
         }
 
         public async Task RunAsync()
@@ -49,48 +42,45 @@ namespace Core.Network
             ShutDown();
         }
 
-        public void RegisterProtocol(Protocol newProtocol) => connHost.RegisterProtocol(newProtocol);
+        public void RegisterProtocol(Protocol newProtocol)
+        {
+            protocols.Add(newProtocol);
+        }
 
-        public void StopServer() => exit = true;
-
-        public int CountConnections() => connHost.CountConnections();
+        public int CountConnections()
+        {
+            return ConnectionHost.CountConnections();
+        }
 
         private void Boot()
         {
-            exit = false;
             AssignProtocolIdentifiers();
             Start();
         }
 
-        private void ShutDown() => Stop();
+        public void ShutDown()
+        {
+            Stop();
+        }
 
         private async Task ListenConnections()
         {
-            while (!exit)
-            {
+            while (Active)
                 try
                 {
-                    connHost.AddConnection(await AcceptTcpClientAsync());
+                    ConnectionHost.Add(await AcceptTcpClientAsync(), protocols);
                 }
                 catch
                 {
                     // ignored
                 }
-
-                connHost.SweepInvalidConnectionsIfNecessary();
-            }
-
-            connHost.CloseAll();
         }
 
         private void AssignProtocolIdentifiers()
         {
-            var current = 0;
-            foreach (var protocol in connHost.Protocols)
+            var current = 0u;
+            foreach (var protocol in protocols)
                 protocol.Id = current++;
         }
-
-        private bool exit;
-        private readonly ConnectionHost connHost = new ConnectionHost();
     }
 }

@@ -41,11 +41,16 @@ namespace Game
         {
             IsAuthority = isAuthority;
             Worlds = new WorldManager();
-            TaskDispatcher = new TaskDispatcher(4, this);
+            TaskDispatcher = Core.Services.Get<TaskDispatcher>("Game.TaskDispatcher");
         }
 
         private ChunkService() : this(true)
         {
+        }
+
+        public void EnableDispatcher()
+        {
+            TaskDispatcher.Start(this);
         }
 
         public TaskDispatcher TaskDispatcher { get; }

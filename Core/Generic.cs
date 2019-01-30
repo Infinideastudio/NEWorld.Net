@@ -21,38 +21,150 @@ namespace Core
 {
     public static class Generic
     {
-        public static dynamic Cast<T>(dynamic a) => (T) a;
-        public static dynamic Add(dynamic a, dynamic b) => a + b;
-        public static dynamic Substract(dynamic a, dynamic b) => a - b;
-        public static dynamic Multiply(dynamic a, dynamic b) => a * b;
-        public static dynamic Divide(dynamic a, dynamic b) => a / b;
-        public static dynamic Modulus(dynamic a, dynamic b) => a % b;
-        public static dynamic AddBy(dynamic a, dynamic b) => a += b;
-        public static dynamic SubstractBy(dynamic a, dynamic b) => a -= b;
-        public static dynamic MultiplyBy(ref dynamic a, dynamic b) => a *= b;
-        public static dynamic DivideBy(dynamic a, dynamic b) => a /= b;
-        public static dynamic ModulusBy(dynamic a, dynamic b) => a %= b;
-        public static dynamic Square(dynamic a) => a * a;
-        public static dynamic Negate(dynamic a) => -a;
-        public static dynamic Increase(dynamic a) => ++a;
-        public static dynamic Decrease(dynamic a) => --a;
-        public static dynamic IncreaseAfter(dynamic a) => a++;
-        public static dynamic DecreaseAfter(dynamic a) => a--;
+        public static dynamic Cast<T>(dynamic a)
+        {
+            return (T) a;
+        }
 
-        public static bool Less(dynamic a, dynamic b) => a < b;
-        public static bool LessEqual(dynamic a, dynamic b) => a <= b;
-        public static bool Larger(dynamic a, dynamic b) => a > b;
-        public static bool LargerEqual(dynamic a, dynamic b) => a >= b;
-        public static bool Equal(dynamic a, dynamic b) => a == b;
+        public static dynamic Add(dynamic a, dynamic b)
+        {
+            return a + b;
+        }
 
-        public static double Sqrt(dynamic a) => System.Math.Sqrt((double) a);
-        public static double Sin(dynamic a) => System.Math.Sin((double) a);
-        public static double Cos(dynamic a) => System.Math.Cos((double) a);
-        public static double Tan(dynamic a) => System.Math.Tan((double) a);
-        public static double Abs(dynamic a) => System.Math.Abs(a);
+        public static dynamic Substract(dynamic a, dynamic b)
+        {
+            return a - b;
+        }
 
-        public static dynamic Min(dynamic a, dynamic b) => Less(a, b) ? a : b;
-        public static dynamic Max(dynamic a, dynamic b) => Larger(a, b) ? a : b;
+        public static dynamic Multiply(dynamic a, dynamic b)
+        {
+            return a * b;
+        }
+
+        public static dynamic Divide(dynamic a, dynamic b)
+        {
+            return a / b;
+        }
+
+        public static dynamic Modulus(dynamic a, dynamic b)
+        {
+            return a % b;
+        }
+
+        public static dynamic AddBy(dynamic a, dynamic b)
+        {
+            return a += b;
+        }
+
+        public static dynamic SubstractBy(dynamic a, dynamic b)
+        {
+            return a -= b;
+        }
+
+        public static dynamic MultiplyBy(ref dynamic a, dynamic b)
+        {
+            return a *= b;
+        }
+
+        public static dynamic DivideBy(dynamic a, dynamic b)
+        {
+            return a /= b;
+        }
+
+        public static dynamic ModulusBy(dynamic a, dynamic b)
+        {
+            return a %= b;
+        }
+
+        public static dynamic Square(dynamic a)
+        {
+            return a * a;
+        }
+
+        public static dynamic Negate(dynamic a)
+        {
+            return -a;
+        }
+
+        public static dynamic Increase(dynamic a)
+        {
+            return ++a;
+        }
+
+        public static dynamic Decrease(dynamic a)
+        {
+            return --a;
+        }
+
+        public static dynamic IncreaseAfter(dynamic a)
+        {
+            return a++;
+        }
+
+        public static dynamic DecreaseAfter(dynamic a)
+        {
+            return a--;
+        }
+
+        public static bool Less(dynamic a, dynamic b)
+        {
+            return a < b;
+        }
+
+        public static bool LessEqual(dynamic a, dynamic b)
+        {
+            return a <= b;
+        }
+
+        public static bool Larger(dynamic a, dynamic b)
+        {
+            return a > b;
+        }
+
+        public static bool LargerEqual(dynamic a, dynamic b)
+        {
+            return a >= b;
+        }
+
+        public static bool Equal(dynamic a, dynamic b)
+        {
+            return a == b;
+        }
+
+        public static double Sqrt(dynamic a)
+        {
+            return System.Math.Sqrt((double) a);
+        }
+
+        public static double Sin(dynamic a)
+        {
+            return System.Math.Sin((double) a);
+        }
+
+        public static double Cos(dynamic a)
+        {
+            return System.Math.Cos((double) a);
+        }
+
+        public static double Tan(dynamic a)
+        {
+            return System.Math.Tan((double) a);
+        }
+
+        public static double Abs(dynamic a)
+        {
+            return System.Math.Abs(a);
+        }
+
+        public static dynamic Min(dynamic a, dynamic b)
+        {
+            return Less(a, b) ? a : b;
+        }
+
+        public static dynamic Max(dynamic a, dynamic b)
+        {
+            return Larger(a, b) ? a : b;
+        }
 
         public static void MinEqual(dynamic a, dynamic b)
         {
