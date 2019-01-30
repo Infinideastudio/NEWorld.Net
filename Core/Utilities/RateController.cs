@@ -40,19 +40,28 @@ namespace Core.Utilities
         /**
          * \brief Synchronize the internal timer with system clock. For cases that the timer doesn't keep up or forced resets
          */
-        public void Sync() => last = due = DateTime.Now;
+        public void Sync()
+        {
+            last = due = DateTime.Now;
+        }
 
         /**
          * \brief Get elapsed time from the start of the tick, in milliseconds
          * \return Elapsed time from the start of the tick, in milliseconds
          */
-        public int GetDeltaTimeMs() => (DateTime.Now - last).Milliseconds;
+        public int GetDeltaTimeMs()
+        {
+            return (DateTime.Now - last).Milliseconds;
+        }
 
         /**
          * \brief Check if the deadline of the current tick has pased
          * \return true if the deadline is passed, false otherwise
          */
-        public bool IsDue() => rate <= 0 || DateTime.Now >= due;
+        public bool IsDue()
+        {
+            return rate <= 0 || DateTime.Now >= due;
+        }
 
         /**
          * \brief Increase the internal timer by one tick. Sets the current due time as the starting time of the next tick

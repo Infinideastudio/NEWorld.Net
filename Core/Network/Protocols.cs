@@ -20,102 +20,121 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using Core.Utilities;
 using MsgPack.Serialization;
 
 namespace Core.Network
 {
-    public static class ProtocolFetchProtocol
+    public static class Handshake
     {
-        public class Server : FixedLengthProtocol
-        {
-            public Server(List<Protocol> protocols) : base(Size) => this.protocols = protocols;
+        private static readonly MessagePackSerializer<KeyValuePair<string, uint>[]> SerialReply =
+            MessagePackSerializer.Get<KeyValuePair<string, uint>[]>();
 
-            protected override void HandleRequestData(byte[] data, NetworkStream stream)
+        internal static async Task<KeyValuePair<string, uint>[]> Get(Session conn)
+        {
+            var session = Reply.AllocSession();
+            using (var message = conn.CreateMessage(1))
             {
-                var request = SerialSend.UnpackSingleObject(data);
-                var current = 0;
-                var reply = new KeyValuePair<string, int>[protocols.Count];
-                foreach (var prot in protocols)
-                    reply[current++] = new KeyValuePair<string, int>(prot.Name(), prot.Id);
-                Send(stream, Reply(request, SerialReply.PackSingleObjectAsBytes(reply)));
+                message.Write(session.Key);
             }
 
-            public override string Name() => "FetchProtocols";
+            var result = await session.Value;
+            return SerialReply.UnpackSingleObject(result);
+        }
 
+        public class Server : FixedLengthProtocol
+        {
             private readonly List<Protocol> protocols;
+
+            public Server(List<Protocol> protocols) : base(4)
+            {
+                this.protocols = protocols;
+            }
+
+            public override void HandleRequest(Session.Receive request)
+            {
+                var session = request.ReadU32();
+                var current = 0;
+                var reply = new KeyValuePair<string, uint>[protocols.Count];
+                foreach (var protocol in protocols)
+                    reply[current++] = new KeyValuePair<string, uint>(protocol.Name(), protocol.Id);
+                Reply.Send(request.Session, session, SerialReply.PackSingleObjectAsBytes(reply));
+            }
+
+            public override string Name()
+            {
+                return "FetchProtocols";
+            }
         }
 
         public class Client : StubProtocol
         {
-            public override string Name() => "FetchProtocols";
-
-            public static async Task<KeyValuePair<string, int>[]> Get(ConnectionHost.Connection conn)
+            public override string Name()
             {
-                var session = ProtocolReply.AllocSession();
-                Send(conn.Stream, Request(1, SerialSend.PackSingleObjectAsBytes(session.Key)));
-                var result = await session.Value;
-                return SerialReply.UnpackSingleObject(result);
+                return "FetchProtocols";
+            }
+        }
+    }
+
+    public sealed class Reply : Protocol
+    {
+        private static int _idTop;
+        private static readonly ConcurrentQueue<uint> SessionIds = new ConcurrentQueue<uint>();
+
+        private static readonly ConcurrentDictionary<uint, TaskCompletionSource<byte[]>> Sessions =
+            new ConcurrentDictionary<uint, TaskCompletionSource<byte[]>>();
+
+        public override string Name()
+        {
+            return "Reply";
+        }
+
+        public override void HandleRequest(Session.Receive request)
+        {
+            var session = request.ReadU32();
+            var length = request.ReadU32();
+            var dataSegment = new byte[length];
+            request.Read(dataSegment, 0, dataSegment.Length);
+            SessionDispatch(session, dataSegment);
+        }
+
+        public static void Send(Session dialog, uint session, ArraySegment<byte> payload)
+        {
+            using (var message = dialog.CreateMessage(0))
+            {
+                message.Write(session);
+                message.Write((uint) payload.Count);
+                message.Write(payload);
             }
         }
 
-        private static readonly MessagePackSerializer<int> SerialSend = MessagePackSerializer.Get<int>();
-
-        private static readonly MessagePackSerializer<KeyValuePair<string, int>[]> SerialReply =
-            MessagePackSerializer.Get<KeyValuePair<string, int>[]>();
-
-        private static readonly int Size = SerialSend.PackSingleObject(0).Length;
-    }
-
-    public sealed class ProtocolReply : Protocol
-    {
-        private ProtocolReply()
+        public static KeyValuePair<uint, Task<byte[]>> AllocSession()
         {
-        }
-
-        public override string Name() => "Reply";
-
-        public override void HandleRequest(NetworkStream nstream)
-        {
-            var extraHead = new byte[8];
-            nstream.Read(extraHead, 0, extraHead.Length);
-            var dataSegment = new byte[GetSessionLength(extraHead)];
-            nstream.Read(dataSegment, 0, dataSegment.Length);
-            SessionDispatch(GetSessionId(extraHead), dataSegment);
-        }
-
-        public static KeyValuePair<int, Task<byte[]>> AllocSession() =>
-            Singleton<ProtocolReply>.Instance.AllocSessionInternal();
-
-        private KeyValuePair<int, Task<byte[]>> AllocSessionInternal()
-        {
-            if (!sessionIds.TryDequeue(out var newId))
-                newId = Interlocked.Increment(ref idTop) - 1;
+            if (!SessionIds.TryDequeue(out var newId))
+                newId = (uint) (Interlocked.Increment(ref _idTop) - 1);
 
             var completionSource = new TaskCompletionSource<byte[]>();
-            while (!sessions.TryAdd(newId, completionSource)) ;
-            return new KeyValuePair<int, Task<byte[]>>(newId, completionSource.Task);
+            while (!Sessions.TryAdd(newId, completionSource)) ;
+            return new KeyValuePair<uint, Task<byte[]>>(newId, completionSource.Task);
         }
 
-        private void SessionDispatch(int sessionId, byte[] dataSegment)
+        private static void SessionDispatch(uint sessionId, byte[] dataSegment)
         {
             TaskCompletionSource<byte[]> completion;
-            while (!sessions.TryRemove(sessionId, out completion)) ;
+            while (!Sessions.TryRemove(sessionId, out completion)) ;
             completion.SetResult(dataSegment);
-            sessionIds.Enqueue(sessionId);
+            SessionIds.Enqueue(sessionId);
         }
 
-        private int idTop;
-        private readonly ConcurrentQueue<int> sessionIds = new ConcurrentQueue<int>();
+        private static int GetSessionId(byte[] head)
+        {
+            return (head[0] << 24) | (head[1] << 16) | (head[2] << 8) | head[3];
+        }
 
-        private readonly ConcurrentDictionary<int, TaskCompletionSource<byte[]>> sessions =
-            new ConcurrentDictionary<int, TaskCompletionSource<byte[]>>();
-
-        private static int GetSessionId(byte[] head) => head[0] << 24 | head[1] << 16 | head[2] << 8 | head[3];
-
-        private static int GetSessionLength(byte[] head) => head[4] << 24 | head[5] << 16 | head[6] << 8 | head[7];
+        private static int GetSessionLength(byte[] head)
+        {
+            return (head[4] << 24) | (head[5] << 16) | (head[6] << 8) | head[7];
+        }
     }
 }

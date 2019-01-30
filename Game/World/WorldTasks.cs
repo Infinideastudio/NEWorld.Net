@@ -18,7 +18,6 @@
 // 
 
 using System;
-using Core.Math;
 using Game.Network;
 using Game.Utilities;
 using Xenko.Core.Mathematics;
@@ -36,24 +35,18 @@ namespace Game.World
         {
             /**
              * \brief Add a constructed chunk into world.
-             * \param worldID the target world's id
              * \param chunk the target chunk
              */
-            public ResetChunkTask(uint worldId, Chunk chunk)
+            public ResetChunkTask(Chunk chunk)
             {
-                this.worldId = worldId;
                 this.chunk = chunk;
             }
 
-            public IReadWriteTask Clone() => (IReadWriteTask) MemberwiseClone();
-
             public void Task(ChunkService srv)
             {
-                var world = srv.Worlds.Get(worldId);
-                world.ResetChunkAndUpdate(chunk.Position, chunk);
+                chunk.World.ResetChunkAndUpdate(chunk.Position, chunk);
             }
-
-            private readonly uint worldId;
+            
             private readonly Chunk chunk;
         }
 
@@ -70,8 +63,6 @@ namespace Game.World
                 this.chunkPosition = chunkPosition;
             }
 
-            public IReadWriteTask Clone() => (IReadWriteTask) MemberwiseClone();
-
             public void Task(ChunkService srv)
             {
                 //TODO: for multiplayer situation, it should decrease ref counter instead of deleting
@@ -84,31 +75,6 @@ namespace Game.World
 
         private class BuildOrLoadChunkTask : IReadOnlyTask
         {
-            private class AddToWorldTask : IReadWriteTask
-            {
-                /**
-                 * \brief Add a constructed chunk into world.
-                 * \param worldID the target world's id
-                 * \param chunk the target chunk
-                 */
-                public AddToWorldTask(uint worldId, Chunk chunk)
-                {
-                    this.worldId = worldId;
-                    this.chunk = chunk;
-                }
-
-                public IReadWriteTask Clone() => (IReadWriteTask) MemberwiseClone();
-
-                public void Task(ChunkService srv)
-                {
-                    var world = srv.Worlds.Get(worldId);
-                    world.InsertChunkAndUpdate(chunk.Position, chunk);
-                }
-
-                private readonly uint worldId;
-                private readonly Chunk chunk;
-            }
-
             /**
              * \brief Given a chunk, it will try to load it or build it
              * \param world the target world
@@ -120,13 +86,9 @@ namespace Game.World
                 this.chunkPosition = chunkPosition;
             }
 
-            public IReadOnlyTask Clone() => (IReadOnlyTask) MemberwiseClone();
-
             public void Task(ChunkService srv)
             {
-                // TODO: should try to load from local first
-                var chunk = new Chunk(chunkPosition, world);
-                srv.TaskDispatcher.Add(new AddToWorldTask(world.Id, chunk));
+                srv.TaskDispatcher.Add(new ResetChunkTask(new Chunk(chunkPosition, world)));
             }
 
             private readonly World world;
@@ -135,6 +97,26 @@ namespace Game.World
 
         private class LoadUnloadDetectorTask : IReadOnlyTask
         {
+            private class AddToWorldTask : IReadWriteTask
+            {
+                /**
+                 * \brief Add a constructed chunk into world.
+                 * \param worldID the target world's id
+                 * \param chunk the target chunk
+                 */
+                public AddToWorldTask(Chunk chunk)
+                {
+                    this.chunk = chunk;
+                }
+                
+                public void Task(ChunkService srv)
+                {
+                    chunk.World.InsertChunkAndUpdate(chunk.Position, chunk);
+                }
+                
+                private readonly Chunk chunk;
+            }
+
             public LoadUnloadDetectorTask(World world, Player player)
             {
                 this.player = player;
@@ -151,6 +133,8 @@ namespace Game.World
 
                 foreach (var loadPos in loadList)
                 {
+                    // load a fake chunk
+                    cs.TaskDispatcher.Add(new AddToWorldTask(new Chunk(loadPos.Value, world, false)));
                     cs.TaskDispatcher.Add(new BuildOrLoadChunkTask(world, loadPos.Value));
                     if (!cs.IsAuthority)
                     {
@@ -206,8 +190,6 @@ namespace Game.World
 
             // TODO: Remove Type1 Clone
             private static int ChebyshevDistance(Int3 l, Int3 r) => Math.Max(Math.Max(Math.Abs(l.X - r.X), Math.Abs(l.Y - r.Y)), Math.Abs(l.Z - r.Z));
-
-            public IReadOnlyTask Clone() => (IReadOnlyTask) MemberwiseClone();
 
             private readonly Player player;
             private readonly World world;

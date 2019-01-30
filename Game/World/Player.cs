@@ -34,8 +34,6 @@ namespace Game.World
 
             public void Task(ChunkService srv) => player.Update(srv.Worlds.Get(worldId));
 
-            IReadOnlyTask IReadOnlyTask.Clone() => (IReadOnlyTask) MemberwiseClone();
-
             private readonly Player player;
             private readonly uint worldId;
         }

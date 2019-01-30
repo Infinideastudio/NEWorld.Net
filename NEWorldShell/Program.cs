@@ -17,14 +17,13 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
-using System.Reflection;
 using Core;
 using Core.Module;
 using Game.Network;
 
 namespace NEWorldShell
 {
-    internal class Program
+    internal static class Program
     {
         public static void Main(string[] args)
         {

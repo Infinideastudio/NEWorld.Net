@@ -74,12 +74,8 @@ namespace Game.World
 
         private Chunk InsertChunk(ref Int3 pos, Chunk chunk)
         {
-            if (!Chunks.IsLoaded(pos))
-                Chunks.Add(pos, chunk);
-            else
-                // TODO : FIX THIS GOD DAMNED ERROR, IT SHOULD NOT HAPPEN
-                Core.LogPort.Debug($"Warning: Dumplicate Chunk Adding on [{pos.X},{pos.Y},{pos.Z}]");
-            return Chunks[pos];
+            Chunks.Add(pos, chunk);
+            return chunk;
         }
 
         private static readonly Int3[] Delta =

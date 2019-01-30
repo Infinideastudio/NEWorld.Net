@@ -92,60 +92,60 @@ namespace Game.Terrain
             if (AdjacentTest(curr, neighbors[0]))
                 fixed (float* tex = this.tex[0].D)
                     target.AddPrimitive(4,
-                        tex[0], tex[1], 0.5f, 0.5f, 0.5f, pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 1.0f,
-                        tex[0], tex[3], 0.5f, 0.5f, 0.5f, pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 1.0f,
-                        tex[2], tex[3], 0.5f, 0.5f, 0.5f, pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 0.0f,
-                        tex[2], tex[1], 0.5f, 0.5f, 0.5f, pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 0.0f
+                        tex[0], tex[1], 0.5f, pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 1.0f,
+                        tex[0], tex[3], 0.5f, pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 1.0f,
+                        tex[2], tex[3], 0.5f, pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 0.0f,
+                        tex[2], tex[1], 0.5f, pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 0.0f
                     );
 
             // Left
             if (AdjacentTest(curr, neighbors[1]))
                 fixed (float* tex = this.tex[1].D)
                     target.AddPrimitive(4,
-                        tex[0], tex[1], 0.5f, 0.5f, 0.5f, pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 0.0f,
-                        tex[0], tex[3], 0.5f, 0.5f, 0.5f, pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 0.0f,
-                        tex[2], tex[3], 0.5f, 0.5f, 0.5f, pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 1.0f,
-                        tex[2], tex[1], 0.5f, 0.5f, 0.5f, pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 1.0f
+                        tex[0], tex[1], 0.5f, pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 0.0f,
+                        tex[0], tex[3], 0.5f, pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 0.0f,
+                        tex[2], tex[3], 0.5f, pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 1.0f,
+                        tex[2], tex[1], 0.5f, pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 1.0f
                     );
 
             // Top
             if (AdjacentTest(curr, neighbors[2]))
                 fixed (float* tex = this.tex[2].D)
                     target.AddPrimitive(4,
-                        tex[0], tex[1], 1.0f, 1.0f, 1.0f, pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 0.0f,
-                        tex[0], tex[3], 1.0f, 1.0f, 1.0f, pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 1.0f,
-                        tex[2], tex[3], 1.0f, 1.0f, 1.0f, pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 1.0f,
-                        tex[2], tex[1], 1.0f, 1.0f, 1.0f, pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 0.0f
+                        tex[0], tex[1], 1.0f, pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 0.0f,
+                        tex[0], tex[3], 1.0f, pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 1.0f,
+                        tex[2], tex[3], 1.0f, pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 1.0f,
+                        tex[2], tex[1], 1.0f, pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 0.0f
                     );
 
             // Bottom
             if (AdjacentTest(curr, neighbors[3]))
                 fixed (float* tex = this.tex[3].D)
                     target.AddPrimitive(4,
-                        tex[0], tex[1], 1.0f, 1.0f, 1.0f, pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 1.0f,
-                        tex[0], tex[3], 1.0f, 1.0f, 1.0f, pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 0.0f,
-                        tex[2], tex[3], 1.0f, 1.0f, 1.0f, pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 0.0f,
-                        tex[2], tex[1], 1.0f, 1.0f, 1.0f, pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 1.0f
+                        tex[0], tex[1], 1.0f, pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 1.0f,
+                        tex[0], tex[3], 1.0f, pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 0.0f,
+                        tex[2], tex[3], 1.0f, pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 0.0f,
+                        tex[2], tex[1], 1.0f, pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 1.0f
                     );
 
             // Front
             if (AdjacentTest(curr, neighbors[4]))
                 fixed (float* tex = this.tex[4].D)
                     target.AddPrimitive(4,
-                        tex[0], tex[1], 0.7f, 0.7f, 0.7f, pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 1.0f,
-                        tex[0], tex[3], 0.7f, 0.7f, 0.7f, pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 1.0f,
-                        tex[2], tex[3], 0.7f, 0.7f, 0.7f, pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 1.0f,
-                        tex[2], tex[1], 0.7f, 0.7f, 0.7f, pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 1.0f
+                        tex[0], tex[1], 0.7f, pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 1.0f,
+                        tex[0], tex[3], 0.7f, pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 1.0f,
+                        tex[2], tex[3], 0.7f, pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 1.0f,
+                        tex[2], tex[1], 0.7f, pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 1.0f
                     );
 
             // Back
             if (AdjacentTest(curr, neighbors[5]))
                 fixed (float* tex = this.tex[5].D)
                     target.AddPrimitive(4,
-                        tex[0], tex[1], 0.7f, 0.7f, 0.7f, pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 0.0f,
-                        tex[0], tex[3], 0.7f, 0.7f, 0.7f, pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 0.0f,
-                        tex[2], tex[3], 0.7f, 0.7f, 0.7f, pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 0.0f,
-                        tex[2], tex[1], 0.7f, 0.7f, 0.7f, pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 0.0f
+                        tex[0], tex[1], 0.7f, pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 0.0f,
+                        tex[0], tex[3], 0.7f, pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 0.0f,
+                        tex[2], tex[3], 0.7f, pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 0.0f,
+                        tex[2], tex[1], 0.7f, pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 0.0f
                     );
         }
 

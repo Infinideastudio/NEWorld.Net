@@ -10,8 +10,6 @@ Hierarchy:
         - ref!! 1cc17873-cca9-48fe-a61f-a1d061e26959
         - ref!! b1058700-11a7-4296-bb63-2fefdb5f28b7
         - ref!! ffafa74d-ee74-4f21-aeba-f6565b12674d
-        - ref!! 4255a2e2-6b21-4e69-94cd-af3e5d8235b5
-        - ref!! 57897b9f-c148-4d0f-a291-1a81b3b30d7c
         - ref!! b1588acf-0fcd-4377-bf5d-6c81dcf34484
     Parts:
         -   Entity:
@@ -38,34 +36,6 @@ Hierarchy:
                                 PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
                                 ComputeTransmittance: false
                                 BiasParameters: {}
-        -   Entity:
-                Id: 4255a2e2-6b21-4e69-94cd-af3e5d8235b5
-                Name: Ground
-                Components:
-                    9006dbffc8f216b10892cc70f3fb67f7: !TransformComponent
-                        Id: 91f18c07-871d-4622-a137-7728cb87fca6
-                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children: {}
-                    6c8fc5687a473e6e9938458d5d96decc: !ModelComponent
-                        Id: a8d01fe3-9443-49ec-92c8-c5a921db176c
-                        Model: 816675f4-c442-4d9f-b3cf-c15382ca0e27:Ground
-                        Materials: {}
-        -   Entity:
-                Id: 57897b9f-c148-4d0f-a291-1a81b3b30d7c
-                Name: Sphere
-                Components:
-                    c560157b4d71df9713af8c324a6ff505: !TransformComponent
-                        Id: c1c745a0-5c33-48cd-98ca-e61b2b56c7b2
-                        Position: {X: 0.0, Y: 0.5, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children: {}
-                    3eb6684a91bc04721ae11b10c9c7c2c7: !ModelComponent
-                        Id: 50f99228-00d8-48a0-bce8-dcbcf37848cc
-                        Model: 6312d397-4e68-4b04-9a19-232f32bf733b:Sphere
-                        Materials: {}
         -   Entity:
                 Id: 8d346802-8fe6-4d18-957c-c6dd8404ea84
                 Name: Camera
@@ -101,7 +71,7 @@ Hierarchy:
                         Children: {}
                     b770b44f804ee2b92e0cf2e21cb516aa: !BackgroundComponent
                         Id: 9a17a387-5b6c-4dde-9185-771f3dd4b737
-                        Texture: d5bf7b66-7df1-475b-8721-f4755a9c6f96:Skybox texture
+                        Texture: null
         -   Entity:
                 Id: b1588acf-0fcd-4377-bf5d-6c81dcf34484
                 Name: MainScript
@@ -114,6 +84,7 @@ Hierarchy:
                         Children: {}
                     d80b4d8f8e4c7517fb33931ae02a1875: !NEWorld.MainScript,NEWorld
                         Id: ad46feb5-e564-418b-8912-d79cfbc7a12d
+                        Material: a0b217f1-284e-4307-abd6-b42f56bedff1:Material
         -   Entity:
                 Id: ffafa74d-ee74-4f21-aeba-f6565b12674d
                 Name: Ambient light

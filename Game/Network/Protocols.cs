@@ -18,7 +18,6 @@
 // 
 
 using System.Collections.Generic;
-using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Core.Network;
@@ -39,13 +38,15 @@ namespace Game.Network
 
             public override string Name() => "GetChunk";
 
-            protected override void HandleRequestData(byte[] data, NetworkStream stream)
+            public override void HandleRequest(Session.Receive stream)
             {
-                var request = From.UnpackSingleObject(data);
+                var request = From.UnpackSingleObject(stream.Raw);
                 var chunkData = Get((uint) request[0], new Int3(request[1], request[2], request[3]));
-                Send(stream, Request(Id));
-                Send(stream, data);
-                Send(stream, chunkData);
+                using (var message = stream.Session.CreateMessage(Id))
+                {
+                    message.Write(stream.Raw, 0, Size);
+                    message.Write(chunkData, 0, chunkData.Length);
+                }
             }
 
             private static readonly ThreadLocal<byte[]> LocalMemCache = new ThreadLocal<byte[]>();
@@ -83,10 +84,13 @@ namespace Game.Network
         {
             public override string Name() => "GetChunk";
 
-            public Client(ConnectionHost.Connection conn) : base(32768 * 4 + Size) => stream = conn.Stream;
-
-            protected override void HandleRequestData(byte[] data, NetworkStream stream)
+            public Client() : base(32768 * 4 + Size)
             {
+            }
+
+            public override void HandleRequest(Session.Receive request)
+            {
+                var data = request.Raw;
                 var req = From.UnpackSingleObject(data);
                 var srv = Singleton<ChunkService>.Instance;
                 var chk = new Chunk(new Int3(req[1], req[2], req[3]), srv.Worlds.Get((uint) req[0]));
@@ -98,16 +102,17 @@ namespace Game.Network
                     block.Data = (uint) (data[i + 2] << 8 | data[i + 3]);
                 }
 
-                srv.TaskDispatcher.Add(new World.World.ResetChunkTask((uint) req[0], chk));
+                srv.TaskDispatcher.Add(new World.World.ResetChunkTask(chk));
             }
 
             public void Call(uint worldId, Int3 position)
             {
                 var data = new[] {(int) worldId, position.X, position.Y, position.Z};
-                Send(stream, Request(Id, From.PackSingleObjectAsBytes(data)));
+                using (var message = Network.Client.CreateMessage(Id))
+                {
+                    message.Write(From.PackSingleObjectAsBytes(data));
+                }
             }
-
-            private readonly NetworkStream stream;
         }
 
         private static readonly MessagePackSerializer<int[]> From = MessagePackSerializer.Get<int[]>();
@@ -118,14 +123,14 @@ namespace Game.Network
     {
         public class Server : FixedLengthProtocol
         {
-            public Server() : base(Size)
+            public Server() : base(4)
             {
             }
 
-            protected override void HandleRequestData(byte[] data, NetworkStream stream)
+            public override void HandleRequest(Session.Receive request)
             {
-                var request = SerialSend.UnpackSingleObject(data);
-                Send(stream, Reply(request, SerialReply.PackSingleObjectAsBytes(new uint[] {0})));
+                var session = request.ReadU32();
+                Reply.Send(request.Session, session, SerialReply.PackSingleObjectAsBytes(new uint[] {0}));
             }
 
             public override string Name() => "GetAvailableWorldId";
@@ -133,43 +138,37 @@ namespace Game.Network
 
         public class Client : StubProtocol
         {
-            public Client(ConnectionHost.Connection conn) => stream = conn.Stream;
-
             public override string Name() => "GetAvailableWorldId";
 
             public async Task<uint[]> Call()
             {
-                var session = ProtocolReply.AllocSession();
-                Send(stream, Request(Id, SerialSend.PackSingleObjectAsBytes(session.Key)));
+                var session = Reply.AllocSession();
+                using (var message = Network.Client.CreateMessage(Id))
+                {
+                    message.Write(session.Key);
+                }
                 var result = await session.Value;
                 return SerialReply.UnpackSingleObject(result);
             }
-
-            private readonly NetworkStream stream;
         }
 
-        private static readonly MessagePackSerializer<int> SerialSend = MessagePackSerializer.Get<int>();
-
         private static readonly MessagePackSerializer<uint[]> SerialReply = MessagePackSerializer.Get<uint[]>();
-
-        private static readonly int Size = SerialSend.PackSingleObject(0).Length;
     }
 
     public static class GetWorldInfo
     {
         public class Server : FixedLengthProtocol
         {
-            public Server() : base(Size)
+            public Server() : base(8)
             {
             }
 
-            protected override void HandleRequestData(byte[] data, NetworkStream stream)
+            public override void HandleRequest(Session.Receive stream)
             {
-                var ret = new Dictionary<string, string>();
-                var request = SerialSend.UnpackSingleObject(data);
-                var world = Singleton<ChunkService>.Instance.Worlds.Get((uint) request[1]);
-                ret.Add("name", world.Name);
-                Send(stream, Reply(request[0], SerialReply.PackSingleObjectAsBytes(ret)));
+                var request = stream.ReadU32();
+                var world = Singleton<ChunkService>.Instance.Worlds.Get(stream.ReadU32());
+                var ret = new Dictionary<string, string> {{"name", world.Name}};
+                Reply.Send(stream.Session, request, SerialReply.PackSingleObjectAsBytes(ret));
             }
 
             public override string Name() => "GetWorldInfo";
@@ -177,26 +176,22 @@ namespace Game.Network
 
         public class Client : StubProtocol
         {
-            public Client(ConnectionHost.Connection conn) => stream = conn.Stream;
-
             public override string Name() => "GetWorldInfo";
 
             public async Task<Dictionary<string, string>> Call(uint wid)
             {
-                var session = ProtocolReply.AllocSession();
-                Send(stream, Request(Id, SerialSend.PackSingleObjectAsBytes(new[] {session.Key, (int) wid})));
+                var session = Reply.AllocSession();
+                using (var message = Network.Client.CreateMessage(Id))
+                {
+                    message.Write(session.Key);
+                    message.Write(wid);
+                }
                 var result = await session.Value;
                 return SerialReply.UnpackSingleObject(result);
-            }
-
-            private readonly NetworkStream stream;
+            }   
         }
-
-        private static readonly MessagePackSerializer<int[]> SerialSend = MessagePackSerializer.Get<int[]>();
-
+   
         private static readonly MessagePackSerializer<Dictionary<string, string>> SerialReply =
             MessagePackSerializer.Get<Dictionary<string, string>>();
-
-        private static readonly int Size = SerialSend.PackSingleObject(new int[2]).Length;
     }
 }

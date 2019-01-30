@@ -41,10 +41,7 @@ namespace Core.Math
         public static Mat4F operator +(Mat4F lhs, Mat4F rhs)
         {
             var result = lhs;
-            for (var i = 0; i < 16; ++i)
-            {
-                result.Data[i] += rhs.Data[i];
-            }
+            for (var i = 0; i < 16; ++i) result.Data[i] += rhs.Data[i];
 
             return result;
         }
@@ -151,9 +148,8 @@ namespace Core.Math
             {
                 var p = i;
                 for (var j = i + 1; j < 4; j++)
-                {
-                    if (System.Math.Abs(Data[j * 4 + i]) > System.Math.Abs(Data[p * 4 + i])) p = j;
-                }
+                    if (System.Math.Abs(Data[j * 4 + i]) > System.Math.Abs(Data[p * 4 + i]))
+                        p = j;
 
                 res.SwapRows(i, p);
                 SwapRows(i, p);
@@ -167,30 +163,34 @@ namespace Core.Math
             }
 
             for (var i = 3; i >= 0; i--)
+            for (uint j = 0; j < i; j++)
             {
-                for (uint j = 0; j < i; j++)
-                {
-                    res.MultAndAdd((uint) i, j, -Data[j * 4 + i]);
-                    MultAndAdd((uint) i, j, -Data[j * 4 + i]);
-                }
+                res.MultAndAdd((uint) i, j, -Data[j * 4 + i]);
+                MultAndAdd((uint) i, j, -Data[j * 4 + i]);
             }
 
             return this;
         }
 
         // Construct a translation matrix
-        public static Mat4F Translation(Vec3<float> delta) => new Mat4F(1.0f)
+        public static Mat4F Translation(Vec3<float> delta)
         {
-            Data =
+            return new Mat4F(1.0f)
             {
-                [3] = delta.X,
-                [7] = delta.Y,
-                [11] = delta.Z
-            }
-        };
+                Data =
+                {
+                    [3] = delta.X,
+                    [7] = delta.Y,
+                    [11] = delta.Z
+                }
+            };
+        }
 
         // Construct a identity matrix
-        public static Mat4F Identity() => new Mat4F(1.0f);
+        public static Mat4F Identity()
+        {
+            return new Mat4F(1.0f);
+        }
 
         // Construct a rotation matrix
         public static Mat4F Rotation(float degrees, Vec3<float> vec)
@@ -287,10 +287,7 @@ namespace Core.Math
         public static Mat4D operator +(Mat4D lhs, Mat4D rhs)
         {
             var result = lhs;
-            for (var i = 0; i < 16; ++i)
-            {
-                result.Data[i] += rhs.Data[i];
-            }
+            for (var i = 0; i < 16; ++i) result.Data[i] += rhs.Data[i];
 
             return result;
         }
@@ -397,9 +394,8 @@ namespace Core.Math
             {
                 var p = i;
                 for (var j = i + 1; j < 4; j++)
-                {
-                    if (System.Math.Abs(Data[j * 4 + i]) > System.Math.Abs(Data[p * 4 + i])) p = j;
-                }
+                    if (System.Math.Abs(Data[j * 4 + i]) > System.Math.Abs(Data[p * 4 + i]))
+                        p = j;
 
                 res.SwapRows(i, p);
                 SwapRows(i, p);
@@ -413,30 +409,34 @@ namespace Core.Math
             }
 
             for (var i = 3; i >= 0; i--)
+            for (uint j = 0; j < i; j++)
             {
-                for (uint j = 0; j < i; j++)
-                {
-                    res.MultAndAdd((uint) i, j, -Data[j * 4 + i]);
-                    MultAndAdd((uint) i, j, -Data[j * 4 + i]);
-                }
+                res.MultAndAdd((uint) i, j, -Data[j * 4 + i]);
+                MultAndAdd((uint) i, j, -Data[j * 4 + i]);
             }
 
             return this;
         }
 
         // Construct a translation matrix
-        public static Mat4D Translation(Vec3<double> delta) => new Mat4D(1.0f)
+        public static Mat4D Translation(Vec3<double> delta)
         {
-            Data =
+            return new Mat4D(1.0f)
             {
-                [3] = delta.X,
-                [7] = delta.Y,
-                [11] = delta.Z
-            }
-        };
+                Data =
+                {
+                    [3] = delta.X,
+                    [7] = delta.Y,
+                    [11] = delta.Z
+                }
+            };
+        }
 
         // Construct a identity matrix
-        public static Mat4D Identity() => new Mat4D(1.0f);
+        public static Mat4D Identity()
+        {
+            return new Mat4D(1.0f);
+        }
 
         // Construct a rotation matrix
         public static Mat4D Rotation(double degrees, Vec3<double> vec)

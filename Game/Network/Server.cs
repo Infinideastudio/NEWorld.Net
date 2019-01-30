@@ -45,7 +45,7 @@ namespace Game.Network
 
         public void Stop()
         {
-            server.StopServer();
+            server.ShutDown();
             wait.Wait();
         }
 

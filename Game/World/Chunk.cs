@@ -48,12 +48,13 @@ namespace Game.World
             }
         }
 
-        public Chunk(Int3 position, World world)
+        public Chunk(Int3 position, World world, bool build = true)
         {
             Position = position;
             World = world;
             Blocks = new BlockData[BlocksSize];
-            Build(world.DaylightBrightness);
+            if (build)
+                Build(world.DaylightBrightness);
         }
 
         // TODO: somehow avoid it! not safe.
@@ -91,8 +92,7 @@ namespace Game.World
         // For Garbage Collection
         private long mLastRequestTime;
     }
-
-    [Serializable]
+    
     public class ChunkManager : Dictionary<Int3, Chunk>
     {
         public bool IsLoaded(Int3 chunkPos) => ContainsKey(chunkPos);

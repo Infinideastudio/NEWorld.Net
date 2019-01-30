@@ -23,7 +23,23 @@ namespace Core.Utilities
 {
     public class StrictDispose : IDisposable
     {
-        ~StrictDispose() => Dispose();
+        private StrictDispose first, sibling;
+
+        private bool released;
+
+        public void Dispose()
+        {
+            if (released)
+                return;
+            TravelRelease();
+            Release();
+            released = true;
+        }
+
+        ~StrictDispose()
+        {
+            Dispose();
+        }
 
         protected T Inject<T>(T target) where T : StrictDispose
         {
@@ -60,19 +76,9 @@ namespace Core.Utilities
                 current.Dispose();
         }
 
-        public void Dispose()
+        public bool Valid()
         {
-            if (released)
-                return;
-            TravelRelease();
-            Release();
-            released = true;
+            return !released;
         }
-
-        public bool Valid() => !released;
-
-        private StrictDispose first, sibling;
-
-        private bool released;
     }
 }

@@ -21,10 +21,8 @@ using Core.Math;
 using Core.Utilities;
 using Game;
 using Game.Network;
-using Game.Terrain;
 using Game.World;
 using System;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Xenko.Core.Diagnostics;
@@ -47,9 +45,11 @@ namespace NEWorld
             set
             {
                 _game = value;
-                IndexBuffer = IndexBufferBuilder.Build();
+                IndexBuffer = new IndexBufferBinding(IndexBufferBuilder.Build(), true, 262144 / 2 * 3);
             }
         }
+
+        public static Material Material { get; set; }
 
         public static Scene OperatingScene { get; set; }
 
@@ -61,11 +61,11 @@ namespace NEWorld
 
         public static readonly VertexDeclaration VertexLayout = new VertexDeclaration(
             VertexElement.TextureCoordinate<Vector2>(),
-            VertexElement.Color<Vector3>(),
+            VertexElement.Color<float>(),
             VertexElement.Position<Vector3>()
         );
 
-        public static Buffer IndexBuffer { get; private set; }
+        public static IndexBufferBinding IndexBuffer { get; private set; }
     }
     
     public static class IndexBufferBuilder
@@ -77,54 +77,22 @@ namespace NEWorld
             for (var i = 0; i < 262144 / 4; ++i)
             {
                 var b = i * 4;
-                idx[cnt++] = b;
+                idx[cnt++] = b + 2;
                 idx[cnt++] = b + 1;
+                idx[cnt++] = b;
+                idx[cnt++] = b + 3;
                 idx[cnt++] = b + 2;
                 idx[cnt++] = b;
-                idx[cnt++] = b + 2;
-                idx[cnt++] = b + 3;
             }
 
             return Buffer.Index.New(Context.GraphicsDevice, idx);
         }
     }
 
-    public class VertexBuilder : IVertexBuilder
-    {
-        public VertexBuilder(int size) => Data = new float[size];
-
-        public void AddPrimitive(int verts, params float[] data)
-        {
-            Count += verts;
-            data.CopyTo(Data, Size);
-            Size += data.Length;
-        }
-
-        public Mesh Dump()
-        {
-            return new Mesh
-            {
-                Draw =
-                {
-                    DrawCount = 1, 
-                    IndexBuffer = new IndexBufferBinding(Context.IndexBuffer, true, Count / 2 * 3),
-                    PrimitiveType = PrimitiveType.TriangleList,
-                    StartLocation = 0,
-                    VertexBuffers = new[]
-                    {
-                       new VertexBufferBinding(Buffer.Vertex.New(Context.Game.GraphicsDevice, Data), Context.VertexLayout, Count)
-                    }
-                }
-            };
-        }
-        
-        public int Size;
-        public int Count;
-        public readonly float[] Data;
-    }
-
     public class MainScript : SyncScript
     {
+        public Material Material;
+
         private void InitializeModules()
         {
             Core.Module.Modules.Instance.Load("Main");
@@ -133,7 +101,8 @@ namespace NEWorld
         private void InitializeContext()
         {
             Context.Game = Game;
-            Context.OperatingScene = SceneSystem.SceneInstance.RootScene;
+            Context.Material = Material;
+            Context.OperatingScene = Entity.Scene;
             Core.LogPort.Logger = Log;
             Log.ActivateLog(LogMessageType.Debug);
         }
@@ -168,12 +137,15 @@ namespace NEWorld
 
         private async Task EnterCurrentWorld()
         {
+            var chunkService = Singleton<ChunkService>.Instance;
             currentWorld = Singleton<ChunkService>.Instance.Worlds.Get(await RequestWorld());
+            currentWorld.RegisterChunkTasks(chunkService, player);
+            chunkService.EnableDispatcher();
         }
 
         private void StartTerrainRenderService()
         {
-            rdWorld = new Renderer.RdWorld(currentWorld, player, 4);
+            rdWorld = new Renderer.RdWorld(currentWorld, player, 2);
         }
 
         private async void Initialize()

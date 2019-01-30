@@ -1,0 +1,17 @@
+﻿shader VertexTextureTerrain : ComputeColor
+{
+    SamplerState MeshTextureSampler
+	{
+		Filter = MIN_MAG_MIP_LINEAR;
+		AddressU = Wrap;
+		AddressV = Wrap;
+	};
+    // stage Texture2D Almg;
+    stage stream float2 TexCoord : TEXCOORD0;
+    stage stream float Color : COLOR0;
+
+    override float4 Compute()
+    {
+        return float4(streams.Color, streams.Color, streams.Color, streams.Color);//Almg.Sample(MeshTextureSampler, streams.TexCoord);
+    }
+};
