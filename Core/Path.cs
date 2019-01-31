@@ -23,11 +23,6 @@ namespace Core
 {
     public static class Path
     {
-        public static string Asset(string group)
-        {
-            return AppContext.BaseDirectory + "/Assets/" + group + "/";
-        }
-
         public static string Modules()
         {
             return AppContext.BaseDirectory;

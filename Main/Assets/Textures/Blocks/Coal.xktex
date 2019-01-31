@@ -1,0 +1,7 @@
+!Texture
+Id: def5376c-d58d-4872-8edc-bfd10cc66ba6
+SerializedVersion: {Xenko: 2.0.0.0}
+Tags: []
+Source: !file Coal.png
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

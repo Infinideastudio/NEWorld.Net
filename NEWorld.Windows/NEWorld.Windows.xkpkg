@@ -14,4 +14,20 @@ OutputGroupDirectories: {}
 ExplicitFolders: []
 Bundles: []
 TemplateFolders: []
-RootAssets: []
+RootAssets:
+    - 0c1e6502-9fe1-4fa6-b1c2-8e67f76f1f4f:Textures/Blocks/Iron
+    - 266e2127-34ad-4978-ae76-a37dbebf3547:Textures/Blocks/Rock
+    - 3091e23d-b2af-4698-b2c8-b16af90eaa2c:Textures/Blocks/Water
+    - 68b96536-d657-46f9-8319-173aa4f4af30:Textures/Blocks/Bedrock
+    - 6cde71ed-6d9a-4642-a312-d58c02dbb07d:Textures/Blocks/Plank
+    - 6cff36b6-77c2-47de-b5d1-18465cb77201:Textures/Blocks/Glowstone
+    - 729c1023-0d45-456b-b5af-9c2c9ef8b87a:Textures/Blocks/Cement
+    - 758069be-3d4f-4f11-a44c-8b5bbea08cbb:Textures/Blocks/Null
+    - 872b5b39-8830-41cd-99a3-b1f729f88966:Textures/Blocks/Dirt
+    - 8950f4b3-c0bf-4ba1-85a7-d008f78b8b99:Textures/Blocks/GrassTop
+    - bc3db60e-4472-4e7f-b1e8-626b4a0cc336:Textures/Blocks/TrunkRound
+    - c896ecda-99c3-4815-b811-6dcf125c371c:Textures/Blocks/GrassRound
+    - def5376c-d58d-4872-8edc-bfd10cc66ba6:Textures/Blocks/Coal
+    - f35d797b-97bd-4f89-823e-7ce0254f8fd5:Textures/Blocks/Stone
+    - f432c34d-8800-43a5-8493-ed3507c53aa9:Textures/Blocks/Sand
+    - f6251b49-efcd-451d-aeb9-f422b2c5cd90:Textures/Blocks/TrunkTop

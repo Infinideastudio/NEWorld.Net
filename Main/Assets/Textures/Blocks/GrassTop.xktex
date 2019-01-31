@@ -1,0 +1,7 @@
+!Texture
+Id: 8950f4b3-c0bf-4ba1-85a7-d008f78b8b99
+SerializedVersion: {Xenko: 2.0.0.0}
+Tags: []
+Source: !file GrassTop.png
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

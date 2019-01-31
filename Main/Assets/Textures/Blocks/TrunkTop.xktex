@@ -1,0 +1,7 @@
+!Texture
+Id: f6251b49-efcd-451d-aeb9-f422b2c5cd90
+SerializedVersion: {Xenko: 2.0.0.0}
+Tags: []
+Source: !file TrunkTop.png
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

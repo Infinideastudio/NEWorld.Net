@@ -1,0 +1,7 @@
+!Texture
+Id: f432c34d-8800-43a5-8493-ed3507c53aa9
+SerializedVersion: {Xenko: 2.0.0.0}
+Tags: []
+Source: !file Sand.png
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

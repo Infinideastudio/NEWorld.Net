@@ -29,6 +29,7 @@ using Game.World;
 using NEWorld.Renderer;
 using Xenko.Core.Diagnostics;
 using Xenko.Core.Mathematics;
+using Xenko.Core.Serialization.Contents;
 using Xenko.Engine;
 using Xenko.Games;
 using Xenko.Graphics;
@@ -66,6 +67,8 @@ namespace NEWorld
         public static CommandList CommandList => Game.GraphicsContext.CommandList;
 
         public static IndexBufferBinding IndexBuffer { get; private set; }
+
+        public static ContentManager Content { get; set; }
     }
 
     public static class IndexBufferBuilder
@@ -111,6 +114,7 @@ namespace NEWorld
         private void InitializeContext()
         {
             Context.Game = Game;
+            Context.Content = Content;
             Context.Material = Material;
             Context.OperatingScene = Entity.Scene;
             LogPort.Logger = Log;

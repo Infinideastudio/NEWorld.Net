@@ -1,0 +1,7 @@
+!Texture
+Id: 3091e23d-b2af-4698-b2c8-b16af90eaa2c
+SerializedVersion: {Xenko: 2.0.0.0}
+Tags: []
+Source: !file Water.png
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
