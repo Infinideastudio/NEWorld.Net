@@ -42,7 +42,7 @@ namespace NEWorld
         private static IGame _game;
 
         public static readonly VertexDeclaration VertexLayout = new VertexDeclaration(
-            VertexElement.TextureCoordinate<Vector2>(), VertexElement.Position<Vector3>()
+            VertexElement.Color(PixelFormat.R32G32_UInt)
         );
 
         public static IGame Game
@@ -155,7 +155,7 @@ namespace NEWorld
 
         private void StartTerrainRenderService()
         {
-            rdWorld = new RdWorld(currentWorld, player, 1);
+            rdWorld = new RdWorld(currentWorld, player, 4);
         }
 
         private async void Initialize()
