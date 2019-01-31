@@ -22,15 +22,12 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using MsgPack.Serialization;
+using MessagePack;
 
 namespace Core.Network
 {
     public static class Handshake
     {
-        private static readonly MessagePackSerializer<KeyValuePair<string, uint>[]> SerialReply =
-            MessagePackSerializer.Get<KeyValuePair<string, uint>[]>();
-
         internal static async Task<KeyValuePair<string, uint>[]> Get(Session conn)
         {
             var session = Reply.AllocSession();
@@ -40,7 +37,7 @@ namespace Core.Network
             }
 
             var result = await session.Value;
-            return SerialReply.UnpackSingleObject(result);
+            return MessagePackSerializer.Deserialize<KeyValuePair<string, uint>[]>(result);
         }
 
         public class Server : FixedLengthProtocol
@@ -59,7 +56,7 @@ namespace Core.Network
                 var reply = new KeyValuePair<string, uint>[protocols.Count];
                 foreach (var protocol in protocols)
                     reply[current++] = new KeyValuePair<string, uint>(protocol.Name(), protocol.Id);
-                Reply.Send(request.Session, session, SerialReply.PackSingleObjectAsBytes(reply));
+                Reply.Send(request.Session, session, MessagePackSerializer.SerializeUnsafe(reply));
             }
 
             public override string Name()

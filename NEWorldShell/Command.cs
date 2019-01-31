@@ -21,50 +21,61 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Core;
 
 namespace NEWorldShell
 {
     public class CommandExecuteStat
     {
+        public readonly string Info;
+
+        public bool Success;
+
         public CommandExecuteStat(bool s, string i)
         {
             Success = s;
             Info = i;
         }
-
-        public bool Success;
-        public readonly string Info;
     }
 
     public class Command
     {
+        public readonly List<string> Args;
+
+        public readonly string Name;
+
         public Command(string rawString)
         {
             Args = rawString.Split(' ').ToList();
             Name = Args.Count != 0 ? Args[0] : "";
             if (Args.Count != 0) Args.RemoveAt(0);
         }
-
-        public readonly string Name;
-        public readonly List<string> Args;
     }
 
     public class CommandInfo
     {
+        public string Author;
+        public string Help;
+
         public CommandInfo(string a, string h)
         {
             Author = a;
             Help = h;
         }
-
-        public string Author;
-        public string Help;
     }
 
 
     public class CommandManager
     {
         public delegate CommandExecuteStat CommandHandleFunction(Command exec);
+
+        private readonly Dictionary<string, KeyValuePair<CommandInfo, CommandHandleFunction>> _commandMap;
+
+        private readonly Thread _mainloop;
+
+        private bool _threadRunning = true;
+
+        private bool _waitingForInput;
 
         public CommandManager()
         {
@@ -77,13 +88,9 @@ namespace NEWorldShell
         {
             _threadRunning = false;
             if (!_waitingForInput)
-            {
                 _mainloop.Join();
-            }
             else
-            {
                 _mainloop.Abort();
-            }
         }
 
         public void InputLoop()
@@ -95,11 +102,14 @@ namespace NEWorldShell
                 _waitingForInput = false;
                 var result = HandleCommand(new Command(input));
                 if (result.Info != "")
-                    Core.LogPort.Debug(result.Info);
+                    LogPort.Debug(result.Info);
             }
         }
 
-        public Dictionary<string, KeyValuePair<CommandInfo, CommandHandleFunction>> GetCommandMap() => _commandMap;
+        public Dictionary<string, KeyValuePair<CommandInfo, CommandHandleFunction>> GetCommandMap()
+        {
+            return _commandMap;
+        }
 
         public void SetRunningStatus(bool s)
         {
@@ -118,13 +128,5 @@ namespace NEWorldShell
                 ? result.Value(cmd)
                 : new CommandExecuteStat(false, "Command not exists, type help for available commands.");
         }
-
-        private readonly Thread _mainloop;
-
-        private bool _threadRunning = true;
-
-        private bool _waitingForInput;
-
-        private readonly Dictionary<string, KeyValuePair<CommandInfo, CommandHandleFunction>> _commandMap;
     }
 }

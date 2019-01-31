@@ -17,6 +17,7 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
+using Core;
 using Game.World;
 
 namespace Game
@@ -41,16 +42,11 @@ namespace Game
         {
             IsAuthority = isAuthority;
             Worlds = new WorldManager();
-            TaskDispatcher = Core.Services.Get<TaskDispatcher>("Game.TaskDispatcher");
+            TaskDispatcher = Services.Get<TaskDispatcher>("Game.TaskDispatcher");
         }
 
         private ChunkService() : this(true)
         {
-        }
-
-        public void EnableDispatcher()
-        {
-            TaskDispatcher.Start(this);
         }
 
         public TaskDispatcher TaskDispatcher { get; }
@@ -58,5 +54,10 @@ namespace Game
         public WorldManager Worlds { get; }
 
         public bool IsAuthority { set; get; }
+
+        public void EnableDispatcher()
+        {
+            TaskDispatcher.Start(this);
+        }
     }
 }

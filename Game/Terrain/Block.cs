@@ -19,6 +19,7 @@
 
 using System.Collections.Generic;
 using Game.World;
+using Xenko.Core.Annotations;
 using Xenko.Core.Mathematics;
 
 namespace Game.Terrain
@@ -37,6 +38,7 @@ namespace Game.Terrain
 
     public interface IVertexBuilder
     {
+        //void Rect(Int3 position, int face, Int2 tex, int rotation)
         void AddPrimitive(int verts, params float[] data);
     }
 
@@ -48,6 +50,8 @@ namespace Game.Terrain
 
     public class DefaultBlockRenderer : IBlockRenderer
     {
+        private readonly BlockTexCoord[] tex;
+
         public DefaultBlockRenderer(uint[] data)
         {
             tex = new BlockTexCoord[6];
@@ -59,7 +63,9 @@ namespace Game.Terrain
         {
             for (var i = 0; i < 6; ++i)
                 fixed (float* tex = this.tex[0].D)
+                {
                     textures.GetTexturePos(tex, this.tex[i].Pos);
+                }
         }
 
         public unsafe void Render(IVertexBuilder target, Chunk chunk, Int3 pos)
@@ -87,75 +93,90 @@ namespace Game.Terrain
                     ? chunk.World.GetBlock(new Int3(worldpos.X, worldpos.Y, worldpos.Z - 1))
                     : chunk[new Int3(pos.X, pos.Y, pos.Z - 1)]
             };
-
+            // Data: float2 tex; float lightcoeff; float3 normal, 
             // Right
             if (AdjacentTest(curr, neighbors[0]))
                 fixed (float* tex = this.tex[0].D)
+                {
                     target.AddPrimitive(4,
-                        tex[0], tex[1], 0.5f, pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 1.0f,
-                        tex[0], tex[3], 0.5f, pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 1.0f,
-                        tex[2], tex[3], 0.5f, pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 0.0f,
-                        tex[2], tex[1], 0.5f, pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 0.0f
+                        tex[0], tex[1], pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 1.0f,
+                        tex[0], tex[3], pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 1.0f,
+                        tex[2], tex[3], pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 0.0f,
+                        tex[2], tex[1], pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 0.0f
                     );
+                }
 
             // Left
             if (AdjacentTest(curr, neighbors[1]))
                 fixed (float* tex = this.tex[1].D)
+                {
                     target.AddPrimitive(4,
-                        tex[0], tex[1], 0.5f, pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 0.0f,
-                        tex[0], tex[3], 0.5f, pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 0.0f,
-                        tex[2], tex[3], 0.5f, pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 1.0f,
-                        tex[2], tex[1], 0.5f, pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 1.0f
+                        tex[0], tex[1], pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 0.0f,
+                        tex[0], tex[3], pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 0.0f,
+                        tex[2], tex[3], pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 1.0f,
+                        tex[2], tex[1], pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 1.0f
                     );
+                }
 
             // Top
             if (AdjacentTest(curr, neighbors[2]))
                 fixed (float* tex = this.tex[2].D)
+                {
                     target.AddPrimitive(4,
-                        tex[0], tex[1], 1.0f, pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 0.0f,
-                        tex[0], tex[3], 1.0f, pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 1.0f,
-                        tex[2], tex[3], 1.0f, pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 1.0f,
-                        tex[2], tex[1], 1.0f, pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 0.0f
+                        tex[0], tex[1], pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 0.0f,
+                        tex[0], tex[3], pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 1.0f,
+                        tex[2], tex[3], pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 1.0f,
+                        tex[2], tex[1], pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 0.0f
                     );
+                }
 
             // Bottom
             if (AdjacentTest(curr, neighbors[3]))
                 fixed (float* tex = this.tex[3].D)
+                {
                     target.AddPrimitive(4,
-                        tex[0], tex[1], 1.0f, pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 1.0f,
-                        tex[0], tex[3], 1.0f, pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 0.0f,
-                        tex[2], tex[3], 1.0f, pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 0.0f,
-                        tex[2], tex[1], 1.0f, pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 1.0f
+                        tex[0], tex[1],pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 1.0f,
+                        tex[0], tex[3], pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 0.0f,
+                        tex[2], tex[3], pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 0.0f,
+                        tex[2], tex[1], pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 1.0f
                     );
+                }
 
             // Front
             if (AdjacentTest(curr, neighbors[4]))
                 fixed (float* tex = this.tex[4].D)
+                {
                     target.AddPrimitive(4,
-                        tex[0], tex[1], 0.7f, pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 1.0f,
-                        tex[0], tex[3], 0.7f, pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 1.0f,
-                        tex[2], tex[3], 0.7f, pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 1.0f,
-                        tex[2], tex[1], 0.7f, pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 1.0f
+                        tex[0], tex[1], pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 1.0f,
+                        tex[0], tex[3], pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 1.0f,
+                        tex[2], tex[3], pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 1.0f,
+                        tex[2], tex[1], pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 1.0f
                     );
+                }
 
             // Back
             if (AdjacentTest(curr, neighbors[5]))
                 fixed (float* tex = this.tex[5].D)
+                {
                     target.AddPrimitive(4,
-                        tex[0], tex[1], 0.7f, pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 0.0f,
-                        tex[0], tex[3], 0.7f, pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 0.0f,
-                        tex[2], tex[3], 0.7f, pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 0.0f,
-                        tex[2], tex[1], 0.7f, pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 0.0f
+                        tex[0], tex[1], pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 0.0f,
+                        tex[0], tex[3], pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 0.0f,
+                        tex[2], tex[3], pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 0.0f,
+                        tex[2], tex[1], pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 0.0f
                     );
+                }
         }
 
-        static bool AdjacentTest(BlockData a, BlockData b) => a.Id != 0 && !Blocks.Index[b.Id].IsOpaque && a.Id != b.Id;
-
-        private readonly BlockTexCoord[] tex;
+        private static bool AdjacentTest(BlockData a, BlockData b)
+        {
+            return a.Id != 0 && !Blocks.Index[b.Id].IsOpaque && a.Id != b.Id;
+        }
     }
 
     public static class BlockRenderers
     {
+        private static readonly List<IBlockRenderer> Renderers = new List<IBlockRenderer>();
+
         public static void Render(IVertexBuilder target, int id, Chunk chunk, Int3 pos)
         {
             if (Renderers.Count > 0 && Renderers[id] != null)
@@ -171,12 +192,7 @@ namespace Game.Terrain
 
         public static void FlushTextures(IBlockTextures textures)
         {
-            foreach (var x in Renderers)
-            {
-                x?.FlushTexture(textures);
-            }
+            foreach (var x in Renderers) x?.FlushTexture(textures);
         }
-
-        private static readonly List<IBlockRenderer> Renderers = new List<IBlockRenderer>();
     }
 }

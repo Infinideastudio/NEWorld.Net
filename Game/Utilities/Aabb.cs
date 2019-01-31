@@ -18,16 +18,16 @@
 // 
 
 using System;
-using Core.Math;
+using Xenko.Core.Mathematics;
 
 namespace Game.Utilities
 {
     public struct Aabb
     {
         // Min bound, Max bound
-        public Vec3<double> Min, Max;
+        public Double3 Min, Max;
 
-        public Aabb(Vec3<double> min, Vec3<double> max)
+        public Aabb(Double3 min, Double3 max)
         {
             Min = min;
             Max = max;
@@ -106,9 +106,9 @@ namespace Game.Utilities
         }
 
         // Get expanded Aabb
-        public Aabb Expand(Vec3<double> arg)
+        public Aabb Expand(Double3 arg)
         {
-            Aabb res = this;
+            var res = this;
 
             if (arg.X > 0.0)
                 res.Max.X += arg.X;
@@ -129,7 +129,7 @@ namespace Game.Utilities
         }
 
         // Move Aabb
-        public void Move(Vec3<double> arg)
+        public void Move(Double3 arg)
         {
             Min += arg;
             Max += arg;

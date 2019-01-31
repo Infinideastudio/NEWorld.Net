@@ -23,24 +23,31 @@ using System.Threading.Tasks;
 using Core.Network;
 using Core.Utilities;
 using Game.World;
-using MsgPack.Serialization;
+using MessagePack;
 using Xenko.Core.Mathematics;
 
 namespace Game.Network
 {
     public static class GetChunk
     {
+        private static readonly int Size = MessagePackSerializer.SerializeUnsafe(new int[4]).Count;
+
         public class Server : FixedLengthProtocol
         {
+            private static readonly ThreadLocal<byte[]> LocalMemCache = new ThreadLocal<byte[]>();
+
             public Server() : base(Size)
             {
             }
 
-            public override string Name() => "GetChunk";
+            public override string Name()
+            {
+                return "GetChunk";
+            }
 
             public override void HandleRequest(Session.Receive stream)
             {
-                var request = From.UnpackSingleObject(stream.Raw);
+                var request = MessagePackSerializer.Deserialize<int[]>(stream.Raw);
                 var chunkData = Get((uint) request[0], new Int3(request[1], request[2], request[3]));
                 using (var message = stream.Session.CreateMessage(Id))
                 {
@@ -48,8 +55,6 @@ namespace Game.Network
                     message.Write(chunkData, 0, chunkData.Length);
                 }
             }
-
-            private static readonly ThreadLocal<byte[]> LocalMemCache = new ThreadLocal<byte[]>();
 
             private static byte[] Get(uint worldId, Int3 position)
             {
@@ -82,24 +87,27 @@ namespace Game.Network
 
         public class Client : FixedLengthProtocol
         {
-            public override string Name() => "GetChunk";
-
             public Client() : base(32768 * 4 + Size)
             {
+            }
+
+            public override string Name()
+            {
+                return "GetChunk";
             }
 
             public override void HandleRequest(Session.Receive request)
             {
                 var data = request.Raw;
-                var req = From.UnpackSingleObject(data);
+                var req = MessagePackSerializer.Deserialize<int[]>(data);
                 var srv = Singleton<ChunkService>.Instance;
                 var chk = new Chunk(new Int3(req[1], req[2], req[3]), srv.Worlds.Get((uint) req[0]));
                 for (var i = Size; i < 32768 * 4 + Size; i += 4)
                 {
                     ref var block = ref chk.Blocks[(i - Size) >> 2];
-                    block.Id = (ushort) (data[i] << 4 | data[i + 1] >> 4);
+                    block.Id = (ushort) ((data[i] << 4) | (data[i + 1] >> 4));
                     block.Brightness = (byte) (data[i + 1] | 0xF);
-                    block.Data = (uint) (data[i + 2] << 8 | data[i + 3]);
+                    block.Data = (uint) ((data[i + 2] << 8) | data[i + 3]);
                 }
 
                 srv.TaskDispatcher.Add(new World.World.ResetChunkTask(chk));
@@ -110,13 +118,10 @@ namespace Game.Network
                 var data = new[] {(int) worldId, position.X, position.Y, position.Z};
                 using (var message = Network.Client.CreateMessage(Id))
                 {
-                    message.Write(From.PackSingleObjectAsBytes(data));
+                    message.Write(MessagePackSerializer.SerializeUnsafe(data));
                 }
             }
         }
-
-        private static readonly MessagePackSerializer<int[]> From = MessagePackSerializer.Get<int[]>();
-        private static readonly int Size = From.PackSingleObject(new int[4]).Length;
     }
 
     public static class GetAvailableWorldId
@@ -130,15 +135,21 @@ namespace Game.Network
             public override void HandleRequest(Session.Receive request)
             {
                 var session = request.ReadU32();
-                Reply.Send(request.Session, session, SerialReply.PackSingleObjectAsBytes(new uint[] {0}));
+                Reply.Send(request.Session, session, MessagePackSerializer.SerializeUnsafe(new uint[] {0}));
             }
 
-            public override string Name() => "GetAvailableWorldId";
+            public override string Name()
+            {
+                return "GetAvailableWorldId";
+            }
         }
 
         public class Client : StubProtocol
         {
-            public override string Name() => "GetAvailableWorldId";
+            public override string Name()
+            {
+                return "GetAvailableWorldId";
+            }
 
             public async Task<uint[]> Call()
             {
@@ -147,12 +158,11 @@ namespace Game.Network
                 {
                     message.Write(session.Key);
                 }
+
                 var result = await session.Value;
-                return SerialReply.UnpackSingleObject(result);
+                return MessagePackSerializer.Deserialize<uint[]>(result);
             }
         }
-
-        private static readonly MessagePackSerializer<uint[]> SerialReply = MessagePackSerializer.Get<uint[]>();
     }
 
     public static class GetWorldInfo
@@ -168,15 +178,21 @@ namespace Game.Network
                 var request = stream.ReadU32();
                 var world = Singleton<ChunkService>.Instance.Worlds.Get(stream.ReadU32());
                 var ret = new Dictionary<string, string> {{"name", world.Name}};
-                Reply.Send(stream.Session, request, SerialReply.PackSingleObjectAsBytes(ret));
+                Reply.Send(stream.Session, request, MessagePackSerializer.SerializeUnsafe(ret));
             }
 
-            public override string Name() => "GetWorldInfo";
+            public override string Name()
+            {
+                return "GetWorldInfo";
+            }
         }
 
         public class Client : StubProtocol
         {
-            public override string Name() => "GetWorldInfo";
+            public override string Name()
+            {
+                return "GetWorldInfo";
+            }
 
             public async Task<Dictionary<string, string>> Call(uint wid)
             {
@@ -186,12 +202,10 @@ namespace Game.Network
                     message.Write(session.Key);
                     message.Write(wid);
                 }
+
                 var result = await session.Value;
-                return SerialReply.UnpackSingleObject(result);
-            }   
+                return MessagePackSerializer.Deserialize<Dictionary<string, string>>(result);
+            }
         }
-   
-        private static readonly MessagePackSerializer<Dictionary<string, string>> SerialReply =
-            MessagePackSerializer.Get<Dictionary<string, string>>();
     }
 }

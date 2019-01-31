@@ -5,7 +5,7 @@ namespace Core
 {
     public static class LogPort
     {
-        public static Logger Logger { get; set; }
+        public static Logger Logger { private get; set; }
 
         public static void Debug(string str)
         {

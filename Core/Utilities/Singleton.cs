@@ -128,27 +128,14 @@ namespace Core.Utilities
         {
             get
             {
-                if (Test()) return _instance;
+                if (_instance != null) return _instance;
                 lock (Lock)
                 {
-                    if (!Test()) _instance = ConstructInstance();
+                    if (_instance == null) _instance = ConstructInstance();
                 }
 
                 return _instance;
             }
-        }
-
-        private static readonly bool StrictDisposable = typeof(T).IsSubclassOf(typeof(StrictDispose));
-
-        private static bool Test()
-        {
-            if (_instance == null) return false;
-            return !StrictDisposable || Valid(_instance);
-        }
-
-        private static bool Valid(dynamic obj)
-        {
-            return obj.Valid();
         }
 
         private static T ConstructInstance()

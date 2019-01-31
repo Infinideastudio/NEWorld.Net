@@ -61,6 +61,8 @@ namespace Game
     [DeclareService("Game.TaskDispatcher")]
     public class TaskDispatcher : IDisposable
     {
+        private readonly Barrier barrier;
+
         // TODO: replace it with lock-free structure.
         private readonly object mutex;
         private readonly List<IReadOnlyTask> regularReadOnlyTasks;
@@ -68,11 +70,10 @@ namespace Game
         private readonly List<Thread> threads;
 
         private ChunkService chunkService;
+        private RateController meter = new RateController(30);
         private List<IReadOnlyTask> readOnlyTasks, nextReadOnlyTasks;
         private List<IReadWriteTask> readWriteTasks, nextReadWriteTasks;
         private List<IRenderTask> renderTasks, nextRenderTasks;
-        private readonly Barrier barrier;
-        private RateController meter = new RateController(30);
         private bool shouldExit;
 
         // Automatic Creation. We reserve one virtual processor for main thread
@@ -209,12 +210,13 @@ namespace Game
             {
                 ProcessReadonlyTasks(threadId);
                 // The last finished thread is responsible to do writing jobs
-                if (barrier.ParticipantsRemaining == 0)
+                if (barrier.ParticipantsRemaining == 1)
                 {
                     QueueSwap();
                     ProcessReadWriteTasks();
                     meter.Yield(); // Rate Control
                 }
+
                 TimeUsed[threadId] = meter.GetDeltaTimeMs();
                 barrier.SignalAndWait();
             }
@@ -222,20 +224,21 @@ namespace Game
 
         private void ProcessReadonlyTasks(int i)
         {
-            for (;i < regularReadOnlyTasks.Count; i += threads.Count) regularReadOnlyTasks[i].Task(chunkService);
-            for (i -= regularReadOnlyTasks.Count; i < readOnlyTasks.Count; i += threads.Count) readOnlyTasks[i].Task(chunkService);
+            for (; i < regularReadOnlyTasks.Count; i += threads.Count) regularReadOnlyTasks[i].Task(chunkService);
+            for (i -= regularReadOnlyTasks.Count; i < readOnlyTasks.Count; i += threads.Count)
+                readOnlyTasks[i].Task(chunkService);
         }
 
         private void ProcessReadWriteTasks()
         {
             foreach (var task in regularReadWriteTasks) task.Task(chunkService);
             foreach (var task in readWriteTasks) task.Task(chunkService);
+            readWriteTasks.Clear();
         }
 
         private void QueueSwap()
         {
             readOnlyTasks.Clear();
-            readWriteTasks.Clear();
             Generic.Swap(ref readOnlyTasks, ref nextReadOnlyTasks);
             Generic.Swap(ref readWriteTasks, ref nextReadWriteTasks);
         }
