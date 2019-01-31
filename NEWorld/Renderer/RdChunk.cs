@@ -40,7 +40,7 @@ namespace NEWorld.Renderer
          */
         public void Generate(Chunk chunk)
         {
-            using (VertexBuilder vaOpacity = new VertexBuilder(262144 * (2 + 3)), vaTranslucent = new VertexBuilder(262144 * (2 + 3))) {
+            using (VertexBuilder vaOpacity = new VertexBuilder(262144), vaTranslucent = new VertexBuilder(262144)) {
                 var tmp = new Int3();
                 for (tmp.X = 0; tmp.X < Chunk.Size; ++tmp.X)
                 for (tmp.Y = 0; tmp.Y < Chunk.Size; ++tmp.Y)
@@ -56,7 +56,6 @@ namespace NEWorld.Renderer
                 Model = mesh0 != null && mesh1 != null ? new Model {new MaterialInstance(Context.Material)} : null;
                 if (mesh0 != null) Model?.Add(mesh0);
                 if (mesh1 != null) Model?.Add(mesh1);
-                //if (Model != null) Model.Materials[0].IsShadowCaster = true;
             }
         }
     }

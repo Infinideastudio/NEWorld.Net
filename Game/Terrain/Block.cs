@@ -19,15 +19,14 @@
 
 using System.Collections.Generic;
 using Game.World;
-using Xenko.Core.Annotations;
 using Xenko.Core.Mathematics;
 
 namespace Game.Terrain
 {
-    public unsafe struct BlockTexCoord
+    public struct BlockTexCoord
     {
         public uint Pos;
-        public fixed float D[4];
+        public Int2 Tex;
     }
 
     public interface IBlockRenderer
@@ -38,14 +37,13 @@ namespace Game.Terrain
 
     public interface IVertexBuilder
     {
-        //void Rect(Int3 position, int face, Int2 tex, int rotation)
-        void AddPrimitive(int verts, params float[] data);
+        void Rect(Int3 position, Int2 tex, uint face, int rotation, uint shade);
     }
 
     public interface IBlockTextures
     {
         uint Add(string path);
-        unsafe void GetTexturePos(float* pos, uint id);
+        void GetTexturePos(ref BlockTexCoord pos);
     }
 
     public class DefaultBlockRenderer : IBlockRenderer
@@ -59,16 +57,13 @@ namespace Game.Terrain
                 tex[i].Pos = data[i];
         }
 
-        public unsafe void FlushTexture(IBlockTextures textures)
+        public void FlushTexture(IBlockTextures textures)
         {
             for (var i = 0; i < 6; ++i)
-                fixed (float* tex = this.tex[0].D)
-                {
-                    textures.GetTexturePos(tex, this.tex[i].Pos);
-                }
+                textures.GetTexturePos(ref tex[i]);
         }
 
-        public unsafe void Render(IVertexBuilder target, Chunk chunk, Int3 pos)
+        public void Render(IVertexBuilder target, Chunk chunk, Int3 pos)
         {
             var worldpos = chunk.Position * Chunk.Size + pos;
             var curr = chunk[pos];
@@ -93,78 +88,10 @@ namespace Game.Terrain
                     ? chunk.World.GetBlock(new Int3(worldpos.X, worldpos.Y, worldpos.Z - 1))
                     : chunk[new Int3(pos.X, pos.Y, pos.Z - 1)]
             };
-            // Data: float2 tex; float lightcoeff; float3 normal, 
-            // Right
-            if (AdjacentTest(curr, neighbors[0]))
-                fixed (float* tex = this.tex[0].D)
-                {
-                    target.AddPrimitive(4,
-                        tex[0], tex[1], pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 1.0f,
-                        tex[0], tex[3], pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 1.0f,
-                        tex[2], tex[3], pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 0.0f,
-                        tex[2], tex[1], pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 0.0f
-                    );
-                }
-
-            // Left
-            if (AdjacentTest(curr, neighbors[1]))
-                fixed (float* tex = this.tex[1].D)
-                {
-                    target.AddPrimitive(4,
-                        tex[0], tex[1], pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 0.0f,
-                        tex[0], tex[3], pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 0.0f,
-                        tex[2], tex[3], pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 1.0f,
-                        tex[2], tex[1], pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 1.0f
-                    );
-                }
-
-            // Top
-            if (AdjacentTest(curr, neighbors[2]))
-                fixed (float* tex = this.tex[2].D)
-                {
-                    target.AddPrimitive(4,
-                        tex[0], tex[1], pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 0.0f,
-                        tex[0], tex[3], pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 1.0f,
-                        tex[2], tex[3], pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 1.0f,
-                        tex[2], tex[1], pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 0.0f
-                    );
-                }
-
-            // Bottom
-            if (AdjacentTest(curr, neighbors[3]))
-                fixed (float* tex = this.tex[3].D)
-                {
-                    target.AddPrimitive(4,
-                        tex[0], tex[1],pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 1.0f,
-                        tex[0], tex[3], pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 0.0f,
-                        tex[2], tex[3], pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 0.0f,
-                        tex[2], tex[1], pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 1.0f
-                    );
-                }
-
-            // Front
-            if (AdjacentTest(curr, neighbors[4]))
-                fixed (float* tex = this.tex[4].D)
-                {
-                    target.AddPrimitive(4,
-                        tex[0], tex[1], pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 1.0f,
-                        tex[0], tex[3], pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 1.0f,
-                        tex[2], tex[3], pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 1.0f,
-                        tex[2], tex[1], pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 1.0f
-                    );
-                }
-
-            // Back
-            if (AdjacentTest(curr, neighbors[5]))
-                fixed (float* tex = this.tex[5].D)
-                {
-                    target.AddPrimitive(4,
-                        tex[0], tex[1], pos.X + 1.0f, pos.Y + 1.0f, pos.Z + 0.0f,
-                        tex[0], tex[3], pos.X + 1.0f, pos.Y + 0.0f, pos.Z + 0.0f,
-                        tex[2], tex[3], pos.X + 0.0f, pos.Y + 0.0f, pos.Z + 0.0f,
-                        tex[2], tex[1], pos.X + 0.0f, pos.Y + 1.0f, pos.Z + 0.0f
-                    );
-                }
+            // Right Left Top Bottom Front Back
+            for (uint i = 0; i < 6; ++i)
+                if (AdjacentTest(curr, neighbors[i]))
+                    target.Rect(pos, tex[i].Tex, i, 0, 15);
         }
 
         private static bool AdjacentTest(BlockData a, BlockData b)

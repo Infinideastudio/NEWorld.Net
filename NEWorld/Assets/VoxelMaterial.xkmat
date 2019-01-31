@@ -1,11 +1,13 @@
 !MaterialAsset
-Id: a0b217f1-284e-4307-abd6-b42f56bedff1
+Id: 9751d0fa-3d67-4760-ac85-9d209a2d12cb
 SerializedVersion: {Xenko: 2.0.0.0}
 Tags: []
 Attributes:
     Diffuse: !MaterialDiffuseMapFeature
-        DiffuseMap: !ComputeColor
-            Value: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+        DiffuseMap: !ComputeShaderClassColor
+            MixinReference: VertexTextureTerrain
+            Generics: {}
+            CompositionNodes: {}
     DiffuseModel: !MaterialDiffuseLambertModelFeature {}
     Overrides:
         UVScale: {X: 1.0, Y: 1.0}

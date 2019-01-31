@@ -10,7 +10,6 @@ Hierarchy:
         - ref!! 1cc17873-cca9-48fe-a61f-a1d061e26959
         - ref!! b1058700-11a7-4296-bb63-2fefdb5f28b7
         - ref!! b1588acf-0fcd-4377-bf5d-6c81dcf34484
-        - ref!! 64e3b5a5-d684-4f59-821f-a3ef18dae1d2
     Parts:
         -   Entity:
                 Id: 1cc17873-cca9-48fe-a61f-a1d061e26959
@@ -18,8 +17,8 @@ Hierarchy:
                 Components:
                     1fd11c5daf8481b885d448424af7cbe3: !TransformComponent
                         Id: 2e13dd0e-ce0b-4194-87b1-355fb6805b1a
-                        Position: {X: 0.0, Y: 128.0, Z: 0.0}
-                        Rotation: {X: -0.707106769, Y: 0.0, Z: 0.0, W: 0.707106769}
+                        Position: {X: -60.0, Y: 100.0, Z: 0.0}
+                        Rotation: {X: -0.5, Y: 0.0, Z: 0.0, W: 0.8660254}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     e709a18ae6b4e34290801582f4038c7d: !LightComponent
@@ -37,20 +36,6 @@ Hierarchy:
                                 PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
                                 ComputeTransmittance: false
                                 BiasParameters: {}
-        -   Entity:
-                Id: 64e3b5a5-d684-4f59-821f-a3ef18dae1d2
-                Name: Sphere
-                Components:
-                    d72bc5de5518d27be82c2877ec8fe400: !TransformComponent
-                        Id: fdbbe38c-4c4f-4d3b-b15b-85c332d2ba35
-                        Position: {X: 1.60677338, Y: -4.76837158E-07, Z: 0.8989582}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children: {}
-                    9895f39d789515c18b0ad97b68a13e41: !ModelComponent
-                        Id: 2cc6a1ac-dfd1-48f9-9f81-1f011530c92a
-                        Model: e393c514-dbc9-4623-ad9e-3da0bb951a95:Sphere
-                        Materials: {}
         -   Entity:
                 Id: 8d346802-8fe6-4d18-957c-c6dd8404ea84
                 Name: Camera
@@ -99,4 +84,4 @@ Hierarchy:
                         Children: {}
                     d80b4d8f8e4c7517fb33931ae02a1875: !NEWorld.MainScript,NEWorld
                         Id: ad46feb5-e564-418b-8912-d79cfbc7a12d
-                        Material: a0b217f1-284e-4307-abd6-b42f56bedff1:Material
+                        Material: 9751d0fa-3d67-4760-ac85-9d209a2d12cb:VoxelMaterial

@@ -11,8 +11,8 @@ namespace NEWorld.Renderer
             return 0;
         }
 
-        public unsafe void GetTexturePos(float* pos, uint id)
+        public void GetTexturePos(ref BlockTexCoord pos)
         {
-        }
+        } 
     }
 }

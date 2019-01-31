@@ -10,14 +10,27 @@ namespace NEWorld.Renderer
 {
     public class VertexBuilder : IVertexBuilder, IDisposable
     {
+        private static readonly uint[,] Rotation =
+        {
+            {0x0000, 0x0001, 0x0101, 0x0100}, {0x0001, 0x0101, 0x0100, 0x0000},
+            {0x0101, 0x0100, 0x0000, 0x0001}, {0x0100, 0x0000, 0x0001, 0x0101}
+        };
+
+        private static readonly uint[,] Faces =
+        {
+            {0x010101, 0x010001, 0x010000, 0x010100}, {0x000100, 0x000000, 0x000001, 0x000101},
+            {0x000100, 0x000101, 0x010101, 0x010100}, {0x000001, 0x000000, 0x010000, 0x010001},
+            {0x000101, 0x000001, 0x010001, 0x010101}, {0x010100, 0x010000, 0x000000, 0x000100}
+        };
+
         private readonly IntPtr data;
         private int count;
+        private unsafe uint* view;
 
-        private int size;
-
-        public VertexBuilder(int size)
+        public unsafe VertexBuilder(int size)
         {
-            data = Marshal.AllocHGlobal(size * sizeof(float));
+            data = Marshal.AllocHGlobal(size * 8);
+            view = (uint*) data.ToPointer();
         }
 
         public void Dispose()
@@ -26,11 +39,17 @@ namespace NEWorld.Renderer
             GC.SuppressFinalize(this);
         }
 
-        public void AddPrimitive(int verts, params float[] data)
+        public unsafe void Rect(Int3 position, Int2 tex, uint face, int rotation, uint shade)
         {
-            count += verts;
-            Marshal.Copy(data, 0, this.data + size * sizeof(float), data.Length);
-            size += data.Length;
+            var high = (shade << 24) | (uint) ((position.X << 16) | (position.Y << 8) | position.Z);
+            var low = (face << 16) | (uint) ((tex.X << 8) | tex.Y);
+            for (var i = 0; i < 4; ++i)
+            {
+                *view++ = high + Faces[face, i];
+                *view++ = low + Rotation[rotation, i];
+            }
+
+            count += 4;
         }
 
         ~VertexBuilder()
@@ -38,33 +57,35 @@ namespace NEWorld.Renderer
             ReleaseUnmanagedResources();
         }
 
-        public void Rect(Int3 position, int face, Int2 tex, int rotation)
-        {
-            throw new NotImplementedException();
-        }
-
         public Mesh Dump()
         {
-            return count > 0
-                ? new Mesh
+            return count > 0 ? CreateMesh() : null;
+        }
+
+        private Mesh CreateMesh()
+        {
+            return new Mesh
+            {
+                Draw = new MeshDraw
                 {
-                    Draw = new MeshDraw
+                    DrawCount = count / 2 * 3,
+                    IndexBuffer = Context.IndexBuffer,
+                    PrimitiveType = PrimitiveType.TriangleList,
+                    StartLocation = 0,
+                    VertexBuffers = new[]
                     {
-                        DrawCount = count / 2 * 3,
-                        IndexBuffer = Context.IndexBuffer,
-                        PrimitiveType = PrimitiveType.TriangleList,
-                        StartLocation = 0,
-                        VertexBuffers = new[]
-                        {
-                            new VertexBufferBinding(
-                                Buffer.Vertex.New(Context.Game.GraphicsDevice,
-                                    new DataPointer(data, size * sizeof(float))),
-                                Context.VertexLayout, count)
-                        }
-                    },
-                    MaterialIndex = 0
-                }
-                : null;
+                        CreateVertexBuffer()
+                    }
+                },
+                MaterialIndex = 0
+            };
+        }
+
+        private VertexBufferBinding CreateVertexBuffer()
+        {
+            return new VertexBufferBinding(
+                Buffer.Vertex.New(Context.Game.GraphicsDevice, new DataPointer(data, count * 32)), Context.VertexLayout,
+                count);
         }
 
         private void ReleaseUnmanagedResources()
