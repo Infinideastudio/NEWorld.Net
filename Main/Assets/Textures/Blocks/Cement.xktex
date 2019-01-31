@@ -1,0 +1,7 @@
+!Texture
+Id: 729c1023-0d45-456b-b5af-9c2c9ef8b87a
+SerializedVersion: {Xenko: 2.0.0.0}
+Tags: []
+Source: !file Cement.png
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

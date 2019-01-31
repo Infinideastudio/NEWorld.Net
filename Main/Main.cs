@@ -52,15 +52,14 @@ namespace Main
         private static void RendererInit()
         {
             if (!Services.TryGet<IBlockTextures>("BlockTextures", out var textures)) return;
-            var path = Path.Asset("Infinideas.Main") + "blocks/";
             uint[] id =
             {
-                textures.Add(path + "grass_top.png"),
-                textures.Add(path + "grass_round.png"),
-                textures.Add(path + "dirt.png"),
-                textures.Add(path + "rock.png"),
-                textures.Add(path + "sand.png"),
-                textures.Add(path + "water.png")
+                textures.Add("Textures/Blocks/GrassTop"),
+                textures.Add("Textures/Blocks/GrassRound"),
+                textures.Add("Textures/Blocks/Dirt"),
+                textures.Add("Textures/Blocks/Rock"),
+                textures.Add("Textures/Blocks/Sand"),
+                textures.Add("Textures/Blocks/Water")
             };
 
             var grass = new DefaultBlockRenderer(new[] {id[1], id[1], id[0], id[2], id[1], id[1]});

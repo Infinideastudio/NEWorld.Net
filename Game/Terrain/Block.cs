@@ -42,7 +42,7 @@ namespace Game.Terrain
 
     public interface IBlockTextures
     {
-        uint Add(string path);
+        uint Add(string assetUri);
         void GetTexturePos(ref BlockTexCoord pos);
     }
 

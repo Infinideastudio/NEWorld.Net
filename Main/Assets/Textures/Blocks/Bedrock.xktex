@@ -1,0 +1,7 @@
+!Texture
+Id: 68b96536-d657-46f9-8319-173aa4f4af30
+SerializedVersion: {Xenko: 2.0.0.0}
+Tags: []
+Source: !file Bedrock.png
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

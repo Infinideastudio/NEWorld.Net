@@ -71,7 +71,7 @@ Hierarchy:
                         Children: {}
                     b770b44f804ee2b92e0cf2e21cb516aa: !BackgroundComponent
                         Id: 9a17a387-5b6c-4dde-9185-771f3dd4b737
-                        Texture: null
+                        Texture: d5bf7b66-7df1-475b-8721-f4755a9c6f96:Skybox texture
         -   Entity:
                 Id: b1588acf-0fcd-4377-bf5d-6c81dcf34484
                 Name: MainScript

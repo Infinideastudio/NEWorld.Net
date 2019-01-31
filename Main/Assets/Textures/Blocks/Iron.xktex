@@ -1,0 +1,7 @@
+!Texture
+Id: 0c1e6502-9fe1-4fa6-b1c2-8e67f76f1f4f
+SerializedVersion: {Xenko: 2.0.0.0}
+Tags: []
+Source: !file Iron.png
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
