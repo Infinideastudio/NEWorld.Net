@@ -19,77 +19,75 @@
 
 using Core.Math;
 using Core.Utilities;
+using Xenko.Core.Mathematics;
 
 namespace Game.World
 {
     public class Player : PlayerObject
     {
-        private class PlayerUpdateTask : IReadOnlyTask
+        private static readonly bool RotationInteria = false;
+        private Double3 positionDelta;
+
+        private Double3 speed, rotationSpeed;
+
+        public Player(uint worldId) : base(worldId)
         {
-            public PlayerUpdateTask(Player player, uint worldId)
-            {
-                this.player = player;
-                this.worldId = worldId;
-            }
-
-            public void Task(ChunkService srv) => player.Update(srv.Worlds.Get(worldId));
-
-            private readonly Player player;
-            private readonly uint worldId;
+            Singleton<ChunkService>.Instance.TaskDispatcher.AddRegular(new PlayerUpdateTask(this, WorldId));
         }
 
-        public Player(uint worldId) : base(worldId) =>
-            Singleton<ChunkService>.Instance.TaskDispatcher.AddRegular(new PlayerUpdateTask(this, WorldId));
+        public Double3 PositionDelta => positionDelta;
 
-        public void Accelerate(Vec3<double> acceleration) => speed += acceleration;
+        public Double3 RotationDelta { get; private set; }
 
-        public void AccelerateRotation(Vec3<double> acceleration) => rotationSpeed += acceleration;
+        public void Accelerate(Double3 acceleration)
+        {
+            speed += acceleration;
+        }
 
-        public void SetSpeed(Vec3<double> speed) => this.speed = speed;
+        public void AccelerateRotation(Double3 acceleration)
+        {
+            rotationSpeed += acceleration;
+        }
 
-        public Vec3<double> PositionDelta => positionDelta;
-
-        public Vec3<double> RotationDelta { get; private set; }
+        public void SetSpeed(Double3 speed)
+        {
+            this.speed = speed;
+        }
 
         public override void Render()
         {
         }
 
-        private Vec3<double> speed, rotationSpeed;
-        private Vec3<double> positionDelta;
-
         public override void Update(World world)
         {
             Move(world);
             RotationMove();
-            Accelerate(new Vec3<double>(0.0, -0.1, 0.0)); // Gravity
+            Accelerate(new Double3(0.0, -0.1, 0.0)); // Gravity
         }
 
         private void Move(World world)
         {
-            positionDelta = Mat4D.Rotation(Rotation.Y, new Vec3<double>(0.0f, 1.0f, 0.0f)).Transform(speed, 0.0).Key;
+            positionDelta = Mat4D.Rotation(Rotation.Y, new Double3(0.0f, 1.0f, 0.0f)).Transform(speed, 0.0).Key;
             var originalDelta = positionDelta;
             var hitboxes = world.GetHitboxes(Hitbox.Expand(positionDelta));
 
             foreach (var curr in hitboxes)
                 positionDelta.X = Hitbox.MaxMoveOnXclip(curr, positionDelta.X);
-            MoveHitbox(new Vec3<double>(positionDelta.X, 0.0, 0.0));
+            MoveHitbox(new Double3(positionDelta.X, 0.0, 0.0));
             if (positionDelta.X != originalDelta.X) speed.X = 0.0;
 
             foreach (var curr in hitboxes)
                 positionDelta.Z = Hitbox.MaxMoveOnZclip(curr, positionDelta.Z);
-            MoveHitbox(new Vec3<double>(0.0, 0.0, positionDelta.Z));
+            MoveHitbox(new Double3(0.0, 0.0, positionDelta.Z));
             if (positionDelta.Z != originalDelta.Z) speed.Z = 0.0;
 
             foreach (var curr in hitboxes)
                 positionDelta.Y = Hitbox.MaxMoveOnYclip(curr, positionDelta.Y);
-            MoveHitbox(new Vec3<double>(0.0, positionDelta.Y, 0.0));
+            MoveHitbox(new Double3(0.0, positionDelta.Y, 0.0));
             if (positionDelta.Y != originalDelta.Y) speed.Y = 0.0;
 
             Position += positionDelta;
         }
-
-        private static readonly bool RotationInteria = false;
 
         private void RotationMove()
         {
@@ -103,6 +101,23 @@ namespace Game.World
                 rotationSpeed *= 0.6;
             else
                 rotationSpeed *= 0;
+        }
+
+        private class PlayerUpdateTask : IReadOnlyTask
+        {
+            private readonly Player player;
+            private readonly uint worldId;
+
+            public PlayerUpdateTask(Player player, uint worldId)
+            {
+                this.player = player;
+                this.worldId = worldId;
+            }
+
+            public void Task(ChunkService srv)
+            {
+                player.Update(srv.Worlds.Get(worldId));
+            }
         }
     }
 }

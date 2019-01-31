@@ -25,11 +25,26 @@ namespace Game.Utilities
 {
     public class OrderedListIntBase<TD> : IEnumerable<KeyValuePair<int, TD>>
     {
+        public readonly KeyValuePair<int, TD>[] Data;
+        public readonly int FixedSize;
+
         protected OrderedListIntBase(int fixedSize)
         {
             Size = 0;
             FixedSize = fixedSize;
             Data = new KeyValuePair<int, TD>[fixedSize];
+        }
+
+        public int Size { get; private set; }
+
+        public IEnumerator<KeyValuePair<int, TD>> GetEnumerator()
+        {
+            return new OrderedListIntBaseEnum<TD>(this);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
 
         protected void InsertBase(int first, int key, TD data)
@@ -41,24 +56,32 @@ namespace Game.Utilities
             Data[first] = new KeyValuePair<int, TD>(key, data);
         }
 
-        public void Clear() => Size = 0;
-
-        public int Size { get; private set; }
-        public readonly int FixedSize;
-        public readonly KeyValuePair<int, TD>[] Data;
-
-        public IEnumerator<KeyValuePair<int, TD>> GetEnumerator() => new OrderedListIntBaseEnum<TD>(this);
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        public void Clear()
+        {
+            Size = 0;
+        }
     }
 
     public class OrderedListIntBaseEnum<TD> : IEnumerator<KeyValuePair<int, TD>>
     {
-        public OrderedListIntBaseEnum(OrderedListIntBase<TD> host) => _base = host;
+        private readonly OrderedListIntBase<TD> _base;
 
-        public bool MoveNext() => ++position < _base.Size;
+        private int position = -1;
 
-        public void Reset() => position = -1;
+        public OrderedListIntBaseEnum(OrderedListIntBase<TD> host)
+        {
+            _base = host;
+        }
+
+        public bool MoveNext()
+        {
+            return ++position < _base.Size;
+        }
+
+        public void Reset()
+        {
+            position = -1;
+        }
 
         public KeyValuePair<int, TD> Current => _base.Data[position];
 
@@ -67,10 +90,6 @@ namespace Game.Utilities
         public void Dispose()
         {
         }
-
-        private int position = -1;
-
-        private readonly OrderedListIntBase<TD> _base;
     }
 
     public class OrderedListIntLess<TD> : OrderedListIntBase<TD>

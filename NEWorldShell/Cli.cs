@@ -28,6 +28,8 @@ namespace NEWorldShell
 {
     internal class ServerCommandLine
     {
+        private readonly CommandManager _commands;
+
         public ServerCommandLine()
         {
             _commands = new CommandManager();
@@ -46,10 +48,8 @@ namespace NEWorldShell
                 {
                     var helpString = "\nAvailable commands:\n";
                     foreach (var command in _commands.GetCommandMap())
-                    {
                         helpString += command.Key + " - " + command.Value.Key.Author
                                       + " : " + command.Value.Key.Help + "\n";
-                    }
 
                     return new CommandExecuteStat(true, helpString);
                 });
@@ -104,7 +104,5 @@ namespace NEWorldShell
                     return new CommandExecuteStat(true, "");
                 });
         }
-
-        private readonly CommandManager _commands;
     }
 }

@@ -18,11 +18,11 @@
 // 
 
 using System;
-using Game;
-using Game.World;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Utilities;
+using Game;
+using Game.World;
 using Xenko.Core.Mathematics;
 
 namespace NEWorld.Renderer
@@ -31,8 +31,36 @@ namespace NEWorld.Renderer
     {
         public const int MaxChunkRenderCount = 4;
 
+        // Chunk Renderers
+        private readonly Dictionary<Int3, RdChunk> chunkRenderers;
+
+        // Ranges
+        public readonly int RenderDist;
+
+        private readonly World world;
+
+        public RdWorld(World world, Player player, int renderDistance)
+        {
+            this.world = world;
+            RenderDist = renderDistance;
+            chunkRenderers = new Dictionary<Int3, RdChunk>();
+            Singleton<ChunkService>.Instance.TaskDispatcher.AddRegular(new RenderDetectorTask(this, world.Id, player));
+        }
+
         private class RenderDetectorTask : IReadOnlyTask
         {
+            private static readonly Int3[] Delta =
+            {
+                new Int3(1, 0, 0), new Int3(-1, 0, 0),
+                new Int3(0, 1, 0), new Int3(0, -1, 0),
+                new Int3(0, 0, 1), new Int3(0, 0, -1)
+            };
+
+            private readonly uint currentWorldId;
+            private readonly Player player;
+
+            private readonly RdWorld rdWorldRenderer;
+
             public RenderDetectorTask(RdWorld rdWorldRenderer, uint currentWorldId, Player player)
             {
                 this.rdWorldRenderer = rdWorldRenderer;
@@ -54,7 +82,6 @@ namespace NEWorld.Renderer
                     var chunkPosition = chunk.Position;
                     // In render range, pending to render
                     if (chunk.IsUpdated && ChebyshevDistance(chunkpos, chunkPosition) <= rdWorldRenderer.RenderDist)
-                    {
                         if (NeighbourChunkLoadCheck(world, chunkPosition))
                         {
                             // TODO: maybe build a VA pool can speed this up.
@@ -64,30 +91,29 @@ namespace NEWorld.Renderer
                                 rdWorldRenderer.chunkRenderers));
                             if (++counter == MaxChunkRenderCount) break;
                         }
-                    }
                 }
             }
-            
+
             // TODO: Remove Type1 Clone
-            private static int ChebyshevDistance(Int3 l, Int3 r) => Math.Max(Math.Max(Math.Abs(l.X - r.X), Math.Abs(l.Y - r.Y)), Math.Abs(l.Z - r.Z));
-
-            private static readonly Int3[] Delta =
+            private static int ChebyshevDistance(Int3 l, Int3 r)
             {
-                new Int3(1, 0, 0), new Int3(-1, 0, 0),
-                new Int3(0, 1, 0), new Int3(0, -1, 0),
-                new Int3(0, 0, 1), new Int3(0, 0, -1)
-            };
+                return Math.Max(Math.Max(Math.Abs(l.X - r.X), Math.Abs(l.Y - r.Y)), Math.Abs(l.Z - r.Z));
+            }
 
-            private static bool NeighbourChunkLoadCheck(World world, Int3 pos) =>
-                Delta.All(p => world.IsChunkLoaded(pos + p));
-
-            private readonly RdWorld rdWorldRenderer;
-            private readonly uint currentWorldId;
-            private readonly Player player;
+            private static bool NeighbourChunkLoadCheck(World world, Int3 pos)
+            {
+                return Delta.All(p => world.IsChunkLoaded(pos + p));
+            }
         }
 
         private class VboGenerateTask : IRenderTask
         {
+            private readonly ChunkRenderData chunkRenderData;
+            private readonly Dictionary<Int3, RdChunk> chunkRenderers;
+            private readonly Int3 position;
+
+            private readonly World world;
+
             public VboGenerateTask(World world, Int3 position, ChunkRenderData crd,
                 Dictionary<Int3, RdChunk> chunkRenderers)
             {
@@ -112,27 +138,6 @@ namespace NEWorld.Renderer
                     chunkRenderers.Add(position, renderer);
                 }
             }
-
-            private readonly World world;
-            private readonly Int3 position;
-            private readonly ChunkRenderData chunkRenderData;
-            private readonly Dictionary<Int3, RdChunk> chunkRenderers;
         }
-
-        public RdWorld(World world, Player player, int renderDistance)
-        {
-            this.world = world;
-            RenderDist = renderDistance;
-            chunkRenderers = new Dictionary<Int3, RdChunk>();
-            Singleton<ChunkService>.Instance.TaskDispatcher.AddRegular(new RenderDetectorTask(this, world.Id, player));
-        }
-        
-        private readonly World world;
-
-        // Ranges
-        public readonly int RenderDist;
-
-        // Chunk Renderers
-        private readonly Dictionary<Int3, RdChunk> chunkRenderers;
     }
 }

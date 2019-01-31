@@ -27,6 +27,14 @@ namespace Game.Network
     [DeclareService("Game.Server")]
     public class Server : IDisposable
     {
+        private Core.Network.Server server;
+
+        private Task wait;
+
+        ~Server()
+        {
+            Dispose(false);
+        }
         public void Enable(int port)
         {
             server = new Core.Network.Server(port);
@@ -41,7 +49,10 @@ namespace Game.Network
             wait = server.RunAsync();
         }
 
-        public int CountConnections() => server.CountConnections();
+        public int CountConnections()
+        {
+            return server.CountConnections();
+        }
 
         public void Stop()
         {
@@ -49,13 +60,24 @@ namespace Game.Network
             wait.Wait();
         }
 
-        private Task wait;
-        private Core.Network.Server server;
+        private void ReleaseUnmanagedResources()
+        {
+            Stop();
+        }
+
+        private void Dispose(bool disposing)
+        {
+            ReleaseUnmanagedResources();
+            if (disposing)
+            {
+                wait?.Dispose();
+            }
+        }
 
         public void Dispose()
         {
-            Stop();
-            wait?.Dispose();
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }

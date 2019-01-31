@@ -40,23 +40,24 @@ namespace NEWorld.Renderer
          */
         public void Generate(Chunk chunk)
         {
-            var vaOpacity = new VertexBuilder(262144 * (2 + 1 + 3));
-            var vaTranslucent = new VertexBuilder(262144 * (2 + 1 + 3));
-            var tmp = new Int3();
-            for (tmp.X = 0; tmp.X < Chunk.Size; ++tmp.X)
-            for (tmp.Y = 0; tmp.Y < Chunk.Size; ++tmp.Y)
-            for (tmp.Z = 0; tmp.Z < Chunk.Size; ++tmp.Z)
-            {
-                var b = chunk[tmp];
-                var target = Blocks.Index[b.Id].IsTranslucent ? vaTranslucent : vaOpacity;
-                BlockRenderers.Render(target, b.Id, chunk, tmp);
-            }
+            using (VertexBuilder vaOpacity = new VertexBuilder(262144 * (2 + 3)), vaTranslucent = new VertexBuilder(262144 * (2 + 3))) {
+                var tmp = new Int3();
+                for (tmp.X = 0; tmp.X < Chunk.Size; ++tmp.X)
+                for (tmp.Y = 0; tmp.Y < Chunk.Size; ++tmp.Y)
+                for (tmp.Z = 0; tmp.Z < Chunk.Size; ++tmp.Z)
+                {
+                    var b = chunk[tmp];
+                    var target = Blocks.Index[b.Id].IsTranslucent ? vaTranslucent : vaOpacity;
+                    BlockRenderers.Render(target, b.Id, chunk, tmp);
+                }
 
-            var mesh0 = vaOpacity.Dump();
-            var mesh1 = vaTranslucent.Dump();
-            Model = (mesh0 != null && mesh1 != null) ? new Model {new MaterialInstance(Context.Material)} : null;
-            if (mesh0 != null) Model?.Add(mesh0);
-            if (mesh1 != null) Model?.Add(mesh1);
+                var mesh0 = vaOpacity.Dump();
+                var mesh1 = vaTranslucent.Dump();
+                Model = mesh0 != null && mesh1 != null ? new Model {new MaterialInstance(Context.Material)} : null;
+                if (mesh0 != null) Model?.Add(mesh0);
+                if (mesh1 != null) Model?.Add(mesh1);
+                //if (Model != null) Model.Materials[0].IsShadowCaster = true;
+            }
         }
     }
 

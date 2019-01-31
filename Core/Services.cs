@@ -100,7 +100,7 @@ namespace Core
         {
             lock (_processed)
             {
-                return _processed?.Contains(assembly.GetName()) ?? false;
+                return (bool) _processed?.Contains(assembly.GetName());
             }
         }
 

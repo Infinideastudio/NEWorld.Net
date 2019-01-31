@@ -40,7 +40,13 @@ namespace Core.Network
 
         public void Dispose()
         {
-            Close();
+            ReleaseUnmanagedResources();
+            GC.SuppressFinalize(this);
+        }
+
+        ~Client()
+        {
+            ReleaseUnmanagedResources();
         }
 
         public void RegisterProtocol(Protocol newProtocol)
@@ -77,6 +83,11 @@ namespace Core.Network
         private static int ProtocolSorter(Protocol x, Protocol y)
         {
             return Comparer<uint>.Default.Compare(x.Id, y.Id);
+        }
+
+        private void ReleaseUnmanagedResources()
+        {
+            Close();
         }
     }
 }

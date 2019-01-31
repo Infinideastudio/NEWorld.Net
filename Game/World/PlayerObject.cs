@@ -18,15 +18,19 @@
 // 
 
 using System;
-using Core.Math;
 using Game.Utilities;
+using Xenko.Core.Mathematics;
 
 namespace Game.World
 {
     public class PlayerObject : Object
     {
+        private readonly double height;
+        private readonly double width;
+        private Double3 hitboxSize;
+
         public PlayerObject(uint worldId) :
-            base(worldId, new Vec3<double>(), new Vec3<double>(), new Vec3<double>(1.0, 1.0, 1.0), new Aabb())
+            base(worldId, new Double3(), new Double3(), new Double3(1.0, 1.0, 1.0), new Aabb())
         {
             height = 1.6;
             width = 0.6;
@@ -34,20 +38,19 @@ namespace Game.World
             RefreshHitbox();
         }
 
-        public void Rotate(Vec3<double> rotation) => Rotation += rotation;
-
         // Body direction, head direction is `mRotation` in class Object
-        public Vec3<double> Direction { get; set; }
+        public Double3 Direction { get; set; }
 
         public double Speed { get; set; }
 
-        private readonly double height;
-        private readonly double width;
-        private Vec3<double> hitboxSize;
+        public void Rotate(Double3 rotation)
+        {
+            Rotation += rotation;
+        }
 
         private void RefreshHitbox()
         {
-            hitboxSize = new Vec3<double>(width, height, width);
+            hitboxSize = new Double3(width, height, width);
             Hitbox = new Aabb(-hitboxSize / 2, hitboxSize / 2);
         }
 

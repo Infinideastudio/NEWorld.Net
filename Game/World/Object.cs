@@ -17,20 +17,26 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
-using Core.Math;
 using Game.Utilities;
+using Xenko.Core.Mathematics;
 
 namespace Game.World
 {
     public abstract class Object
     {
+        public Aabb Hitbox;
+
+        public Double3 Position;
+        public Double3 Rotation;
+        public Double3 Scale;
+
         protected Object(uint worldId)
         {
             WorldId = worldId;
-            Scale = new Vec3<double>(1.0, 1.0, 1.0);
+            Scale = new Double3(1.0, 1.0, 1.0);
         }
 
-        protected Object(uint worldId, Vec3<double> position, Vec3<double> rotation, Vec3<double> scale, Aabb hitbox)
+        protected Object(uint worldId, Double3 position, Double3 rotation, Double3 scale, Aabb hitbox)
         {
             WorldId = worldId;
             Position = position;
@@ -39,15 +45,14 @@ namespace Game.World
             Hitbox = hitbox;
         }
 
-        public void MoveHitbox(Vec3<double> delta) => Hitbox.Move(delta);
+        public uint WorldId { get; }
+
+        public void MoveHitbox(Double3 delta)
+        {
+            Hitbox.Move(delta);
+        }
 
         public abstract void Render();
         public abstract void Update(World world);
-
-        public Vec3<double> Position;
-        public Vec3<double> Rotation;
-        public Vec3<double> Scale;
-        public Aabb Hitbox;
-        public uint WorldId { get; }
     }
 }

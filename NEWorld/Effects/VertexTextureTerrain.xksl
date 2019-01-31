@@ -8,10 +8,9 @@
 	};
     // stage Texture2D Almg;
     stage stream float2 TexCoord : TEXCOORD0;
-    stage stream float Color : COLOR0;
 
     override float4 Compute()
     {
-        return float4(streams.Color, streams.Color, streams.Color, streams.Color);//Almg.Sample(MeshTextureSampler, streams.TexCoord);
+        return float4(1.0, 1.0, 1.0, 1.0);//Almg.Sample(MeshTextureSampler, streams.TexCoord);
     }
 };

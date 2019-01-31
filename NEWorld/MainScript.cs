@@ -17,14 +17,16 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
-using Core.Math;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Core;
+using Core.Module;
 using Core.Utilities;
 using Game;
 using Game.Network;
 using Game.World;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
+using NEWorld.Renderer;
 using Xenko.Core.Diagnostics;
 using Xenko.Core.Mathematics;
 using Xenko.Engine;
@@ -38,6 +40,10 @@ namespace NEWorld
     public static class Context
     {
         private static IGame _game;
+
+        public static readonly VertexDeclaration VertexLayout = new VertexDeclaration(
+            VertexElement.TextureCoordinate<Vector2>(), VertexElement.Position<Vector3>()
+        );
 
         public static IGame Game
         {
@@ -59,15 +65,9 @@ namespace NEWorld
 
         public static CommandList CommandList => Game.GraphicsContext.CommandList;
 
-        public static readonly VertexDeclaration VertexLayout = new VertexDeclaration(
-            VertexElement.TextureCoordinate<Vector2>(),
-            VertexElement.Color<float>(),
-            VertexElement.Position<Vector3>()
-        );
-
         public static IndexBufferBinding IndexBuffer { get; private set; }
     }
-    
+
     public static class IndexBufferBuilder
     {
         public static Buffer Build()
@@ -91,11 +91,21 @@ namespace NEWorld
 
     public class MainScript : SyncScript
     {
+        // Current world
+        private World currentWorld;
         public Material Material;
+
+        // Player
+        private Player player;
+
+        private RdWorld rdWorld;
+
+        // Local server
+        private Server server;
 
         private void InitializeModules()
         {
-            Core.Module.Modules.Instance.Load("Main");
+            Modules.Instance.Load("Main");
         }
 
         private void InitializeContext()
@@ -103,7 +113,7 @@ namespace NEWorld
             Context.Game = Game;
             Context.Material = Material;
             Context.OperatingScene = Entity.Scene;
-            Core.LogPort.Logger = Log;
+            LogPort.Logger = Log;
             Log.ActivateLog(LogMessageType.Debug);
         }
 
@@ -131,7 +141,7 @@ namespace NEWorld
         {
             player = new Player(0)
             {
-                Position = new Vec3<double>(-16.0, 48.0, 32.0), Rotation = new Vec3<double>(-45.0, -22.5, 0.0)
+                Position = new Double3(-16.0, 48.0, 32.0), Rotation = new Double3(-45.0, -22.5, 0.0)
             };
         }
 
@@ -145,7 +155,7 @@ namespace NEWorld
 
         private void StartTerrainRenderService()
         {
-            rdWorld = new Renderer.RdWorld(currentWorld, player, 2);
+            rdWorld = new RdWorld(currentWorld, player, 1);
         }
 
         private async void Initialize()
@@ -164,16 +174,18 @@ namespace NEWorld
             Initialize();
         }
 
+        public override void Cancel()
+        {
+            Core.Services.Get<TaskDispatcher>("Game.TaskDispatcher").Reset();
+        }
+
         private static async Task<uint> RequestWorld()
         {
             // TODO: change this
             if (IsClient())
             {
                 var worldIds = await Client.GetAvailableWorldId.Call();
-                if (worldIds.Length == 0)
-                {
-                    throw new Exception("The server didn't response with any valid worlds.");
-                }
+                if (worldIds.Length == 0) throw new Exception("The server didn't response with any valid worlds.");
 
                 var worldInfo = await Client.GetWorldInfo.Call(worldIds[0]);
 
@@ -197,16 +209,5 @@ namespace NEWorld
         {
             Singleton<ChunkService>.Instance.TaskDispatcher.ProcessRenderTasks();
         }
-        
-        // Local server
-        private Server server;
-
-        // Player
-        private Player player;
-        
-        // Current world
-        private World currentWorld;
-
-        private Renderer.RdWorld rdWorld;
     }
 }

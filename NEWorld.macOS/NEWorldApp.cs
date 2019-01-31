@@ -1,8 +1,8 @@
 namespace NEWorld.macOS
 {
-    class NEWorldApp
+    internal class NEWorldApp
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             using (var game = new Xenko.Engine.Game())
             {

@@ -31,8 +31,15 @@ namespace Game.World
         private static readonly Int3 MiddleOffset =
             new Int3(Chunk.Size / 2 - 1, Chunk.Size / 2 - 1, Chunk.Size / 2 - 1);
 
+        public void RegisterChunkTasks(ChunkService cs, Player player)
+        {
+            cs.TaskDispatcher.AddRegular(new LoadUnloadDetectorTask(this, player));
+        }
+
         public class ResetChunkTask : IReadWriteTask
         {
+            private readonly Chunk chunk;
+
             /**
              * \brief Add a constructed chunk into world.
              * \param chunk the target chunk
@@ -46,12 +53,14 @@ namespace Game.World
             {
                 chunk.World.ResetChunkAndUpdate(chunk.Position, chunk);
             }
-            
-            private readonly Chunk chunk;
         }
 
         private class UnloadChunkTask : IReadWriteTask
         {
+            private readonly Int3 chunkPosition;
+
+            private readonly World world;
+
             /**
             * \brief Given a chunk, it will try to unload it (decrease a ref)
             * \param world the target world
@@ -68,13 +77,14 @@ namespace Game.World
                 //TODO: for multiplayer situation, it should decrease ref counter instead of deleting
                 world.DeleteChunk(chunkPosition);
             }
-
-            private readonly World world;
-            private readonly Int3 chunkPosition;
         }
 
         private class BuildOrLoadChunkTask : IReadOnlyTask
         {
+            private readonly Int3 chunkPosition;
+
+            private readonly World world;
+
             /**
              * \brief Given a chunk, it will try to load it or build it
              * \param world the target world
@@ -90,32 +100,12 @@ namespace Game.World
             {
                 srv.TaskDispatcher.Add(new ResetChunkTask(new Chunk(chunkPosition, world)));
             }
-
-            private readonly World world;
-            private readonly Int3 chunkPosition;
         }
 
         private class LoadUnloadDetectorTask : IReadOnlyTask
         {
-            private class AddToWorldTask : IReadWriteTask
-            {
-                /**
-                 * \brief Add a constructed chunk into world.
-                 * \param worldID the target world's id
-                 * \param chunk the target chunk
-                 */
-                public AddToWorldTask(Chunk chunk)
-                {
-                    this.chunk = chunk;
-                }
-                
-                public void Task(ChunkService srv)
-                {
-                    chunk.World.InsertChunkAndUpdate(chunk.Position, chunk);
-                }
-                
-                private readonly Chunk chunk;
-            }
+            private readonly Player player;
+            private readonly World world;
 
             public LoadUnloadDetectorTask(World world, Player player)
             {
@@ -136,17 +126,12 @@ namespace Game.World
                     // load a fake chunk
                     cs.TaskDispatcher.Add(new AddToWorldTask(new Chunk(loadPos.Value, world, false)));
                     cs.TaskDispatcher.Add(new BuildOrLoadChunkTask(world, loadPos.Value));
-                    if (!cs.IsAuthority)
-                    {
-                        Client.GetChunk.Call(world.Id, loadPos.Value);
-                    }
+                    if (!cs.IsAuthority) Client.GetChunk.Call(world.Id, loadPos.Value);
                 }
 
                 foreach (var unloadChunk in unloadList)
-                {
                     // add a unload task.
                     cs.TaskDispatcher.Add(new UnloadChunkTask(world, unloadChunk.Value.Position));
-                }
             }
 
             /**
@@ -169,33 +154,47 @@ namespace Game.World
                     var curPos = chunk.Value.Position;
                     // Out of load range, pending to unload
                     if (ChebyshevDistance(centerCPos, curPos) > loadRange)
-                        unloadList.Insert((curPos * Chunk.Size + MiddleOffset - centerPos).LengthSquared(), chunk.Value);
+                        unloadList.Insert((curPos * Chunk.Size + MiddleOffset - centerPos).LengthSquared(),
+                            chunk.Value);
                 }
 
                 for (var x = centerCPos.X - loadRange; x <= centerCPos.X + loadRange; x++)
+                for (var y = centerCPos.Y - loadRange; y <= centerCPos.Y + loadRange; y++)
+                for (var z = centerCPos.Z - loadRange; z <= centerCPos.Z + loadRange; z++)
                 {
-                    for (var y = centerCPos.Y - loadRange; y <= centerCPos.Y + loadRange; y++)
-                    {
-                        for (var z = centerCPos.Z - loadRange; z <= centerCPos.Z + loadRange; z++)
-                        {
-                            var position = new Int3(x, y, z);
-                            // In load range, pending to load
-                            if (!world.IsChunkLoaded(position))
-                                loadList.Insert((position * Chunk.Size + MiddleOffset - centerPos).LengthSquared(),
-                                    position);
-                        }
-                    }
+                    var position = new Int3(x, y, z);
+                    // In load range, pending to load
+                    if (!world.IsChunkLoaded(position))
+                        loadList.Insert((position * Chunk.Size + MiddleOffset - centerPos).LengthSquared(),
+                            position);
                 }
             }
 
             // TODO: Remove Type1 Clone
-            private static int ChebyshevDistance(Int3 l, Int3 r) => Math.Max(Math.Max(Math.Abs(l.X - r.X), Math.Abs(l.Y - r.Y)), Math.Abs(l.Z - r.Z));
+            private static int ChebyshevDistance(Int3 l, Int3 r)
+            {
+                return Math.Max(Math.Max(Math.Abs(l.X - r.X), Math.Abs(l.Y - r.Y)), Math.Abs(l.Z - r.Z));
+            }
 
-            private readonly Player player;
-            private readonly World world;
+            private class AddToWorldTask : IReadWriteTask
+            {
+                private readonly Chunk chunk;
+
+                /**
+                 * \brief Add a constructed chunk into world.
+                 * \param worldID the target world's id
+                 * \param chunk the target chunk
+                 */
+                public AddToWorldTask(Chunk chunk)
+                {
+                    this.chunk = chunk;
+                }
+
+                public void Task(ChunkService srv)
+                {
+                    chunk.World.InsertChunkAndUpdate(chunk.Position, chunk);
+                }
+            }
         }
-
-        public void RegisterChunkTasks(ChunkService cs, Player player) =>
-            cs.TaskDispatcher.AddRegular(new LoadUnloadDetectorTask(this, player));
     }
 }

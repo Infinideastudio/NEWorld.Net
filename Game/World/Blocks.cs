@@ -57,6 +57,9 @@ namespace Game.World
     {
         private static readonly BlockType Air = new BlockType("Air", false, false, false, 0);
 
+        public static readonly BlockType[] Index;
+        private static ushort _count;
+
         static Blocks()
         {
             Index = new BlockType[1 << 12];
@@ -68,8 +71,5 @@ namespace Game.World
             Index[_count] = block;
             return _count++;
         }
-
-        public static readonly BlockType[] Index;
-        private static ushort _count;
     }
 }

@@ -28,25 +28,16 @@ namespace Game.World
     {
         public delegate void Generator(Int3 chunkPos, BlockData[] chunkData, int daylightBrightness);
 
-        // Chunk size
-        private static bool _chunkGeneratorLoaded;
-        private static Generator _chunkGen;
         public const int BlocksSize = 0b1000000000000000;
         public const int SizeLog2 = 5;
         public const int Size = 0b100000;
 
-        public static void SetGenerator(Generator gen)
-        {
-            if (!_chunkGeneratorLoaded)
-            {
-                _chunkGen = gen;
-                _chunkGeneratorLoaded = true;
-            }
-            else
-            {
-                throw new Exception("Chunk Generator Alreadly Loaded");
-            }
-        }
+        // Chunk size
+        private static bool _chunkGeneratorLoaded;
+        private static Generator _chunkGen;
+
+        // For Garbage Collection
+        private long mLastRequestTime;
 
         public Chunk(Int3 position, World world, bool build = true)
         {
@@ -76,6 +67,19 @@ namespace Game.World
             }
         }
 
+        public static void SetGenerator(Generator gen)
+        {
+            if (!_chunkGeneratorLoaded)
+            {
+                _chunkGen = gen;
+                _chunkGeneratorLoaded = true;
+            }
+            else
+            {
+                throw new Exception("Chunk Generator Alreadly Loaded");
+            }
+        }
+
         // Build chunk
         public void Build(int daylightBrightness)
         {
@@ -84,35 +88,56 @@ namespace Game.World
         }
 
         // Reference Counting
-        public void MarkRequest() => mLastRequestTime = DateTime.Now.Ticks;
+        public void MarkRequest()
+        {
+            mLastRequestTime = DateTime.Now.Ticks;
+        }
 
-        public bool CheckReleaseable() =>
-            DateTime.Now - new DateTime(Interlocked.Read(ref mLastRequestTime)) > TimeSpan.FromSeconds(10);
-
-        // For Garbage Collection
-        private long mLastRequestTime;
+        public bool CheckReleaseable()
+        {
+            return DateTime.Now - new DateTime(Interlocked.Read(ref mLastRequestTime)) > TimeSpan.FromSeconds(10);
+        }
     }
-    
+
     public class ChunkManager : Dictionary<Int3, Chunk>
     {
-        public bool IsLoaded(Int3 chunkPos) => ContainsKey(chunkPos);
+        public bool IsLoaded(Int3 chunkPos)
+        {
+            return ContainsKey(chunkPos);
+        }
 
         // Convert world position to chunk coordinate (one axis)
-        public static int GetAxisPos(int pos) => pos >> Chunk.SizeLog2;
+        public static int GetAxisPos(int pos)
+        {
+            return pos >> Chunk.SizeLog2;
+        }
 
         // Convert world position to chunk coordinate (all axes)
-        public static Int3 GetPos(Int3 pos) =>
-            new Int3(GetAxisPos(pos.X), GetAxisPos(pos.Y), GetAxisPos(pos.Z));
+        public static Int3 GetPos(Int3 pos)
+        {
+            return new Int3(GetAxisPos(pos.X), GetAxisPos(pos.Y), GetAxisPos(pos.Z));
+        }
 
         // Convert world position to block coordinate in chunk (one axis)
-        public static int GetBlockAxisPos(int pos) => pos & (Chunk.Size - 1);
+        public static int GetBlockAxisPos(int pos)
+        {
+            return pos & (Chunk.Size - 1);
+        }
 
         // Convert world position to block coordinate in chunk (all axes)
-        public static Int3 GetBlockPos(Int3 pos) =>
-            new Int3(GetBlockAxisPos(pos.X), GetBlockAxisPos(pos.Y), GetBlockAxisPos(pos.Z));
+        public static Int3 GetBlockPos(Int3 pos)
+        {
+            return new Int3(GetBlockAxisPos(pos.X), GetBlockAxisPos(pos.Y), GetBlockAxisPos(pos.Z));
+        }
 
-        public BlockData GetBlock(Int3 pos) => this[GetPos(pos)][GetBlockPos(pos)];
+        public BlockData GetBlock(Int3 pos)
+        {
+            return this[GetPos(pos)][GetBlockPos(pos)];
+        }
 
-        public void SetBlock(Int3 pos, BlockData block) => this[GetPos(pos)][GetBlockPos(pos)] = block;
+        public void SetBlock(Int3 pos, BlockData block)
+        {
+            this[GetPos(pos)][GetBlockPos(pos)] = block;
+        }
     }
 }

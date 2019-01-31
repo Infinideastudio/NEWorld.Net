@@ -46,7 +46,13 @@ namespace Core.Network
 
         public void Dispose()
         {
-            ios.Close();
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        ~Session()
+        {
+            Dispose(false);
         }
 
         internal Receive WaitMessage()
@@ -57,6 +63,23 @@ namespace Core.Network
         public Send CreateMessage(uint protocol)
         {
             return new Send(this, protocol);
+        }
+
+        private void ReleaseUnmanagedResources()
+        {
+            ios.Close();
+        }
+
+        private void Dispose(bool disposing)
+        {
+            ReleaseUnmanagedResources();
+            if (disposing)
+            {
+                conn?.Dispose();
+                ios?.Dispose();
+                writeBuffer?.Dispose();
+                buffer?.Dispose();
+            }
         }
 
         public sealed class Receive : IDisposable
@@ -258,8 +281,13 @@ namespace Core.Network
 
         public void Dispose()
         {
-            foreach (var hd in _connections)
-                hd.Close();
+            ReleaseUnmanagedResources();
+            GC.SuppressFinalize(this);
+        }
+
+        ~ConnectionHost()
+        {
+            ReleaseUnmanagedResources();
         }
 
         private static void SweepInvalidConnectionsIfNecessary()
@@ -290,6 +318,12 @@ namespace Core.Network
             return _connectionCounter;
         }
 
+        private void ReleaseUnmanagedResources()
+        {
+            foreach (var hd in _connections)
+                hd.Close();
+        }
+
         public sealed class Connection
         {
             private readonly Task finalize;
@@ -315,7 +349,7 @@ namespace Core.Network
             {
                 Valid = true;
                 Interlocked.Increment(ref _connectionCounter);
-                while (Valid)
+                while (Valid && Session.Live)
                     try
                     {
                         var message = Session.WaitMessage();
@@ -323,7 +357,7 @@ namespace Core.Network
                     }
                     catch (Exception e)
                     {
-                        if (Session.Live) LogPort.Debug($"Encountering Exception {e}");
+                        if (Session.Live) {LogPort.Debug($"Encountering Exception {e}"); }
                     }
 
                 CloseDown();
