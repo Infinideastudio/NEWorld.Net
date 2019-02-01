@@ -90,9 +90,9 @@ namespace Main
 
             private static double InterpolatedNoise(double x, double y)
             {
-                var intX = (int) x;
+                var intX = (int)System.Math.Floor(x);
                 var fractionalX = x - intX;
-                var intY = (int) y;
+                var intY = (int)System.Math.Floor(y);
                 var fractionalY = y - intY;
                 var v1 = Noise(intX, intY);
                 var v2 = Noise(intX + 1, intY);
