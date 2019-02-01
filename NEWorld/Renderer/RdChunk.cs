@@ -53,7 +53,7 @@ namespace NEWorld.Renderer
 
                 var mesh0 = vaOpacity.Dump();
                 var mesh1 = vaTranslucent.Dump();
-                Model = mesh0 != null && mesh1 != null ? new Model {new MaterialInstance(Context.Material)} : null;
+                Model = mesh0 != null || mesh1 != null ? new Model {new MaterialInstance(Context.Material)} : null;
                 if (mesh0 != null) Model?.Add(mesh0);
                 if (mesh1 != null) Model?.Add(mesh1);
             }
