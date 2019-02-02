@@ -28,9 +28,14 @@ namespace Game.World
     {
         public delegate void Generator(Int3 chunkPos, BlockData[] chunkData, int daylightBrightness);
 
-        public const int BlocksSize = 0b1000000000000000;
         public const int SizeLog2 = 5;
-        public const int Size = 0b100000;
+        public const int RowSize = 32;
+        public const int RowLast = RowSize - 1;
+        public const int SliceSize = RowSize * RowSize;
+        public const int CubeSize = SliceSize * RowSize;
+        public const int BitShiftX = SizeLog2 * 2;
+        public const int BitShiftY = SizeLog2;
+        public const int AxisBits = 0b11111;
 
         // Chunk size
         private static bool _chunkGeneratorLoaded;
@@ -43,7 +48,7 @@ namespace Game.World
         {
             Position = position;
             World = world;
-            Blocks = new BlockData[BlocksSize];
+            Blocks = new BlockData[CubeSize];
             if (build)
                 Build(world.DaylightBrightness);
         }
@@ -56,13 +61,23 @@ namespace Game.World
         public World World { get; }
 
         public BlockData[] Blocks { get; }
+        
+        public BlockData this[int x, int y, int z]
+        {
+            get => Blocks[x << BitShiftX | y << BitShiftY | z];
+            set
+            {
+                Blocks[x << BitShiftX | y << BitShiftY | z] = value;
+                IsUpdated = true;
+            }
+        }
 
         public BlockData this[Int3 pos]
         {
-            get => Blocks[pos.X * Size * Size + pos.Y * Size + pos.Z];
+            get => Blocks[pos.X << BitShiftX | pos.Y << BitShiftY | pos.Z];
             set
             {
-                Blocks[pos.X * Size * Size + pos.Y * Size + pos.Z] = value;
+                Blocks[pos.X << BitShiftX | pos.Y << BitShiftY | pos.Z] = value;
                 IsUpdated = true;
             }
         }
@@ -76,7 +91,7 @@ namespace Game.World
             }
             else
             {
-                throw new Exception("Chunk Generator Alreadly Loaded");
+                throw new Exception("Chunk Generator Already Loaded");
             }
         }
 
@@ -121,7 +136,7 @@ namespace Game.World
         // Convert world position to block coordinate in chunk (one axis)
         public static int GetBlockAxisPos(int pos)
         {
-            return pos & (Chunk.Size - 1);
+            return pos & Chunk.AxisBits;
         }
 
         // Convert world position to block coordinate in chunk (all axes)

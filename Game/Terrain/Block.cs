@@ -25,14 +25,26 @@ namespace Game.Terrain
 {
     public struct BlockTexCoord
     {
-        public uint Pos;
+        public uint Id;
         public Int2 Tex;
+    }
+
+    public class BlockRenderContext
+    {
+        public BlockRenderContext(Chunk current, Chunk[] neighbors)
+        {
+            Current = current;
+            Neighbors = neighbors;
+        }
+
+        public readonly Chunk Current;
+        public readonly Chunk[] Neighbors;
     }
 
     public interface IBlockRenderer
     {
         void FlushTexture(IBlockTextures textures);
-        void Render(IVertexBuilder target, Chunk chunk, Int3 pos);
+        void Render(IVertexBuilder target, BlockRenderContext context, Int3 tmp);
     }
 
     public interface IVertexBuilder
@@ -54,7 +66,7 @@ namespace Game.Terrain
         {
             tex = new BlockTexCoord[6];
             for (var i = 0; i < 6; ++i)
-                tex[i].Pos = data[i];
+                tex[i].Id = data[i];
         }
 
         public void FlushTexture(IBlockTextures textures)
@@ -63,34 +75,33 @@ namespace Game.Terrain
                 textures.GetTexturePos(ref tex[i]);
         }
 
-        public void Render(IVertexBuilder target, Chunk chunk, Int3 pos)
+        public void Render(IVertexBuilder target, BlockRenderContext context, Int3 pos)
         {
-            var worldpos = chunk.Position * Chunk.Size + pos;
-            var curr = chunk[pos];
+            var current = context.Current[pos];
             BlockData[] neighbors =
             {
-                pos.X == Chunk.Size - 1
-                    ? chunk.World.GetBlock(new Int3(worldpos.X + 1, worldpos.Y, worldpos.Z))
-                    : chunk[new Int3(pos.X + 1, pos.Y, pos.Z)],
+                pos.X == Chunk.RowLast
+                    ? context.Neighbors[0][0, pos.Y, pos.Z]
+                    : context.Current[pos.X + 1, pos.Y, pos.Z],
                 pos.X == 0
-                    ? chunk.World.GetBlock(new Int3(worldpos.X - 1, worldpos.Y, worldpos.Z))
-                    : chunk[new Int3(pos.X - 1, pos.Y, pos.Z)],
-                pos.Y == Chunk.Size - 1
-                    ? chunk.World.GetBlock(new Int3(worldpos.X, worldpos.Y + 1, worldpos.Z))
-                    : chunk[new Int3(pos.X, pos.Y + 1, pos.Z)],
+                    ? context.Neighbors[1][Chunk.RowLast, pos.Y, pos.Z]
+                    : context.Current[pos.X - 1, pos.Y, pos.Z],
+                pos.Y == Chunk.RowLast
+                    ? context.Neighbors[2][pos.X, 0, pos.Z]
+                    : context.Current[pos.X, pos.Y + 1, pos.Z],
                 pos.Y == 0
-                    ? chunk.World.GetBlock(new Int3(worldpos.X, worldpos.Y - 1, worldpos.Z))
-                    : chunk[new Int3(pos.X, pos.Y - 1, pos.Z)],
-                pos.Z == Chunk.Size - 1
-                    ? chunk.World.GetBlock(new Int3(worldpos.X, worldpos.Y, worldpos.Z + 1))
-                    : chunk[new Int3(pos.X, pos.Y, pos.Z + 1)],
+                    ? context.Neighbors[3][pos.X, Chunk.RowLast, pos.Z]
+                    : context.Current[pos.X, pos.Y - 1, pos.Z],
+                pos.Z == Chunk.RowLast
+                    ? context.Neighbors[4][pos.X, pos.Y, 0]
+                    : context.Current[pos.X, pos.Y, pos.Z + 1],
                 pos.Z == 0
-                    ? chunk.World.GetBlock(new Int3(worldpos.X, worldpos.Y, worldpos.Z - 1))
-                    : chunk[new Int3(pos.X, pos.Y, pos.Z - 1)]
+                    ? context.Neighbors[5][pos.X, pos.Y, Chunk.RowLast]
+                    : context.Current[pos.X, pos.Y, pos.Z - 1]
             };
             // Right Left Top Bottom Front Back
             for (uint i = 0; i < 6; ++i)
-                if (AdjacentTest(curr, neighbors[i]))
+                if (AdjacentTest(current, neighbors[i]))
                     target.Rect(pos, tex[i].Tex, i, 0, 15);
         }
 
@@ -104,10 +115,10 @@ namespace Game.Terrain
     {
         private static readonly List<IBlockRenderer> Renderers = new List<IBlockRenderer>();
 
-        public static void Render(IVertexBuilder target, int id, Chunk chunk, Int3 pos)
+        public static void Render(IVertexBuilder target, int id, BlockRenderContext context, Int3 pos)
         {
             if (Renderers.Count > 0 && Renderers[id] != null)
-                Renderers[id].Render(target, chunk, pos);
+                Renderers[id].Render(target, context, pos);
         }
 
         public static void Add(int pos, IBlockRenderer blockRenderer)
