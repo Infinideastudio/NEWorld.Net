@@ -70,7 +70,7 @@ namespace Game.World
             return Chunks.Count;
         }
 
-        public Chunk GetChunk(ref Int3 chunkPos)
+        public Chunk GetChunk(Int3 chunkPos)
         {
             return Chunks[chunkPos];
         }

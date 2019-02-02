@@ -63,7 +63,7 @@ namespace Game.Network
                 Chunk chunkPtr;
                 try
                 {
-                    chunkPtr = world.GetChunk(ref position);
+                    chunkPtr = world.GetChunk(position);
                 }
                 catch (KeyNotFoundException)
                 {

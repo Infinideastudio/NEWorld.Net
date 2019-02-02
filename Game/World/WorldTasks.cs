@@ -29,7 +29,7 @@ namespace Game.World
         private const int MaxChunkLoadCount = 64, MaxChunkUnloadCount = 64;
 
         private static readonly Int3 MiddleOffset =
-            new Int3(Chunk.Size / 2 - 1, Chunk.Size / 2 - 1, Chunk.Size / 2 - 1);
+            new Int3(Chunk.RowSize / 2 - 1, Chunk.RowSize / 2 - 1, Chunk.RowSize / 2 - 1);
 
         public void RegisterChunkTasks(ChunkService cs, Player player)
         {
@@ -154,7 +154,7 @@ namespace Game.World
                     var curPos = chunk.Value.Position;
                     // Out of load range, pending to unload
                     if (ChebyshevDistance(centerCPos, curPos) > loadRange)
-                        unloadList.Insert((curPos * Chunk.Size + MiddleOffset - centerPos).LengthSquared(),
+                        unloadList.Insert((curPos * Chunk.RowSize + MiddleOffset - centerPos).LengthSquared(),
                             chunk.Value);
                 }
 
@@ -165,7 +165,7 @@ namespace Game.World
                     var position = new Int3(x, y, z);
                     // In load range, pending to load
                     if (!world.IsChunkLoaded(position))
-                        loadList.Insert((position * Chunk.Size + MiddleOffset - centerPos).LengthSquared(),
+                        loadList.Insert((position * Chunk.RowSize + MiddleOffset - centerPos).LengthSquared(),
                             position);
                 }
             }

@@ -118,16 +118,16 @@ namespace Main
 
             public static void Generator(Int3 pos, BlockData[] blocks, int daylightBrightness)
             {
-                for (var x = 0; x < Chunk.Size; x++)
-                for (var z = 0; z < Chunk.Size; z++)
+                for (var x = 0; x < Chunk.RowSize; x++)
+                for (var z = 0; z < Chunk.RowSize; z++)
                 {
-                    var absHeight = (int) PerlinNoise2D((pos.X * Chunk.Size + x) / NoiseScaleX,
-                                        (pos.Z * Chunk.Size + z) / NoiseScaleZ) / 2 - 64;
-                    var height = absHeight - pos.Y * Chunk.Size;
+                    var absHeight = (int) PerlinNoise2D((pos.X * Chunk.RowSize + x) / NoiseScaleX,
+                                        (pos.Z * Chunk.RowSize + z) / NoiseScaleZ) / 2 - 64;
+                    var height = absHeight - pos.Y * Chunk.RowSize;
                     var underWater = absHeight <= 0;
-                    for (var y = 0; y < Chunk.Size; y++)
+                    for (var y = 0; y < Chunk.RowSize; y++)
                     {
-                        ref var block = ref blocks[x * Chunk.Size * Chunk.Size + y * Chunk.Size + z];
+                        ref var block = ref blocks[x * Chunk.RowSize * Chunk.RowSize + y * Chunk.RowSize + z];
                         if (y <= height)
                         {
                             if (y == height)
@@ -142,7 +142,7 @@ namespace Main
                         }
                         else
                         {
-                            block.Id = pos.Y * Chunk.Size + y <= 0 ? _waterId : (ushort) 0;
+                            block.Id = pos.Y * Chunk.RowSize + y <= 0 ? _waterId : (ushort) 0;
                             block.Brightness = (byte) daylightBrightness;
                             block.Data = 0;
                         }

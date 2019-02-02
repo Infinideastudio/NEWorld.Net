@@ -42,20 +42,31 @@ namespace NEWorld.Renderer
         {
             using (VertexBuilder vaOpacity = new VertexBuilder(262144), vaTranslucent = new VertexBuilder(262144)) {
                 var tmp = new Int3();
-                for (tmp.X = 0; tmp.X < Chunk.Size; ++tmp.X)
-                for (tmp.Y = 0; tmp.Y < Chunk.Size; ++tmp.Y)
-                for (tmp.Z = 0; tmp.Z < Chunk.Size; ++tmp.Z)
+                var pos = chunk.Position;
+                var world = chunk.World;
+                var context = new BlockRenderContext(chunk, new []
+                {
+                    world.GetChunk(new Int3(pos.X + 1, pos.Y, pos.Z)),
+                    world.GetChunk(new Int3(pos.X - 1, pos.Y, pos.Z)),
+                    world.GetChunk(new Int3(pos.X, pos.Y + 1, pos.Z)),
+                    world.GetChunk(new Int3(pos.X, pos.Y - 1, pos.Z)),
+                    world.GetChunk(new Int3(pos.X, pos.Y, pos.Z + 1)),
+                    world.GetChunk(new Int3(pos.X, pos.Y, pos.Z - 1))
+                });
+                for (tmp.X = 0; tmp.X < Chunk.RowSize; ++tmp.X)
+                for (tmp.Y = 0; tmp.Y < Chunk.RowSize; ++tmp.Y)
+                for (tmp.Z = 0; tmp.Z < Chunk.RowSize; ++tmp.Z)
                 {
                     var b = chunk[tmp];
                     var target = Blocks.Index[b.Id].IsTranslucent ? vaTranslucent : vaOpacity;
-                    BlockRenderers.Render(target, b.Id, chunk, tmp);
+                    BlockRenderers.Render(target, b.Id, context, tmp);
                 }
 
                 var mesh0 = vaOpacity.Dump();
                 var mesh1 = vaTranslucent.Dump();
                 Model = mesh0 != null || mesh1 != null ? new Model {new MaterialInstance(Context.Material)} : null;
-                if (mesh0 != null) Model?.Add(mesh0);
-                if (mesh1 != null) Model?.Add(mesh1);
+                if (mesh0 != null) Model.Add(mesh0);
+                if (mesh1 != null) Model.Add(mesh1);
             }
         }
     }
@@ -71,7 +82,7 @@ namespace NEWorld.Renderer
         {
             Entity = new Entity();
             Update(data);
-            Entity.GetOrCreate<TransformComponent>().Position = chunkPosition * Chunk.Size;
+            Entity.GetOrCreate<TransformComponent>().Position = chunkPosition * Chunk.RowSize;
         }
 
         public Entity Entity { get; }
