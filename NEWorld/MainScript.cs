@@ -125,7 +125,7 @@ namespace NEWorld
         {
             if (IsClient())
             {
-                Singleton<ChunkService>.Instance.IsAuthority = false;
+                ChunkService.IsAuthority = false;
             }
             else
             {
@@ -139,6 +139,8 @@ namespace NEWorld
         private async Task EstablishGameConnection()
         {
             await Core.Services.Get<Client>("Game.Client").Enable("127.0.0.1", 31111);
+            await Client.GetStaticChunkIds.Call();
+            Modules.Instance.WorkspaceInitialize();
         }
 
         private void LoadPlayer()
@@ -151,10 +153,9 @@ namespace NEWorld
 
         private async Task EnterCurrentWorld()
         {
-            var chunkService = Singleton<ChunkService>.Instance;
-            currentWorld = Singleton<ChunkService>.Instance.Worlds.Get(await RequestWorld());
-            currentWorld.RegisterChunkTasks(chunkService, player);
-            chunkService.EnableDispatcher();
+            currentWorld = ChunkService.Worlds.Get(await RequestWorld());
+            currentWorld.RegisterChunkTasks(player);
+            ChunkService.EnableDispatcher();
         }
 
         private void StartTerrainRenderService()
@@ -180,7 +181,13 @@ namespace NEWorld
 
         public override void Cancel()
         {
+            TearDown();
+        }
+
+        private static void TearDown()
+        {
             Core.Services.Get<TaskDispatcher>("Game.TaskDispatcher").Reset();
+            Modules.Instance.WorkspaceFinalize();
         }
 
         private static async Task<uint> RequestWorld()
@@ -193,13 +200,13 @@ namespace NEWorld
 
                 var worldInfo = await Client.GetWorldInfo.Call(worldIds[0]);
 
-                Singleton<ChunkService>.Instance.Worlds.Add(worldInfo["name"]);
+                ChunkService.Worlds.Add(worldInfo["name"]);
             }
 
             // It's a simple wait-until-we-have-a-world procedure now.
             // But it should be changed into get player information
             // and get the world id from it.
-            while (Singleton<ChunkService>.Instance.Worlds.Get(0) == null)
+            while (ChunkService.Worlds.Get(0) == null)
                 Thread.Yield();
             return 0;
         }
@@ -211,7 +218,7 @@ namespace NEWorld
 
         public override void Update()
         {
-            Singleton<ChunkService>.Instance.TaskDispatcher.ProcessRenderTasks();
+            ChunkService.TaskDispatcher.ProcessRenderTasks();
         }
     }
 }

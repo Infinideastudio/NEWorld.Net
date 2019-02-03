@@ -41,7 +41,8 @@ namespace Game.Network
             server.RegisterProtocol(new GetChunk.Server());
             server.RegisterProtocol(new GetAvailableWorldId.Server());
             server.RegisterProtocol(new GetWorldInfo.Server());
-            Singleton<ChunkService>.Instance.Worlds.Add("test world");
+            server.RegisterProtocol(new GetStaticChunkIds.Server());
+            ChunkService.Worlds.Add("test world");
         }
 
         public void Run()

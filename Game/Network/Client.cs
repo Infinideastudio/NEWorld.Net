@@ -30,6 +30,7 @@ namespace Game.Network
         public static GetChunk.Client GetChunk;
         public static GetAvailableWorldId.Client GetAvailableWorldId;
         public static GetWorldInfo.Client GetWorldInfo;
+        public static GetStaticChunkIds.Client GetStaticChunkIds;
 
         private static Core.Network.Client _client;
 
@@ -44,6 +45,7 @@ namespace Game.Network
             _client.RegisterProtocol(GetChunk = new GetChunk.Client());
             _client.RegisterProtocol(GetAvailableWorldId = new GetAvailableWorldId.Client());
             _client.RegisterProtocol(GetWorldInfo = new GetWorldInfo.Client());
+            _client.RegisterProtocol(GetStaticChunkIds = new GetStaticChunkIds.Client());
             await _client.HandShake();
         }
 

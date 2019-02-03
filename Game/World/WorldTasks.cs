@@ -31,9 +31,9 @@ namespace Game.World
         private static readonly Int3 MiddleOffset =
             new Int3(Chunk.RowSize / 2 - 1, Chunk.RowSize / 2 - 1, Chunk.RowSize / 2 - 1);
 
-        public void RegisterChunkTasks(ChunkService cs, Player player)
+        public void RegisterChunkTasks(Player player)
         {
-            cs.TaskDispatcher.AddRegular(new LoadUnloadDetectorTask(this, player));
+            ChunkService.TaskDispatcher.AddRegular(new LoadUnloadDetectorTask(this, player));
         }
 
         public class ResetChunkTask : IReadWriteTask
@@ -49,7 +49,7 @@ namespace Game.World
                 this.chunk = chunk;
             }
 
-            public void Task(ChunkService srv)
+            public void Task()
             {
                 chunk.World.ResetChunkAndUpdate(chunk.Position, chunk);
             }
@@ -57,25 +57,23 @@ namespace Game.World
 
         private class UnloadChunkTask : IReadWriteTask
         {
-            private readonly Int3 chunkPosition;
-
-            private readonly World world;
+            private readonly Chunk chunk;
 
             /**
             * \brief Given a chunk, it will try to unload it (decrease a ref)
             * \param world the target world
             * \param chunkPosition the position of the chunk
             */
-            public UnloadChunkTask(World world, Int3 chunkPosition)
+            public UnloadChunkTask(Chunk chk)
             {
-                this.world = world;
-                this.chunkPosition = chunkPosition;
+                chunk = chk;
             }
 
-            public void Task(ChunkService srv)
+            public void Task()
             {
                 //TODO: for multiplayer situation, it should decrease ref counter instead of deleting
-                world.DeleteChunk(chunkPosition);
+                chunk.Dispose();
+                chunk.World.DeleteChunk(chunk.Position);
             }
         }
 
@@ -96,9 +94,9 @@ namespace Game.World
                 this.chunkPosition = chunkPosition;
             }
 
-            public void Task(ChunkService srv)
+            public void Task()
             {
-                srv.TaskDispatcher.Add(new ResetChunkTask(new Chunk(chunkPosition, world)));
+                ChunkService.TaskDispatcher.Add(new ResetChunkTask(new Chunk(chunkPosition, world)));
             }
         }
 
@@ -113,7 +111,7 @@ namespace Game.World
                 this.world = world;
             }
 
-            public void Task(ChunkService cs)
+            public void Task()
             {
                 var loadList = new OrderedListIntLess<Int3>(MaxChunkLoadCount);
                 var unloadList = new OrderedListIntGreater<Chunk>(MaxChunkUnloadCount);
@@ -124,14 +122,14 @@ namespace Game.World
                 foreach (var loadPos in loadList)
                 {
                     // load a fake chunk
-                    cs.TaskDispatcher.Add(new AddToWorldTask(new Chunk(loadPos.Value, world, false)));
-                    cs.TaskDispatcher.Add(new BuildOrLoadChunkTask(world, loadPos.Value));
-                    if (!cs.IsAuthority) Client.GetChunk.Call(world.Id, loadPos.Value);
+                    ChunkService.TaskDispatcher.Add(new AddToWorldTask(new Chunk(loadPos.Value, world, Chunk.InitOption.None)));
+                    ChunkService.TaskDispatcher.Add(new BuildOrLoadChunkTask(world, loadPos.Value));
+                    if (!ChunkService.IsAuthority) Client.GetChunk.Call(world.Id, loadPos.Value);
                 }
 
                 foreach (var unloadChunk in unloadList)
                     // add a unload task.
-                    cs.TaskDispatcher.Add(new UnloadChunkTask(world, unloadChunk.Value.Position));
+                    ChunkService.TaskDispatcher.Add(new UnloadChunkTask(unloadChunk.Value));
             }
 
             /**
@@ -190,7 +188,7 @@ namespace Game.World
                     this.chunk = chunk;
                 }
 
-                public void Task(ChunkService srv)
+                public void Task()
                 {
                     chunk.World.InsertChunkAndUpdate(chunk.Position, chunk);
                 }

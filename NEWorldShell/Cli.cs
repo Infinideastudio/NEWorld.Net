@@ -83,7 +83,7 @@ namespace NEWorldShell
                 {
                     var ret = "Chunks loaded: ";
                     long sum = 0;
-                    var worlds = Singleton<ChunkService>.Instance.Worlds;
+                    var worlds = ChunkService.Worlds;
                     foreach (var world in worlds)
                     {
                         ret += $"\n{world.Id} {world.Name} :\t{world.GetChunkCount()}";

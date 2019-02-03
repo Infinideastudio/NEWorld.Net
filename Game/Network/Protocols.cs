@@ -17,7 +17,9 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
+using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
 using Core.Network;
@@ -28,14 +30,53 @@ using Xenko.Core.Mathematics;
 
 namespace Game.Network
 {
+    public static class GetStaticChunkIds
+    {
+        public class Server : FixedLengthProtocol
+        {
+            public Server() : base(4){}
+
+            public override string Name()
+            {
+                return "GetStaticChunkId";
+            }
+
+            public override void HandleRequest(Session.Receive request)
+            {
+                var session = request.ReadU32();
+                var ids = StaticChunkPool.Id;
+                Reply.Send(request.Session, session, MessagePackSerializer.SerializeUnsafe(ids));
+            }
+        }
+
+        public class Client : StubProtocol
+        {
+            public override string Name()
+            {
+                return "GetStaticChunkId";
+            }
+
+            public async Task Call()
+            {
+                var session = Reply.AllocSession();
+                using (var message = Network.Client.CreateMessage(Id))
+                {
+                    message.Write(session.Key);
+                }
+
+                var result = await session.Value;
+                StaticChunkPool.Id = MessagePackSerializer.Deserialize<Dictionary<string, uint>>(result);
+            }
+        }
+    }
+
     public static class GetChunk
     {
+        private static readonly ThreadLocal<byte[]> LocalMemCache = new ThreadLocal<byte[]>();
         private static readonly int Size = MessagePackSerializer.SerializeUnsafe(new int[4]).Count;
 
         public class Server : FixedLengthProtocol
         {
-            private static readonly ThreadLocal<byte[]> LocalMemCache = new ThreadLocal<byte[]>();
-
             public Server() : base(Size)
             {
             }
@@ -48,29 +89,22 @@ namespace Game.Network
             public override void HandleRequest(Session.Receive stream)
             {
                 var request = MessagePackSerializer.Deserialize<int[]>(stream.Raw);
-                var chunkData = Get((uint) request[0], new Int3(request[1], request[2], request[3]));
+                var chunk = GetChunk((uint) request[0], new Int3(request[1], request[2], request[3]));
                 using (var message = stream.Session.CreateMessage(Id))
                 {
                     message.Write(stream.Raw, 0, Size);
-                    message.Write(chunkData, 0, chunkData.Length);
+                    var cow = chunk.CopyOnWrite;
+                    message.Write(cow);
+                    if (cow == uint.MaxValue)
+                    {
+                        var chunkData = Get(chunk);
+                        message.Write(chunkData, 0, chunkData.Length);
+                    }
                 }
             }
 
-            private static byte[] Get(uint worldId, Int3 position)
+            private static unsafe byte[] Get(Chunk chunkPtr)
             {
-                // TODO: empty chunk optimization
-                var world = Singleton<ChunkService>.Instance.Worlds.Get(worldId);
-                Chunk chunkPtr;
-                try
-                {
-                    chunkPtr = world.GetChunk(position);
-                }
-                catch (KeyNotFoundException)
-                {
-                    var chunk = new Chunk(position, world);
-                    chunkPtr = world.InsertChunkAndUpdate(position, chunk);
-                }
-
                 var chunkData = LocalMemCache.Value ?? (LocalMemCache.Value = new byte[32768 * 4]);
                 for (var i = 0; i < 32768 * 4; ++i)
                 {
@@ -83,11 +117,29 @@ namespace Game.Network
 
                 return chunkData;
             }
+
+            private static Chunk GetChunk(uint worldId, Int3 position)
+            {
+                var world = ChunkService.Worlds.Get(worldId);
+                Chunk chunkPtr;
+                try
+                {
+                    chunkPtr = world.GetChunk(position);
+                }
+                catch (KeyNotFoundException)
+                {
+                    var chunk = new Chunk(position, world);
+                    // TODO: Implement a WorldTask Instead
+                    chunkPtr = world.InsertChunkAndUpdate(position, chunk);
+                }
+
+                return chunkPtr;
+            }
         }
 
-        public class Client : FixedLengthProtocol
+        public class Client : Protocol
         {
-            public Client() : base(32768 * 4 + Size)
+            public Client()
             {
             }
 
@@ -95,22 +147,42 @@ namespace Game.Network
             {
                 return "GetChunk";
             }
-
+            
             public override void HandleRequest(Session.Receive request)
             {
-                var data = request.Raw;
-                var req = MessagePackSerializer.Deserialize<int[]>(data);
-                var srv = Singleton<ChunkService>.Instance;
-                var chk = new Chunk(new Int3(req[1], req[2], req[3]), srv.Worlds.Get((uint) req[0]));
-                for (var i = Size; i < 32768 * 4 + Size; i += 4)
+                var buffer = new byte[Size];
+                request.Read(buffer, 0, Size);
+                var req = MessagePackSerializer.Deserialize<int[]>(buffer);
+                var cow = request.ReadU32();
+                Chunk chk;
+                var chunkPos = new Int3(req[1], req[2], req[3]);
+                var world = ChunkService.Worlds.Get((uint) req[0]);
+                if (cow == uint.MaxValue)
                 {
-                    ref var block = ref chk.Blocks[(i - Size) >> 2];
+                    var data = LocalMemCache.Value ?? (LocalMemCache.Value = new byte[32768 * 4]);
+                    request.Read(data, 0, data.Length);
+                    chk = DeserializeChunk(chunkPos, world, data);
+                }
+                else
+                {
+                    chk = new Chunk(chunkPos, world, cow);
+                }
+
+                ChunkService.TaskDispatcher.Add(new World.World.ResetChunkTask(chk));
+            }
+
+            private static unsafe Chunk DeserializeChunk(Int3 chunkPos, World.World world, byte[] data)
+            {
+                var chk = new Chunk(chunkPos, world, Chunk.InitOption.AllocateUnique);
+                for (var i = 0; i < 32768 * 4; i += 4)
+                {
+                    ref var block = ref chk.Blocks[i >> 2];
                     block.Id = (ushort) ((data[i] << 4) | (data[i + 1] >> 4));
                     block.Brightness = (byte) (data[i + 1] | 0xF);
                     block.Data = (uint) ((data[i + 2] << 8) | data[i + 3]);
                 }
 
-                srv.TaskDispatcher.Add(new World.World.ResetChunkTask(chk));
+                return chk;
             }
 
             public void Call(uint worldId, Int3 position)
@@ -176,7 +248,7 @@ namespace Game.Network
             public override void HandleRequest(Session.Receive stream)
             {
                 var request = stream.ReadU32();
-                var world = Singleton<ChunkService>.Instance.Worlds.Get(stream.ReadU32());
+                var world = ChunkService.Worlds.Get(stream.ReadU32());
                 var ret = new Dictionary<string, string> {{"name", world.Name}};
                 Reply.Send(stream.Session, request, MessagePackSerializer.SerializeUnsafe(ret));
             }
