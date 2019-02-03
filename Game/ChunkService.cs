@@ -38,26 +38,22 @@ namespace Game
          *                    and in the server-side of the multiplayer mode
          *                    are authoritative.
          */
-        protected ChunkService(bool isAuthority)
+        static ChunkService()
         {
-            IsAuthority = isAuthority;
+            IsAuthority = true;
             Worlds = new WorldManager();
             TaskDispatcher = Services.Get<TaskDispatcher>("Game.TaskDispatcher");
         }
 
-        private ChunkService() : this(true)
+        public static TaskDispatcher TaskDispatcher { get; private set; }
+
+        public static WorldManager Worlds { get; private set; }
+
+        public static bool IsAuthority { set; get; }
+
+        public static void EnableDispatcher()
         {
-        }
-
-        public TaskDispatcher TaskDispatcher { get; }
-
-        public WorldManager Worlds { get; }
-
-        public bool IsAuthority { set; get; }
-
-        public void EnableDispatcher()
-        {
-            TaskDispatcher.Start(this);
+            TaskDispatcher.Start();
         }
     }
 }

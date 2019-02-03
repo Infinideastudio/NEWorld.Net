@@ -27,6 +27,8 @@ namespace Core.Module
     public interface IModule
     {
         void CoInitialize();
+        void WorkspaceInitialize();
+        void WorkspaceFinalize();
         void CoFinalize();
         void OnMemoryWarning();
     }
@@ -72,6 +74,18 @@ namespace Core.Module
                     {
                         LogPort.Debug($"Module {type} Load Failure : {e}");
                     }
+        }
+
+        public void WorkspaceInitialize()
+        {
+            foreach (var module in modules)
+                module.Value.Key.WorkspaceInitialize();
+        }
+
+        public void WorkspaceFinalize()
+        {
+            foreach (var module in modules)
+                module.Value.Key.WorkspaceFinalize();
         }
 
         public void UnloadAll()

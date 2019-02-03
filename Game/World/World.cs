@@ -80,29 +80,14 @@ namespace Game.World
             return Chunks.IsLoaded(chunkPos);
         }
 
-        public void DeleteChunk(Int3 chunkPos)
+        private void DeleteChunk(Int3 chunkPos)
         {
             Chunks.Remove(chunkPos);
-        }
-
-        public static int GetChunkAxisPos(int pos)
-        {
-            return ChunkManager.GetAxisPos(pos);
         }
 
         public static Int3 GetChunkPos(Int3 pos)
         {
             return ChunkManager.GetPos(pos);
-        }
-
-        public static int GetBlockAxisPos(int pos)
-        {
-            return ChunkManager.GetBlockAxisPos(pos);
-        }
-
-        public static Int3 GetBlockPos(ref Int3 pos)
-        {
-            return ChunkManager.GetBlockPos(pos);
         }
 
         public BlockData GetBlock(Int3 pos)
@@ -130,8 +115,9 @@ namespace Game.World
             return ret;
         }
 
-        public Chunk ResetChunk(ref Int3 pos, Chunk ptr)
+        private Chunk ResetChunk(ref Int3 pos, Chunk ptr)
         {
+            Chunks[pos].Dispose();
             return Chunks[pos] = ptr;
         }
 

@@ -29,7 +29,7 @@ namespace NEWorld.Renderer
 {
     public class RdWorld
     {
-        public const int MaxChunkRenderCount = 4;
+        public const int MaxChunkRenderCount = 16;
 
         // Chunk Renderers
         private readonly Dictionary<Int3, RdChunk> chunkRenderers;
@@ -44,7 +44,7 @@ namespace NEWorld.Renderer
             this.world = world;
             RenderDist = renderDistance;
             chunkRenderers = new Dictionary<Int3, RdChunk>();
-            Singleton<ChunkService>.Instance.TaskDispatcher.AddRegular(new RenderDetectorTask(this, world.Id, player));
+            ChunkService.TaskDispatcher.AddRegular(new RenderDetectorTask(this, world.Id, player));
         }
 
         private class RenderDetectorTask : IReadOnlyTask
@@ -68,14 +68,14 @@ namespace NEWorld.Renderer
                 this.player = player;
             }
 
-            public void Task(ChunkService cs)
+            public void Task()
             {
                 var counter = 0;
                 // TODO: improve performance by adding multiple instances of this and set a step when itering the chunks.
                 var position = player.Position;
                 var positionInt = new Int3((int) position.X, (int) position.Y, (int) position.Z);
                 var chunkpos = World.GetChunkPos(positionInt);
-                var world = cs.Worlds.Get(currentWorldId);
+                var world = ChunkService.Worlds.Get(currentWorldId);
                 foreach (var c in world.Chunks)
                 {
                     var chunk = c.Value;
@@ -87,7 +87,7 @@ namespace NEWorld.Renderer
                             // TODO: maybe build a VA pool can speed this up.
                             var crd = new ChunkRenderData();
                             crd.Generate(chunk);
-                            cs.TaskDispatcher.Add(new VboGenerateTask(world, chunkPosition, crd,
+                            ChunkService.TaskDispatcher.Add(new VboGenerateTask(world, chunkPosition, crd,
                                 rdWorldRenderer.chunkRenderers));
                             if (++counter == MaxChunkRenderCount) break;
                         }
@@ -123,7 +123,7 @@ namespace NEWorld.Renderer
                 this.chunkRenderers = chunkRenderers;
             }
 
-            public void Task(ChunkService srv)
+            public void Task()
             {
                 if (!world.Chunks.TryGetValue(position, out var chunk)) return;
                 chunk.IsUpdated = false;

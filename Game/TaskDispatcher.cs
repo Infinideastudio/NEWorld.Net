@@ -36,7 +36,7 @@ namespace Game
      */
     public interface IReadOnlyTask
     {
-        void Task(ChunkService srv);
+        void Task();
     }
 
     /**
@@ -46,7 +46,7 @@ namespace Game
      */
     public interface IReadWriteTask
     {
-        void Task(ChunkService srv);
+        void Task();
     }
 
     /**
@@ -55,7 +55,7 @@ namespace Game
      */
     public interface IRenderTask
     {
-        void Task(ChunkService srv);
+        void Task();
     }
 
     [DeclareService("Game.TaskDispatcher")]
@@ -68,8 +68,7 @@ namespace Game
         private readonly List<IReadOnlyTask> regularReadOnlyTasks;
         private readonly List<IReadWriteTask> regularReadWriteTasks;
         private readonly List<Thread> threads;
-
-        private ChunkService chunkService;
+        
         private RateController meter = new RateController(30);
         private List<IReadOnlyTask> readOnlyTasks, nextReadOnlyTasks;
         private List<IReadWriteTask> readWriteTasks, nextReadWriteTasks;
@@ -115,9 +114,8 @@ namespace Game
             ReleaseUnmanagedResources();
         }
 
-        public void Start(ChunkService srv)
+        public void Start()
         {
-            chunkService = srv;
             shouldExit = false;
             for (var i = 0; i < TimeUsed.Length; ++i)
             {
@@ -187,7 +185,7 @@ namespace Game
             lock (mutex)
             {
                 foreach (var task in renderTasks)
-                    task.Task(chunkService);
+                    task.Task();
                 renderTasks.Clear();
                 Generic.Swap(ref renderTasks, ref nextRenderTasks);
             }
@@ -224,15 +222,15 @@ namespace Game
 
         private void ProcessReadonlyTasks(int i)
         {
-            for (; i < regularReadOnlyTasks.Count; i += threads.Count) regularReadOnlyTasks[i].Task(chunkService);
+            for (; i < regularReadOnlyTasks.Count; i += threads.Count) regularReadOnlyTasks[i].Task();
             for (i -= regularReadOnlyTasks.Count; i < readOnlyTasks.Count; i += threads.Count)
-                readOnlyTasks[i].Task(chunkService);
+                readOnlyTasks[i].Task();
         }
 
         private void ProcessReadWriteTasks()
         {
-            foreach (var task in regularReadWriteTasks) task.Task(chunkService);
-            foreach (var task in readWriteTasks) task.Task(chunkService);
+            foreach (var task in regularReadWriteTasks) task.Task();
+            foreach (var task in readWriteTasks) task.Task();
             readWriteTasks.Clear();
         }
 

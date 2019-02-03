@@ -21,7 +21,6 @@ using Core;
 using Core.Module;
 using Game.Terrain;
 using Game.World;
-using Xenko.Core.Mathematics;
 
 namespace Main
 {
@@ -29,6 +28,8 @@ namespace Main
     public class Main : IModule
     {
         private static ushort _grassId, _rockId, _dirtId, _sandId, _waterId;
+
+        private static uint _rockChunkId, _waterChunkId;
 
         public void CoInitialize()
         {
@@ -38,7 +39,19 @@ namespace Main
             _sandId = Blocks.Register(new BlockType("Sand", true, false, true, 2));
             _waterId = Blocks.Register(new BlockType("Water", false, true, false, 2));
             Chunk.SetGenerator(WorldGen.Generator);
+            StaticChunkPool.Register("Main.RockChunk", new Chunk(new BlockData(_rockId)));
+            StaticChunkPool.Register("Main.WaterChunk", new Chunk(new BlockData(_waterId)));
             RendererInit();
+        }
+
+        public void WorkspaceInitialize()
+        {
+            _rockChunkId = StaticChunkPool.GetId("Main.RockChunk");
+            _waterChunkId = StaticChunkPool.GetId("Main.WaterChunk");
+        }
+
+        public void WorkspaceFinalize()
+        {
         }
 
         public void CoFinalize()
@@ -116,35 +129,70 @@ namespace Main
                 return total;
             }
 
-            public static void Generator(Int3 pos, BlockData[] blocks, int daylightBrightness)
+            public static unsafe void Generator(ChunkGeneratorContext context)
             {
-                for (var x = 0; x < Chunk.RowSize; x++)
-                for (var z = 0; z < Chunk.RowSize; z++)
+                var pos = context.Current.Position;
+                var heights = new int[Chunk.RowSize, Chunk.RowSize];
+                var low = int.MaxValue;
+                var high = int.MinValue;
                 {
-                    var absHeight = (int) PerlinNoise2D((pos.X * Chunk.RowSize + x) / NoiseScaleX,
-                                        (pos.Z * Chunk.RowSize + z) / NoiseScaleZ) / 2 - 64;
-                    var height = absHeight - pos.Y * Chunk.RowSize;
-                    var underWater = absHeight <= 0;
-                    for (var y = 0; y < Chunk.RowSize; y++)
+                    for (var x = 0; x < Chunk.RowSize; x++)
+                    for (var z = 0; z < Chunk.RowSize; z++)
                     {
-                        ref var block = ref blocks[x * Chunk.RowSize * Chunk.RowSize + y * Chunk.RowSize + z];
-                        if (y <= height)
-                        {
-                            if (y == height)
-                                block.Id = underWater ? _sandId : _grassId;
-                            else if (y >= height - 3)
-                                block.Id = underWater ? _sandId : _dirtId;
-                            else
-                                block.Id = _rockId;
+                        var val = heights[x, z] = (int) PerlinNoise2D((pos.X * Chunk.RowSize + x) / NoiseScaleX,
+                                            (pos.Z * Chunk.RowSize + z) / NoiseScaleZ) / 2 - 64;
+                        if (val < low) low = val;
+                        if (val > high) high = val;
+                    }
 
-                            block.Brightness = 0;
-                            block.Data = 0;
-                        }
-                        else
+                    if (pos.Y * Chunk.RowSize > high && high >= 0)
+                    {
+                        context.EnableCopyOnWrite(StaticChunkPool.GetAirChunk());
+                        return;
+                    }
+
+                    if ((0-Chunk.RowSize) >= pos.Y * Chunk.RowSize && pos.Y * Chunk.RowSize > high)
+                    {
+                        context.EnableCopyOnWrite(StaticChunkPool.GetAirChunk());
+                        return;
+                    }
+
+                    if (pos.Y * Chunk.RowSize < (low - Chunk.RowSize - 3))
+                    {
+                        context.EnableCopyOnWrite(_rockChunkId);
+                        return;
+                    }
+                }
+                {
+                    context.EnableFullArray();
+                    var blocks = context.Current.Blocks;
+                    for (var x = 0; x < Chunk.RowSize; x++)
+                    for (var z = 0; z < Chunk.RowSize; z++)
+                    {
+                        var absHeight = heights[x, z];
+                        var height = absHeight - pos.Y * Chunk.RowSize;
+                        var underWater = absHeight <= 0;
+                        for (var y = 0; y < Chunk.RowSize; y++)
                         {
-                            block.Id = pos.Y * Chunk.RowSize + y <= 0 ? _waterId : (ushort) 0;
-                            block.Brightness = (byte) daylightBrightness;
-                            block.Data = 0;
+                            ref var block = ref blocks[x * Chunk.RowSize * Chunk.RowSize + y * Chunk.RowSize + z];
+                            if (y <= height)
+                            {
+                                if (y == height)
+                                    block.Id = underWater ? _sandId : _grassId;
+                                else if (y >= height - 3)
+                                    block.Id = underWater ? _sandId : _dirtId;
+                                else
+                                    block.Id = _rockId;
+
+                                block.Brightness = 0;
+                                block.Data = 0;
+                            }
+                            else
+                            {
+                                block.Id = pos.Y * Chunk.RowSize + y <= 0 ? _waterId : (ushort) 0;
+                                block.Brightness = (byte) context.DaylightBrightness;
+                                block.Data = 0;
+                            }
                         }
                     }
                 }

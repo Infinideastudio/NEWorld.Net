@@ -32,7 +32,7 @@ namespace Game.World
 
         public Player(uint worldId) : base(worldId)
         {
-            Singleton<ChunkService>.Instance.TaskDispatcher.AddRegular(new PlayerUpdateTask(this, WorldId));
+            ChunkService.TaskDispatcher.AddRegular(new PlayerUpdateTask(this, WorldId));
         }
 
         public Double3 PositionDelta => positionDelta;
@@ -114,9 +114,9 @@ namespace Game.World
                 this.worldId = worldId;
             }
 
-            public void Task(ChunkService srv)
+            public void Task()
             {
-                player.Update(srv.Worlds.Get(worldId));
+                player.Update(ChunkService.Worlds.Get(worldId));
             }
         }
     }

@@ -31,6 +31,7 @@ namespace NEWorldShell
             var cli = new ServerCommandLine();
             var server = Services.Get<Server>("Game.Server");
             server.Enable(31111);
+            Modules.Instance.WorkspaceInitialize();
             server.Run();
             cli.Start();
         }
