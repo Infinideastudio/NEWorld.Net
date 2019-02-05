@@ -17,13 +17,10 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
-using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
 using Core.Network;
-using Core.Utilities;
 using Game.World;
 using MessagePack;
 using Xenko.Core.Mathematics;
@@ -130,7 +127,7 @@ namespace Game.Network
                 {
                     var chunk = new Chunk(position, world);
                     // TODO: Implement a WorldTask Instead
-                    chunkPtr = world.InsertChunkAndUpdate(position, chunk);
+                    chunkPtr = world.InsertChunkAndUpdate(chunk);
                 }
 
                 return chunkPtr;

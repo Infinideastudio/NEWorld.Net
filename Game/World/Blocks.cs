@@ -53,6 +53,7 @@ namespace Game.World
         public bool IsOpaque { get; }
     }
 
+    // TODO: Implement ID Synchronization for each Game Instance
     public static class Blocks
     {
         private static readonly BlockType Air = new BlockType("Air", false, false, false, 0);

@@ -32,6 +32,7 @@ namespace Core.Network
         private readonly TcpClient conn;
         private readonly NetworkStream ios;
         private readonly MemoryStream writeBuffer = new MemoryStream(new byte[8192], 0, 8192, true, true);
+        private readonly ReaderWriterLockSlim writeLock = new ReaderWriterLockSlim();
         private MemoryStream buffer;
         private byte[] storage = new byte[8192];
 
@@ -194,6 +195,7 @@ namespace Core.Network
                 Session = session;
                 ios = Session.ios;
                 buffer = Session.writeBuffer;
+                session.writeLock.EnterWriteLock();
                 Write((byte) 'N');
                 Write((byte) 'W');
                 Write((byte) 'R');
@@ -205,8 +207,10 @@ namespace Core.Network
 
             public void Dispose()
             {
-                FlushBuffer();
+                ReleaseUnmanagedResources();
+                GC.SuppressFinalize(this);
             }
+
 
             public void Write(byte val)
             {
@@ -263,6 +267,17 @@ namespace Core.Network
                 FlushBuffer();
                 Debug.Assert(bytes.Array != null, "bytes.Array != null");
                 ios.Write(bytes.Array, bytes.Offset, bytes.Count);
+            }
+
+            private void ReleaseUnmanagedResources()
+            {
+                FlushBuffer();
+                Session.writeLock.ExitWriteLock();
+            }
+
+            ~Send()
+            {
+                ReleaseUnmanagedResources();
             }
         }
     }
@@ -357,7 +372,7 @@ namespace Core.Network
                     }
                     catch (Exception e)
                     {
-                        if (Session.Live) {LogPort.Debug($"Encountering Exception {e}"); }
+                        if (Session.Live) LogPort.Debug($"Encountering Exception {e}");
                     }
 
                 CloseDown();

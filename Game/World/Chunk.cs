@@ -48,6 +48,9 @@ namespace Game.World
         }
     }
 
+    // TODO: Implement Neighbor Chunk Handle Storage
+    // TODO: Implement Chunk Update Event Hook
+    // TODO: Implement The Unloaded Status Indicator
     public unsafe class Chunk : IDisposable
     {
         public delegate void Generator(ChunkGeneratorContext context);
@@ -114,8 +117,8 @@ namespace Game.World
         }
 
         public uint CopyOnWrite => (flags & CopyOnWriteBit) == CopyOnWriteBit ? cowId : uint.MaxValue;
-
-        // TODO: somehow avoid it! not safe.
+        
+        // TODO: Only Set On Real Content Updation
         public bool IsUpdated { get; set; }
 
         public Int3 Position { get; }

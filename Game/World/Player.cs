@@ -103,7 +103,7 @@ namespace Game.World
                 rotationSpeed *= 0;
         }
 
-        private class PlayerUpdateTask : IReadOnlyTask
+        private class PlayerUpdateTask : IRegularReadOnlyTask
         {
             private readonly Player player;
             private readonly uint worldId;
@@ -114,9 +114,12 @@ namespace Game.World
                 this.worldId = worldId;
             }
 
-            public void Task()
+            public void Task(int instance, int count)
             {
-                player.Update(ChunkService.Worlds.Get(worldId));
+                if (instance == count)
+                {
+                    player.Update(ChunkService.Worlds.Get(worldId));
+                }
             }
         }
     }
