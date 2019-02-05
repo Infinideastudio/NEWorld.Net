@@ -18,6 +18,7 @@
 // 
 
 using System;
+using System.Threading;
 using Game.Network;
 using Game.Utilities;
 using Xenko.Core.Mathematics;
@@ -51,7 +52,60 @@ namespace Game.World
 
             public void Task()
             {
-                chunk.World.ResetChunkAndUpdate(chunk.Position, chunk);
+                chunk.World.ResetChunkAndUpdate(chunk);
+            }
+        }
+        
+        private class LoadTask : IReadWriteTask
+        {
+            private Chunk chunk;
+            private bool entryAdded;
+
+            internal LoadTask(World world, Int3 chunkPosition)
+            {
+                // Adding Sentry
+                chunk = new Chunk(chunkPosition, world, Chunk.InitOption.None);
+                ChunkService.TaskDispatcher.Add(new LocalLoadTask(world, chunkPosition, this));
+                if (!ChunkService.IsAuthority) Client.GetChunk.Call(world.Id, chunkPosition);
+            }
+            
+            public void Task()
+            {
+                var operated = Interlocked.Exchange(ref chunk, null);
+                if (entryAdded)
+                    operated.World.ResetChunkAndUpdate(operated);
+                else
+                {
+                    entryAdded = true;
+                    operated.World.InsertChunkAndUpdate(operated);
+                }
+            }
+
+            private void Reset(Chunk chk)
+            {
+                if (Interlocked.Exchange(ref chunk, chk) == null) 
+                    ChunkService.TaskDispatcher.Add(this);
+            }
+
+            private class LocalLoadTask : IReadOnlyTask
+            {
+                private readonly Int3 chunkPosition;
+
+                private readonly World world;
+
+                private readonly LoadTask load;
+
+                public LocalLoadTask(World wrd, Int3 position, LoadTask loadTask)
+                {
+                    world = wrd;
+                    chunkPosition = position;
+                    load = loadTask;
+                }
+
+                public void Task()
+                {
+                    load.Reset(new Chunk(chunkPosition, world));
+                }
             }
         }
 
@@ -77,33 +131,71 @@ namespace Game.World
             }
         }
 
-        private class BuildOrLoadChunkTask : IReadOnlyTask
-        {
-            private readonly Int3 chunkPosition;
-
-            private readonly World world;
-
-            /**
-             * \brief Given a chunk, it will try to load it or build it
-             * \param world the target world
-             * \param chunkPosition the position of the chunk
-             */
-            public BuildOrLoadChunkTask(World world, Int3 chunkPosition)
-            {
-                this.world = world;
-                this.chunkPosition = chunkPosition;
-            }
-
-            public void Task()
-            {
-                ChunkService.TaskDispatcher.Add(new ResetChunkTask(new Chunk(chunkPosition, world)));
-            }
-        }
-
-        private class LoadUnloadDetectorTask : IReadOnlyTask
+        private class LoadUnloadDetectorTask : IRegularReadOnlyTask
         {
             private readonly Player player;
             private readonly World world;
+
+            private class Instance
+            {
+                private readonly Int3 centerPos;
+                private readonly World world;
+                private readonly int instance, instances;
+                private readonly OrderedListIntLess<Int3> loadList = new OrderedListIntLess<Int3>(MaxChunkLoadCount);
+                private readonly OrderedListIntGreater<Chunk> unloadList = new OrderedListIntGreater<Chunk>(MaxChunkUnloadCount);
+
+                internal Instance(World wrd, Player player, int ins, int inst)
+                {
+                    world = wrd;
+                    instance = ins;
+                    instances = inst;
+                    var playerPos = player.Position;
+                    centerPos = new Int3((int) playerPos.X, (int) playerPos.Y, (int) playerPos.Z);
+                }
+
+                internal void Run()
+                {
+                    GenerateLoadUnloadList(4);
+
+                    foreach (var loadPos in loadList)
+                        ChunkService.TaskDispatcher.Add(new LoadTask(world, loadPos.Value));
+
+                    foreach (var unloadChunk in unloadList)
+                        // add a unload task.
+                        ChunkService.TaskDispatcher.Add(new UnloadChunkTask(unloadChunk.Value));
+                }
+
+                private void GenerateLoadUnloadList(int loadRange)
+                {
+                    var centerCPos = GetChunkPos(centerPos);
+
+                    // TODO: Instance this
+                    if (instance == 0 )
+                    {
+                        foreach (var chunk in world.Chunks)
+                        {
+                            var curPos = chunk.Value.Position;
+                            // Out of load range, pending to unload
+                            if (ChebyshevDistance(centerCPos, curPos) > loadRange)
+                                unloadList.Insert((curPos * Chunk.RowSize + MiddleOffset - centerPos).LengthSquared(),
+                                    chunk.Value);
+                        }
+                    }
+
+                    var edge1 = loadRange * 2 + 1;
+                    var edge2 = edge1 * edge1;
+                    var edge3 = edge2 * edge1;
+                    var corner = new Int3(centerCPos.X - loadRange, centerCPos.Y - loadRange, centerCPos.Z - loadRange);
+                    for (var i = instance; i < edge3; i += instances)
+                    {
+                        var position = corner + new Int3(i / edge2, (i % edge2) / edge1, i % edge1);
+                        // In load range, pending to load
+                        if (!world.IsChunkLoaded(position))
+                            loadList.Insert((position * Chunk.RowSize + MiddleOffset - centerPos).LengthSquared(),
+                                position);
+                    }
+                }
+            }
 
             public LoadUnloadDetectorTask(World world, Player player)
             {
@@ -111,87 +203,15 @@ namespace Game.World
                 this.world = world;
             }
 
-            public void Task()
+            public void Task(int instance, int instances)
             {
-                var loadList = new OrderedListIntLess<Int3>(MaxChunkLoadCount);
-                var unloadList = new OrderedListIntGreater<Chunk>(MaxChunkUnloadCount);
-                var playerPos = player.Position;
-                var position = new Int3((int) playerPos.X, (int) playerPos.Y, (int) playerPos.Z);
-                GenerateLoadUnloadList(world, position, 4, loadList, unloadList);
-
-                foreach (var loadPos in loadList)
-                {
-                    // load a fake chunk
-                    ChunkService.TaskDispatcher.Add(new AddToWorldTask(new Chunk(loadPos.Value, world, Chunk.InitOption.None)));
-                    ChunkService.TaskDispatcher.Add(new BuildOrLoadChunkTask(world, loadPos.Value));
-                    if (!ChunkService.IsAuthority) Client.GetChunk.Call(world.Id, loadPos.Value);
-                }
-
-                foreach (var unloadChunk in unloadList)
-                    // add a unload task.
-                    ChunkService.TaskDispatcher.Add(new UnloadChunkTask(unloadChunk.Value));
+                new Instance(world, player, instance, instances).Run();
             }
-
-            /**
-             * \brief Find the nearest chunks in load range to load,
-             *        fartherest chunks out of load range to unload.
-             * \param world the world to load or unload chunks
-             * \param centerPos the center position
-             * \param loadRange chunk load range
-             * \param loadList (Output) Chunk load list [position, distance]
-             * \param unloadList (Output) Chunk unload list [pointer, distance]
-             */
-            private static void GenerateLoadUnloadList(World world, Int3 centerPos, int loadRange,
-                OrderedListIntLess<Int3> loadList, OrderedListIntGreater<Chunk> unloadList)
-            {
-                // centerPos to chunk coords
-                var centerCPos = GetChunkPos(centerPos);
-
-                foreach (var chunk in world.Chunks)
-                {
-                    var curPos = chunk.Value.Position;
-                    // Out of load range, pending to unload
-                    if (ChebyshevDistance(centerCPos, curPos) > loadRange)
-                        unloadList.Insert((curPos * Chunk.RowSize + MiddleOffset - centerPos).LengthSquared(),
-                            chunk.Value);
-                }
-
-                for (var x = centerCPos.X - loadRange; x <= centerCPos.X + loadRange; x++)
-                for (var y = centerCPos.Y - loadRange; y <= centerCPos.Y + loadRange; y++)
-                for (var z = centerCPos.Z - loadRange; z <= centerCPos.Z + loadRange; z++)
-                {
-                    var position = new Int3(x, y, z);
-                    // In load range, pending to load
-                    if (!world.IsChunkLoaded(position))
-                        loadList.Insert((position * Chunk.RowSize + MiddleOffset - centerPos).LengthSquared(),
-                            position);
-                }
-            }
-
+                
             // TODO: Remove Type1 Clone
             private static int ChebyshevDistance(Int3 l, Int3 r)
             {
                 return Math.Max(Math.Max(Math.Abs(l.X - r.X), Math.Abs(l.Y - r.Y)), Math.Abs(l.Z - r.Z));
-            }
-
-            private class AddToWorldTask : IReadWriteTask
-            {
-                private readonly Chunk chunk;
-
-                /**
-                 * \brief Add a constructed chunk into world.
-                 * \param worldID the target world's id
-                 * \param chunk the target chunk
-                 */
-                public AddToWorldTask(Chunk chunk)
-                {
-                    this.chunk = chunk;
-                }
-
-                public void Task()
-                {
-                    chunk.World.InsertChunkAndUpdate(chunk.Position, chunk);
-                }
             }
         }
     }

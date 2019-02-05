@@ -18,6 +18,7 @@
 // 
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using Core;
@@ -25,8 +26,11 @@ using Core.Utilities;
 
 namespace Game
 {
-    // TODO: we can add a `finished` flag in DEBUG mode
-    //       to verify that all tasks are indeed processed.
+    public interface IInstancedTask
+    {
+        void Task(int instance, int instanceCount);
+    }
+
     /**
      * \brief This type of tasks will be executed concurrently.
      *        Note that "ReadOnly" here is with respect to chunks
@@ -58,6 +62,10 @@ namespace Game
         void Task();
     }
 
+    public interface IRegularReadOnlyTask : IInstancedTask
+    {
+    }
+
     [DeclareService("Game.TaskDispatcher")]
     public class TaskDispatcher : IDisposable
     {
@@ -65,12 +73,12 @@ namespace Game
 
         // TODO: replace it with lock-free structure.
         private readonly object mutex;
-        private readonly List<IReadOnlyTask> regularReadOnlyTasks;
+        private readonly ConcurrentBag<IReadOnlyTask> readOnlyTasks;
+        private readonly List<IRegularReadOnlyTask> regularReadOnlyTasks;
         private readonly List<IReadWriteTask> regularReadWriteTasks;
         private readonly List<Thread> threads;
-        
+
         private RateController meter = new RateController(30);
-        private List<IReadOnlyTask> readOnlyTasks, nextReadOnlyTasks;
         private List<IReadWriteTask> readWriteTasks, nextReadWriteTasks;
         private List<IRenderTask> renderTasks, nextRenderTasks;
         private bool shouldExit;
@@ -91,9 +99,8 @@ namespace Game
             threads = new List<Thread>(threadNumber);
             TimeUsed = new int[threadNumber];
             mutex = new object();
-            readOnlyTasks = new List<IReadOnlyTask>();
-            nextReadOnlyTasks = new List<IReadOnlyTask>();
-            regularReadOnlyTasks = new List<IReadOnlyTask>();
+            readOnlyTasks = new ConcurrentBag<IReadOnlyTask>();
+            regularReadOnlyTasks = new List<IRegularReadOnlyTask>();
             readWriteTasks = new List<IReadWriteTask>();
             nextReadWriteTasks = new List<IReadWriteTask>();
             regularReadWriteTasks = new List<IReadWriteTask>();
@@ -128,10 +135,7 @@ namespace Game
 
         public void Add(IReadOnlyTask task)
         {
-            lock (mutex)
-            {
-                nextReadOnlyTasks.Add(task);
-            }
+            readOnlyTasks.Add(task);
         }
 
         public void Add(IReadWriteTask task)
@@ -141,7 +145,7 @@ namespace Game
                 nextReadWriteTasks.Add(task);
             }
         }
-
+        
         public void Add(IRenderTask task)
         {
             lock (mutex)
@@ -150,7 +154,7 @@ namespace Game
             }
         }
 
-        public void AddRegular(IReadOnlyTask task)
+        public void AddRegular(IRegularReadOnlyTask task)
         {
             lock (mutex)
             {
@@ -164,16 +168,6 @@ namespace Game
             {
                 regularReadWriteTasks.Add(task);
             }
-        }
-
-        public int GetRegularReadOnlyTaskCount()
-        {
-            return regularReadOnlyTasks.Count;
-        }
-
-        public int GetRegularReadWriteTaskCount()
-        {
-            return regularReadWriteTasks.Count;
         }
 
         /**
@@ -222,9 +216,13 @@ namespace Game
 
         private void ProcessReadonlyTasks(int i)
         {
-            for (; i < regularReadOnlyTasks.Count; i += threads.Count) regularReadOnlyTasks[i].Task();
-            for (i -= regularReadOnlyTasks.Count; i < readOnlyTasks.Count; i += threads.Count)
-                readOnlyTasks[i].Task();
+            for (var cnt = 0; cnt < regularReadOnlyTasks.Count; ++cnt)
+                regularReadOnlyTasks[cnt].Task(i, TimeUsed.Length);
+
+            // TODO: Make sure the no further tasks will be added before exiting this function
+            // TODO: Add a timeout support for this to ensure the updation rate
+            while (readOnlyTasks.TryTake(out var task))
+                task.Task();
         }
 
         private void ProcessReadWriteTasks()
@@ -236,8 +234,6 @@ namespace Game
 
         private void QueueSwap()
         {
-            readOnlyTasks.Clear();
-            Generic.Swap(ref readOnlyTasks, ref nextReadOnlyTasks);
             Generic.Swap(ref readWriteTasks, ref nextReadWriteTasks);
         }
 

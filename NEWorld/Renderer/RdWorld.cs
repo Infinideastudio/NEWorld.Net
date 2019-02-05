@@ -20,7 +20,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Core.Utilities;
 using Game;
 using Game.World;
 using Xenko.Core.Mathematics;
@@ -47,7 +46,8 @@ namespace NEWorld.Renderer
             ChunkService.TaskDispatcher.AddRegular(new RenderDetectorTask(this, world.Id, player));
         }
 
-        private class RenderDetectorTask : IReadOnlyTask
+        // TODO: Implement this with Chunk Updation Hook Instead
+        private class RenderDetectorTask : IRegularReadOnlyTask
         {
             private static readonly Int3[] Delta =
             {
@@ -68,29 +68,32 @@ namespace NEWorld.Renderer
                 this.player = player;
             }
 
-            public void Task()
+            public void Task(int instance, int instances)
             {
-                var counter = 0;
-                // TODO: improve performance by adding multiple instances of this and set a step when itering the chunks.
-                var position = player.Position;
-                var positionInt = new Int3((int) position.X, (int) position.Y, (int) position.Z);
-                var chunkpos = World.GetChunkPos(positionInt);
-                var world = ChunkService.Worlds.Get(currentWorldId);
-                foreach (var c in world.Chunks)
+                if (instance == 0)
                 {
-                    var chunk = c.Value;
-                    var chunkPosition = chunk.Position;
-                    // In render range, pending to render
-                    if (chunk.IsUpdated && ChebyshevDistance(chunkpos, chunkPosition) <= rdWorldRenderer.RenderDist)
-                        if (NeighbourChunkLoadCheck(world, chunkPosition))
-                        {
-                            // TODO: maybe build a VA pool can speed this up.
-                            var crd = new ChunkRenderData();
-                            crd.Generate(chunk);
-                            ChunkService.TaskDispatcher.Add(new VboGenerateTask(world, chunkPosition, crd,
-                                rdWorldRenderer.chunkRenderers));
-                            if (++counter == MaxChunkRenderCount) break;
-                        }
+                    var counter = 0;
+                    // TODO: improve performance by adding multiple instances of this and set a step when itering the chunks.
+                    var position = player.Position;
+                    var positionInt = new Int3((int) position.X, (int) position.Y, (int) position.Z);
+                    var chunkpos = World.GetChunkPos(positionInt);
+                    var world = ChunkService.Worlds.Get(currentWorldId);
+                    foreach (var c in world.Chunks)
+                    {
+                        var chunk = c.Value;
+                        var chunkPosition = chunk.Position;
+                        // In render range, pending to render
+                        if (chunk.IsUpdated && ChebyshevDistance(chunkpos, chunkPosition) <= rdWorldRenderer.RenderDist)
+                            if (NeighbourChunkLoadCheck(world, chunkPosition))
+                            {
+                                // TODO: maybe build a VA pool can speed this up.
+                                var crd = new ChunkRenderData();
+                                crd.Generate(chunk);
+                                ChunkService.TaskDispatcher.Add(new VboGenerateTask(world, chunkPosition, crd,
+                                    rdWorldRenderer.chunkRenderers));
+                                if (++counter == MaxChunkRenderCount) break;
+                            }
+                    }
                 }
             }
 

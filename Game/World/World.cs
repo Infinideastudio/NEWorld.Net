@@ -100,25 +100,25 @@ namespace Game.World
             Chunks.SetBlock(pos, block);
         }
 
-        private Chunk InsertChunk(ref Int3 pos, Chunk chunk)
+        private void InsertChunk(Chunk chunk)
         {
-            Chunks.Add(pos, chunk);
+            Chunks.Add(chunk.Position, chunk);
+            return;
+        }
+
+        public Chunk InsertChunkAndUpdate(Chunk chunk)
+        {
+            InsertChunk(chunk);
+            foreach (var dt in Delta)
+                if (Chunks.TryGetValue(chunk.Position + dt, out var target))
+                    target.IsUpdated = true;
             return chunk;
         }
 
-        public Chunk InsertChunkAndUpdate(Int3 pos, Chunk chunk)
+        private void ResetChunk(Chunk ptr)
         {
-            var ret = InsertChunk(ref pos, chunk);
-            foreach (var dt in Delta)
-                if (Chunks.TryGetValue(pos + dt, out var target))
-                    target.IsUpdated = true;
-            return ret;
-        }
-
-        private Chunk ResetChunk(ref Int3 pos, Chunk ptr)
-        {
-            Chunks[pos].Dispose();
-            return Chunks[pos] = ptr;
+            Chunks[ptr.Position].Dispose();
+            Chunks[ptr.Position] = ptr;
         }
 
         public List<Aabb> GetHitboxes(Aabb range)
@@ -151,11 +151,11 @@ namespace Game.World
             }
         }
 
-        private void ResetChunkAndUpdate(Int3 pos, Chunk chunk)
+        private void ResetChunkAndUpdate(Chunk chunk)
         {
-            ResetChunk(ref pos, chunk);
+            ResetChunk(chunk);
             foreach (var dt in Delta)
-                if (Chunks.TryGetValue(pos + dt, out var target))
+                if (Chunks.TryGetValue(chunk.Position + dt, out var target))
                     target.IsUpdated = true;
         }
     }
