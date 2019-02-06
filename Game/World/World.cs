@@ -34,12 +34,9 @@ namespace Game.World
             new Int3(0, 0, 1), new Int3(0, 0, -1)
         };
 
-        protected static uint IdCount;
-
         private readonly Double3 hitboxOffset = new Double3(1.0, 1.0, 1.0);
 
         // All Chunks (Chunk array)
-        private readonly object mutex = new object();
 
         public World(string name)
         {
@@ -103,7 +100,6 @@ namespace Game.World
         private void InsertChunk(Chunk chunk)
         {
             Chunks.Add(chunk.Position, chunk);
-            return;
         }
 
         public Chunk InsertChunkAndUpdate(Chunk chunk)
@@ -117,8 +113,7 @@ namespace Game.World
 
         private void ResetChunk(Chunk ptr)
         {
-            Chunks[ptr.Position].Dispose();
-            Chunks[ptr.Position] = ptr;
+            Chunks[ptr.Position].MoveFrom(ptr);
         }
 
         public List<Aabb> GetHitboxes(Aabb range)
@@ -139,16 +134,6 @@ namespace Game.World
             }
 
             return res;
-        }
-
-        public void UpdateChunkLoadStatus()
-        {
-            lock (mutex)
-            {
-                foreach (var kvPair in Chunks.ToList())
-                    if (kvPair.Value.CheckReleaseable())
-                        Chunks.Remove(kvPair.Key);
-            }
         }
 
         private void ResetChunkAndUpdate(Chunk chunk)
