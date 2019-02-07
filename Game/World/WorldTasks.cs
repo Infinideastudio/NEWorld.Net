@@ -19,7 +19,6 @@
 
 using System;
 using System.Threading;
-using Game.Network;
 using Game.Utilities;
 using Xenko.Core.Mathematics;
 
@@ -66,7 +65,7 @@ namespace Game.World
                 // Adding Sentry
                 chunk = new Chunk(chunkPosition, world, Chunk.InitOption.None);
                 ChunkService.TaskDispatcher.Add(new LocalLoadTask(world, chunkPosition, this));
-                if (!ChunkService.IsAuthority) Client.GetChunk.Call(world.Id, chunkPosition);
+                if (!ChunkService.IsAuthority) Network.Client.GetChunk.Call(world.Id, chunkPosition);
             }
             
             public void Task()

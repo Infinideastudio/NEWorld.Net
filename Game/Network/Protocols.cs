@@ -100,18 +100,10 @@ namespace Game.Network
                 }
             }
 
-            private static unsafe byte[] Get(Chunk chunkPtr)
+            private static byte[] Get(Chunk chunk)
             {
                 var chunkData = LocalMemCache.Value ?? (LocalMemCache.Value = new byte[32768 * 4]);
-                for (var i = 0; i < 32768 * 4; ++i)
-                {
-                    var block = chunkPtr.Blocks[i >> 2];
-                    chunkData[i++] = (byte) (block.Id >> 4);
-                    chunkData[i++] = (byte) ((block.Id << 4) | block.Brightness);
-                    chunkData[i++] = (byte) (block.Data >> 8);
-                    chunkData[i] = (byte) block.Data;
-                }
-
+                chunk.SerializeTo(chunkData);
                 return chunkData;
             }
 
@@ -136,10 +128,6 @@ namespace Game.Network
 
         public class Client : Protocol
         {
-            public Client()
-            {
-            }
-
             public override string Name()
             {
                 return "GetChunk";
@@ -168,17 +156,10 @@ namespace Game.Network
                 ChunkService.TaskDispatcher.Add(new World.World.ResetChunkTask(chk));
             }
 
-            private static unsafe Chunk DeserializeChunk(Int3 chunkPos, World.World world, byte[] data)
+            private static Chunk DeserializeChunk(Int3 chunkPos, World.World world, byte[] data)
             {
                 var chk = new Chunk(chunkPos, world, Chunk.InitOption.AllocateUnique);
-                for (var i = 0; i < 32768 * 4; i += 4)
-                {
-                    ref var block = ref chk.Blocks[i >> 2];
-                    block.Id = (ushort) ((data[i] << 4) | (data[i + 1] >> 4));
-                    block.Brightness = (byte) (data[i + 1] | 0xF);
-                    block.Data = (uint) ((data[i + 2] << 8) | data[i + 3]);
-                }
-
+                chk.DeserializeFrom(data);
                 return chk;
             }
 
