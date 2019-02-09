@@ -17,6 +17,7 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Core;
@@ -139,7 +140,7 @@ namespace NEWorld
         {
             await Core.Services.Get<Client>("Game.Client").Enable("127.0.0.1", 31111);
             await Client.GetStaticChunkIds.Call();
-            Modules.Instance.WorkspaceInitialize();
+            EventBus.Broadcast(this, new GameLoadEvent());
         }
 
         private void LoadPlayer()
@@ -183,10 +184,10 @@ namespace NEWorld
             TearDown();
         }
 
-        private static void TearDown()
+        private void TearDown()
         {
             Core.Services.Get<TaskDispatcher>("Game.TaskDispatcher").Reset();
-            Modules.Instance.WorkspaceFinalize();
+            EventBus.Broadcast(this, new GameUnloadEvent());
         }
 
         private static async Task<uint> RequestWorld()
