@@ -1,7 +1,7 @@
 ﻿// 
-// NEWorldShell: Cli.cs
+// NEWorld/NEWorldShell: Cli.cs
 // NEWorld: A Free Game with Similar Rules to Minecraft.
-// Copyright (C) 2015-2018 NEWorld Team
+// Copyright (C) 2015-2019 NEWorld Team
 // 
 // NEWorld is free software: you can redistribute it and/or modify it 
 // under the terms of the GNU Lesser General Public License as published
@@ -16,7 +16,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
-
 using System;
 using System.Runtime;
 using Core;
@@ -66,7 +65,7 @@ namespace NEWorldShell
             _commands.RegisterCommand("server.ups", new CommandInfo("internal", "Show the ups."),
                 cmd =>
                 {
-                    // TODO: Add UPS counter for server
+                    // TODO: AddReadOnlyTask UPS counter for server
                     return new CommandExecuteStat(true, "[Server UPS counter not finished yet!]");
                 });
 
