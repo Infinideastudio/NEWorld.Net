@@ -18,6 +18,7 @@
 // 
 using Core;
 using Core.Module;
+using Game;
 using Game.Terrain;
 using Game.World;
 
@@ -40,16 +41,19 @@ namespace Main
             Chunk.SetGenerator(WorldGen.Generator);
             StaticChunkPool.Register("Main.RockChunk", new Chunk(new BlockData(_rockId)));
             StaticChunkPool.Register("Main.WaterChunk", new Chunk(new BlockData(_waterId)));
+            EventBus.AddCollection(this);
             RendererInit();
         }
 
-        public void WorkspaceInitialize()
+        [DeclareBusEventHandler]
+        public void GameLoads(object sender, GameLoadEvent load)
         {
             _rockChunkId = StaticChunkPool.GetId("Main.RockChunk");
             _waterChunkId = StaticChunkPool.GetId("Main.WaterChunk");
         }
-
-        public void WorkspaceFinalize()
+        
+        [DeclareBusEventHandler]
+        public void GameUnloads(object sender, GameUnloadEvent load)
         {
         }
 

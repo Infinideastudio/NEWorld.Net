@@ -19,19 +19,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Threading;
 
 namespace Core
 {
     public class DeclareBusEventHandlerAttribute : Attribute
     {
-        public readonly Type Type;
-
-        public DeclareBusEventHandlerAttribute(Type type)
-        {
-            Type = type;
-        }
     }
 
     public static class EventBus
@@ -117,17 +110,25 @@ namespace Core
             foreach (var method in obj.GetType().GetMethods())
                 if (method.IsDefined(typeof(DeclareBusEventHandlerAttribute), true))
                 {
-                    var payload =
-                        (DeclareBusEventHandlerAttribute) method.GetCustomAttribute(
-                            typeof(DeclareBusEventHandlerAttribute));
-                    var handlerType = typeof(EventHandler<>).MakeGenericType(payload.Type);
-                    var del = method.IsStatic
-                        ? Delegate.CreateDelegate(handlerType, method)
-                        : Delegate.CreateDelegate(handlerType, obj, method);
-                    if (add)
-                        GetOrCreateSlot(payload.Type).Add(del);
+                    var payload = method.GetParameters();
+                    if (payload.Length == 2)
+                    {
+                        var payloadType = payload[payload.Length - 1].ParameterType;
+                        var handlerType = typeof(EventHandler<>).MakeGenericType(payloadType);
+                        var del = method.IsStatic
+                            ? Delegate.CreateDelegate(handlerType, method)
+                            : Delegate.CreateDelegate(handlerType, obj, method);
+                        if (add)
+                            GetOrCreateSlot(payloadType).Add(del);
+                        else
+                            GetOrCreateSlot(payloadType).Remove(del);
+                    }
                     else
-                        GetOrCreateSlot(payload.Type).Remove(del);
+                    {
+                        throw new ArgumentException(
+                            $"Excepting Arguments (System.Object, T) But Got {payload.Length} at Handler {method}" +
+                            ", Stopping. Note that Previously Added Handlers will NOT be Removed");
+                    }
                 }
         }
 
