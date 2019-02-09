@@ -16,6 +16,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -63,59 +64,6 @@ namespace Game
         private List<Action> renderTasks, nextRenderTasks;
         private bool shouldExit;
 
-        public struct NextReadOnlyChanceS
-        {
-            public struct Awaiter : INotifyCompletion
-            {
-                public bool IsCompleted => false;
-
-                public void GetResult()
-                {
-                }
-
-                public void OnCompleted(Action continuation)
-                {
-                    ChunkService.TaskDispatcher.AddReadOnlyTask(continuation);
-                }
-            }
-
-            public Awaiter GetAwaiter() { return new Awaiter();}
-        }
-
-        /**
-         * \brief This type of tasks will be executed concurrently.
-         *        Note that "ReadOnly" here is with respect to chunks
-         *        data specifically. However please be aware of
-         *        thread safety when you write something other than
-         *        chunks.
-         */
-        public NextReadOnlyChanceS NextReadOnlyChance() { return new NextReadOnlyChanceS(); }
-
-        public struct NextRenderChanceS
-        {
-            public struct Awaiter : INotifyCompletion
-            {
-                public bool IsCompleted => false;
-
-                public void GetResult()
-                {
-                }
-
-                public void OnCompleted(Action continuation)
-                {
-                    ChunkService.TaskDispatcher.AddRenderTask(continuation);
-                }
-            }
-
-            public Awaiter GetAwaiter() { return new Awaiter();}
-        }
-        
-        /**
-         * \brief This type of tasks will be executed in main thread.
-         *        Thus, it is safe to call OpenGL function inside.
-         */
-        public NextRenderChanceS NextRenderChance() { return new NextRenderChanceS(); }
-
         // Automatic Creation. We reserve one virtual processor for main thread
         public TaskDispatcher() : this(Environment.ProcessorCount - 1)
         {
@@ -147,6 +95,27 @@ namespace Game
         {
             ReleaseUnmanagedResources();
             GC.SuppressFinalize(this);
+        }
+
+        /**
+         * \brief This type of tasks will be executed concurrently.
+         *        Note that "ReadOnly" here is with respect to chunks
+         *        data specifically. However please be aware of
+         *        thread safety when you write something other than
+         *        chunks.
+         */
+        public NextReadOnlyChanceS NextReadOnlyChance()
+        {
+            return new NextReadOnlyChanceS();
+        }
+
+        /**
+         * \brief This type of tasks will be executed in main thread.
+         *        Thus, it is safe to call OpenGL function inside.
+         */
+        public NextRenderChanceS NextRenderChance()
+        {
+            return new NextRenderChanceS();
         }
 
         ~TaskDispatcher()
@@ -274,6 +243,50 @@ namespace Game
         {
             Reset();
             barrier?.Dispose();
+        }
+
+        public struct NextReadOnlyChanceS
+        {
+            public struct Awaiter : INotifyCompletion
+            {
+                public bool IsCompleted => false;
+
+                public void GetResult()
+                {
+                }
+
+                public void OnCompleted(Action continuation)
+                {
+                    ChunkService.TaskDispatcher.AddReadOnlyTask(continuation);
+                }
+            }
+
+            public Awaiter GetAwaiter()
+            {
+                return new Awaiter();
+            }
+        }
+
+        public struct NextRenderChanceS
+        {
+            public struct Awaiter : INotifyCompletion
+            {
+                public bool IsCompleted => false;
+
+                public void GetResult()
+                {
+                }
+
+                public void OnCompleted(Action continuation)
+                {
+                    ChunkService.TaskDispatcher.AddRenderTask(continuation);
+                }
+            }
+
+            public Awaiter GetAwaiter()
+            {
+                return new Awaiter();
+            }
         }
     }
 }
