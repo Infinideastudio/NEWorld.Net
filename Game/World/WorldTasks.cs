@@ -1,7 +1,7 @@
 // 
-// Game: WorldTasks.cs
+// NEWorld/Game: WorldTasks.cs
 // NEWorld: A Free Game with Similar Rules to Minecraft.
-// Copyright (C) 2015-2018 NEWorld Team
+// Copyright (C) 2015-2019 NEWorld Team
 // 
 // NEWorld is free software: you can redistribute it and/or modify it 
 // under the terms of the GNU Lesser General Public License as published
@@ -16,7 +16,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
-
 using System;
 using System.Threading;
 using Game.Utilities;
@@ -41,7 +40,7 @@ namespace Game.World
             private readonly Chunk chunk;
 
             /**
-             * \brief Add a constructed chunk into world.
+             * \brief AddReadOnlyTask a constructed chunk into world.
              * \param chunk the target chunk
              */
             public ResetChunkTask(Chunk chunk)
@@ -54,7 +53,7 @@ namespace Game.World
                 chunk.World.ResetChunkAndUpdate(chunk);
             }
         }
-        
+
         private class LoadTask : IReadWriteTask
         {
             private Chunk chunk;
@@ -64,10 +63,10 @@ namespace Game.World
             {
                 // Adding Sentry
                 chunk = new Chunk(chunkPosition, world, Chunk.InitOption.None);
-                ChunkService.TaskDispatcher.Add(new LocalLoadTask(world, chunkPosition, this));
                 if (!ChunkService.IsAuthority) Network.Client.GetChunk.Call(world.Id, chunkPosition);
+                LocalLoad(world, chunkPosition);
             }
-            
+
             public void Task()
             {
                 var operated = Interlocked.Exchange(ref chunk, null);
@@ -82,29 +81,14 @@ namespace Game.World
 
             private void Reset(Chunk chk)
             {
-                if (Interlocked.Exchange(ref chunk, chk) == null) 
+                if (Interlocked.Exchange(ref chunk, chk) == null)
                     ChunkService.TaskDispatcher.Add(this);
             }
 
-            private class LocalLoadTask : IReadOnlyTask
+            private async void LocalLoad(World world, Int3 position)
             {
-                private readonly Int3 chunkPosition;
-
-                private readonly World world;
-
-                private readonly LoadTask load;
-
-                public LocalLoadTask(World wrd, Int3 position, LoadTask loadTask)
-                {
-                    world = wrd;
-                    chunkPosition = position;
-                    load = loadTask;
-                }
-
-                public void Task()
-                {
-                    load.Reset(new Chunk(chunkPosition, world));
-                }
+                await ChunkService.TaskDispatcher.NextReadOnlyChance();
+                Reset(new Chunk(position, world));
             }
         }
 

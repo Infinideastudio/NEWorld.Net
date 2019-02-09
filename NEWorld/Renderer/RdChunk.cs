@@ -1,6 +1,7 @@
-﻿// NEWorld: GameScene.cs
+﻿// 
+// NEWorld/NEWorld: RdChunk.cs
 // NEWorld: A Free Game with Similar Rules to Minecraft.
-// Copyright (C) 2015-2018 NEWorld Team
+// Copyright (C) 2015-2019 NEWorld Team
 // 
 // NEWorld is free software: you can redistribute it and/or modify it 
 // under the terms of the GNU Lesser General Public License as published
@@ -15,7 +16,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
-
 using Game.Terrain;
 using Game.World;
 using Xenko.Core.Mathematics;
@@ -29,7 +29,7 @@ namespace NEWorld.Renderer
      *        But it does not involve OpenGL operations so it can be
      *        safely called from all threads.
      */
-    public class ChunkRenderData
+    public class ChunkVboGen
     {
         public Model Model { get; private set; }
 
@@ -38,21 +38,11 @@ namespace NEWorld.Renderer
          *        Does not involve OpenGL functions.
          * \param chunk the chunk to be rendered.
          */
-        public void Generate(Chunk chunk)
+        public ChunkVboGen Generate(Chunk chunk)
         {
             using (VertexBuilder vaOpacity = new VertexBuilder(262144), vaTranslucent = new VertexBuilder(262144)) {
                 var tmp = new Int3();
-                var pos = chunk.Position;
-                var world = chunk.World;
-                var context = new BlockRenderContext(chunk, new []
-                {
-                    world.GetChunk(new Int3(pos.X + 1, pos.Y, pos.Z)),
-                    world.GetChunk(new Int3(pos.X - 1, pos.Y, pos.Z)),
-                    world.GetChunk(new Int3(pos.X, pos.Y + 1, pos.Z)),
-                    world.GetChunk(new Int3(pos.X, pos.Y - 1, pos.Z)),
-                    world.GetChunk(new Int3(pos.X, pos.Y, pos.Z + 1)),
-                    world.GetChunk(new Int3(pos.X, pos.Y, pos.Z - 1))
-                });
+                var context = new BlockRenderContext(chunk, chunk.GetNeighbors());
                 for (tmp.X = 0; tmp.X < Chunk.RowSize; ++tmp.X)
                 for (tmp.Y = 0; tmp.Y < Chunk.RowSize; ++tmp.Y)
                 for (tmp.Z = 0; tmp.Z < Chunk.RowSize; ++tmp.Z)
@@ -68,20 +58,21 @@ namespace NEWorld.Renderer
                 if (mesh0 != null) Model.Add(mesh0);
                 if (mesh1 != null) Model.Add(mesh1);
             }
+
+            return this;
         }
     }
 
     /**
      * \brief The renderer that can be used to render directly. It includes
      *        VBO that we need to render. It can be generated from a
-     *        ChunkRenderData
+     *        ChunkVboGen
      */
     public class RdChunk
     {
-        public RdChunk(ChunkRenderData data, Vector3 chunkPosition)
+        public RdChunk(Vector3 chunkPosition)
         {
             Entity = new Entity();
-            Update(data);
             Entity.GetOrCreate<TransformComponent>().Position = chunkPosition * Chunk.RowSize;
         }
 
@@ -93,11 +84,10 @@ namespace NEWorld.Renderer
          *        main thread.
          * \param data The render data that will be used to generate VBO
          */
-        public void Update(ChunkRenderData data)
+        public void Update(Model model)
         {
-            var model = data.Model;
             if (model != null)
-                Entity.GetOrCreate<ModelComponent>().Model = data.Model;
+                Entity.GetOrCreate<ModelComponent>().Model = model;
             else
                 Entity.Remove<ModelComponent>();
         }

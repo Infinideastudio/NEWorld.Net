@@ -1,7 +1,7 @@
 // 
-// Game: TaskDispatcher.cs
+// NEWorld/Game: TaskDispatcher.cs
 // NEWorld: A Free Game with Similar Rules to Minecraft.
-// Copyright (C) 2015-2018 NEWorld Team
+// Copyright (C) 2015-2019 NEWorld Team
 // 
 // NEWorld is free software: you can redistribute it and/or modify it 
 // under the terms of the GNU Lesser General Public License as published
@@ -16,10 +16,10 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Core;
 using Core.Utilities;
@@ -32,18 +32,6 @@ namespace Game
     }
 
     /**
-     * \brief This type of tasks will be executed concurrently.
-     *        Note that "ReadOnly" here is with respect to chunks
-     *        data specifically. However please be aware of
-     *        thread safety when you write something other than
-     *        chunks.
-     */
-    public interface IReadOnlyTask
-    {
-        void Task();
-    }
-
-    /**
      * \brief This type of tasks will be executed in one thread.
      *        Thus, it is safe to do write opeartions inside
      *        without the need to worry thread safety.
@@ -53,14 +41,6 @@ namespace Game
         void Task();
     }
 
-    /**
-     * \brief This type of tasks will be executed in main thread.
-     *        Thus, it is safe to call OpenGL function inside.
-     */
-    public interface IRenderTask
-    {
-        void Task();
-    }
 
     public interface IRegularReadOnlyTask : IInstancedTask
     {
@@ -73,15 +53,68 @@ namespace Game
 
         // TODO: replace it with lock-free structure.
         private readonly object mutex;
-        private readonly ConcurrentBag<IReadOnlyTask> readOnlyTasks;
+        private readonly ConcurrentBag<Action> readOnlyTasks;
         private readonly List<IRegularReadOnlyTask> regularReadOnlyTasks;
         private readonly List<IReadWriteTask> regularReadWriteTasks;
         private readonly List<Thread> threads;
 
         private RateController meter = new RateController(30);
         private List<IReadWriteTask> readWriteTasks, nextReadWriteTasks;
-        private List<IRenderTask> renderTasks, nextRenderTasks;
+        private List<Action> renderTasks, nextRenderTasks;
         private bool shouldExit;
+
+        public struct NextReadOnlyChanceS
+        {
+            public struct Awaiter : INotifyCompletion
+            {
+                public bool IsCompleted => false;
+
+                public void GetResult()
+                {
+                }
+
+                public void OnCompleted(Action continuation)
+                {
+                    ChunkService.TaskDispatcher.AddReadOnlyTask(continuation);
+                }
+            }
+
+            public Awaiter GetAwaiter() { return new Awaiter();}
+        }
+
+        /**
+         * \brief This type of tasks will be executed concurrently.
+         *        Note that "ReadOnly" here is with respect to chunks
+         *        data specifically. However please be aware of
+         *        thread safety when you write something other than
+         *        chunks.
+         */
+        public NextReadOnlyChanceS NextReadOnlyChance() { return new NextReadOnlyChanceS(); }
+
+        public struct NextRenderChanceS
+        {
+            public struct Awaiter : INotifyCompletion
+            {
+                public bool IsCompleted => false;
+
+                public void GetResult()
+                {
+                }
+
+                public void OnCompleted(Action continuation)
+                {
+                    ChunkService.TaskDispatcher.AddRenderTask(continuation);
+                }
+            }
+
+            public Awaiter GetAwaiter() { return new Awaiter();}
+        }
+        
+        /**
+         * \brief This type of tasks will be executed in main thread.
+         *        Thus, it is safe to call OpenGL function inside.
+         */
+        public NextRenderChanceS NextRenderChance() { return new NextRenderChanceS(); }
 
         // Automatic Creation. We reserve one virtual processor for main thread
         public TaskDispatcher() : this(Environment.ProcessorCount - 1)
@@ -99,13 +132,13 @@ namespace Game
             threads = new List<Thread>(threadNumber);
             TimeUsed = new int[threadNumber];
             mutex = new object();
-            readOnlyTasks = new ConcurrentBag<IReadOnlyTask>();
+            readOnlyTasks = new ConcurrentBag<Action>();
             regularReadOnlyTasks = new List<IRegularReadOnlyTask>();
             readWriteTasks = new List<IReadWriteTask>();
             nextReadWriteTasks = new List<IReadWriteTask>();
             regularReadWriteTasks = new List<IReadWriteTask>();
-            renderTasks = new List<IRenderTask>();
-            nextRenderTasks = new List<IRenderTask>();
+            renderTasks = new List<Action>();
+            nextRenderTasks = new List<Action>();
         }
 
         public int[] TimeUsed { get; }
@@ -133,7 +166,7 @@ namespace Game
             }
         }
 
-        public void Add(IReadOnlyTask task)
+        private void AddReadOnlyTask(Action task)
         {
             readOnlyTasks.Add(task);
         }
@@ -145,8 +178,8 @@ namespace Game
                 nextReadWriteTasks.Add(task);
             }
         }
-        
-        public void Add(IRenderTask task)
+
+        private void AddRenderTask(Action task)
         {
             lock (mutex)
             {
@@ -179,7 +212,7 @@ namespace Game
             lock (mutex)
             {
                 foreach (var task in renderTasks)
-                    task.Task();
+                    task();
                 renderTasks.Clear();
                 Generic.Swap(ref renderTasks, ref nextRenderTasks);
             }
@@ -220,9 +253,9 @@ namespace Game
                 regularReadOnlyTasks[cnt].Task(i, TimeUsed.Length);
 
             // TODO: Make sure the no further tasks will be added before exiting this function
-            // TODO: Add a timeout support for this to ensure the updation rate
+            // TODO: AddReadOnlyTask a timeout support for this to ensure the updation rate
             while (readOnlyTasks.TryTake(out var task))
-                task.Task();
+                task();
         }
 
         private void ProcessReadWriteTasks()

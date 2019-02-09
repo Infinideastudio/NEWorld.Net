@@ -1,7 +1,7 @@
 ﻿// 
-// NEWorld: GameScene.cs
+// NEWorld/NEWorld: RdWorld.cs
 // NEWorld: A Free Game with Similar Rules to Minecraft.
-// Copyright (C) 2015-2018 NEWorld Team
+// Copyright (C) 2015-2019 NEWorld Team
 // 
 // NEWorld is free software: you can redistribute it and/or modify it 
 // under the terms of the GNU Lesser General Public License as published
@@ -16,7 +16,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,7 +27,7 @@ namespace NEWorld.Renderer
 {
     public class RdWorld
     {
-        public const int MaxChunkRenderCount = 16;
+        public const int MaxChunkRenderCount = 64;
 
         // Chunk Renderers
         private readonly Dictionary<Int3, RdChunk> chunkRenderers;
@@ -75,26 +74,41 @@ namespace NEWorld.Renderer
                     var counter = 0;
                     // TODO: improve performance by adding multiple instances of this and set a step when itering the chunks.
                     var position = player.Position;
-                    var positionInt = new Int3((int) position.X, (int) position.Y, (int) position.Z);
-                    var chunkpos = World.GetChunkPos(positionInt);
+                    var center = World.GetChunkPos(new Int3((int) position.X, (int) position.Y, (int) position.Z));
                     var world = ChunkService.Worlds.Get(currentWorldId);
                     foreach (var c in world.Chunks)
                     {
                         var chunk = c.Value;
-                        var chunkPosition = chunk.Position;
                         // In render range, pending to render
-                        if (chunk.IsUpdated && ChebyshevDistance(chunkpos, chunkPosition) <= rdWorldRenderer.RenderDist)
-                            if (NeighbourChunkLoadCheck(world, chunkPosition))
+                        if (chunk.IsUpdated && ChebyshevDistance(center, chunk.Position) <= rdWorldRenderer.RenderDist)
+                            if (NeighbourChunkLoadCheck(world, chunk.Position))
                             {
-                                // TODO: maybe build a VA pool can speed this up.
-                                var crd = new ChunkRenderData();
-                                crd.Generate(chunk);
-                                ChunkService.TaskDispatcher.Add(new VboGenerateTask(world, chunkPosition, crd,
-                                    rdWorldRenderer.chunkRenderers));
+                                GenerateVbo(chunk, rdWorldRenderer.chunkRenderers);
                                 if (++counter == MaxChunkRenderCount) break;
                             }
                     }
                 }
+            }
+
+            private static async void GenerateVbo(Chunk target, Dictionary<Int3, RdChunk> pool)
+            {
+                await ChunkService.TaskDispatcher.NextReadOnlyChance();
+                var model = new ChunkVboGen().Generate(target).Model;
+                await ChunkService.TaskDispatcher.NextRenderChance();
+                var position = target.Position;
+                // TODO: Check the Chunk Directly
+                if (!target.World.Chunks.ContainsKey(position)) return;
+                target.IsUpdated = false; // TODO: Remove when chunk update driver is complete
+                GetOrAddRdChunk(pool, position).Update(model);
+            }
+
+            private static RdChunk GetOrAddRdChunk(Dictionary<Int3, RdChunk> pool, Int3 position)
+            {
+                if (pool.TryGetValue(position, out var it)) return it;
+                var renderer = new RdChunk(new Vector3(position.X, position.Y, position.Z));
+                Context.OperatingScene.Entities.Add(renderer.Entity);
+                pool.Add(position, renderer);
+                return renderer;
             }
 
             // TODO: Remove Type1 Clone
@@ -109,38 +123,6 @@ namespace NEWorld.Renderer
             }
         }
 
-        private class VboGenerateTask : IRenderTask
-        {
-            private readonly ChunkRenderData chunkRenderData;
-            private readonly Dictionary<Int3, RdChunk> chunkRenderers;
-            private readonly Int3 position;
-
-            private readonly World world;
-
-            public VboGenerateTask(World world, Int3 position, ChunkRenderData crd,
-                Dictionary<Int3, RdChunk> chunkRenderers)
-            {
-                this.world = world;
-                this.position = position;
-                chunkRenderData = crd;
-                this.chunkRenderers = chunkRenderers;
-            }
-
-            public void Task()
-            {
-                if (!world.Chunks.TryGetValue(position, out var chunk)) return;
-                chunk.IsUpdated = false;
-                if (chunkRenderers.TryGetValue(position, out var it))
-                {
-                    it.Update(chunkRenderData);
-                }
-                else
-                {
-                    var renderer = new RdChunk(chunkRenderData, new Vector3(position.X, position.Y, position.Z));
-                    Context.OperatingScene.Entities.Add(renderer.Entity);
-                    chunkRenderers.Add(position, renderer);
-                }
-            }
-        }
+        
     }
 }
