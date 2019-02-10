@@ -17,12 +17,10 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 using System;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Core;
 using Core.Module;
-using Core.Utilities;
 using Game;
 using Game.Network;
 using Game.World;
@@ -108,7 +106,7 @@ namespace NEWorld
 
         private void InitializeModules()
         {
-            Modules.Instance.Load("Main");
+            Modules.Load("Main");
         }
 
         private void InitializeContext()
@@ -119,6 +117,7 @@ namespace NEWorld
             Context.OperatingScene = Entity.Scene;
             LogPort.Logger = Log;
             Log.ActivateLog(LogMessageType.Debug);
+            EventBus.Broadcast(this, new GameRenderPrepareEvent());
         }
 
         private void EstablishChunkService()
@@ -188,6 +187,7 @@ namespace NEWorld
         {
             Core.Services.Get<TaskDispatcher>("Game.TaskDispatcher").Reset();
             EventBus.Broadcast(this, new GameUnloadEvent());
+            EventBus.Broadcast(this, new GameRenderFinalizeEvent());
         }
 
         private static async Task<uint> RequestWorld()

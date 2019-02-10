@@ -1,5 +1,5 @@
 ﻿// 
-// NEWorld/NEWorld: Events.cs
+// NEWorld/Core: ApplicationControl.cs
 // NEWorld: A Free Game with Similar Rules to Minecraft.
 // Copyright (C) 2015-2019 NEWorld Team
 // 
@@ -17,29 +17,27 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
-namespace Game
+namespace Core
 {
-    public class GameRenderPrepareEvent
+    public static class ApplicationControl
     {
-    }
+        public class Launch
+        {
+        }
 
-    public class GameLoadEvent
-    {
-    }
+        public class Shutdown
+        {
+        }
 
-    public class GameStartEvent
-    {
-    }
+        public static void DoLaunch()
+        {
+            AssemblyReflectiveScanner.UpdateDomainAssemblies();
+            EventBus.Broadcast(null, new Launch());
+        }
 
-    public class GameEndEvent
-    {
-    }
-
-    public class GameUnloadEvent
-    {
-    }
-
-    public class GameRenderFinalizeEvent
-    {
+        public static void DoShutdown()
+        {
+            EventBus.Broadcast(null, new Shutdown());
+        }
     }
 }

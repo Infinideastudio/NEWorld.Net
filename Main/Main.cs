@@ -42,6 +42,11 @@ namespace Main
             StaticChunkPool.Register("Main.RockChunk", new Chunk(new BlockData(_rockId)));
             StaticChunkPool.Register("Main.WaterChunk", new Chunk(new BlockData(_waterId)));
             EventBus.AddCollection(this);
+        }
+
+        [DeclareBusEventHandler]
+        public void GameRenderInit(object sender, GameRenderPrepareEvent load)
+        {
             RendererInit();
         }
 
@@ -54,6 +59,11 @@ namespace Main
         
         [DeclareBusEventHandler]
         public void GameUnloads(object sender, GameUnloadEvent load)
+        {
+        }
+
+        [DeclareBusEventHandler]
+        public void GameRenderFinalize(object sender, GameRenderFinalizeEvent load)
         {
         }
 

@@ -19,7 +19,6 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Core.Utilities;
 
 namespace Core.Module
 {
@@ -30,54 +29,56 @@ namespace Core.Module
         void OnMemoryWarning();
     }
 
-    public class DeclareModuleAttribute : Attribute
+    public sealed class DeclareModuleAttribute : Attribute
     {
     }
 
-    public class Modules
+    [DeclareAssemblyReflectiveScanner]
+    [DeclareGlobalBusEventHandlerClass]
+    public sealed class Modules : IAssemblyReflectiveScanner
     {
-        private readonly Dictionary<string, KeyValuePair<IModule, Assembly>> modules;
+        private static readonly Dictionary<string, IModule> Loaded = new Dictionary<string, IModule>();
 
-        private string basePath = Path.Modules();
-
-        private Modules()
+        private static string _basePath = Path.Modules();
+        
+        public static void SetBasePath(string path)
         {
-            modules = new Dictionary<string, KeyValuePair<IModule, Assembly>>();
+            _basePath = path;
         }
 
-        public IModule this[string name] => modules[name].Key;
-
-        public static Modules Instance => Singleton<Modules>.Instance;
-
-        public void SetBasePath(string path)
+        public static void Load(string moduleFile)
         {
-            basePath = path;
-        }
-
-        public void Load(string moduleFile)
-        {
-            var assembly = Assembly.Load(moduleFile);
-            var possibleTypes = assembly.GetExportedTypes();
-            foreach (var type in possibleTypes)
-                if (type.IsDefined(typeof(DeclareModuleAttribute), false) && typeof(IModule).IsAssignableFrom(type))
-                    try
-                    {
-                        var module = (IModule) Activator.CreateInstance(type);
-                        module.CoInitialize();
-                        modules.Add(type.FullName ?? "", new KeyValuePair<IModule, Assembly>(module, assembly));
-                        LogPort.Debug($"Loaded Module : {type}");
-                    }
-                    catch (Exception e)
-                    {
-                        LogPort.Debug($"Module {type} Load Failure : {e}");
-                    }
+            Assembly.Load(moduleFile);
         }
         
-        public void UnloadAll()
+        [DeclareBusEventHandler]
+        public static void UnloadAll(object sender, ApplicationControl.Shutdown type)
         {
-            foreach (var module in modules)
-                module.Value.Key.CoFinalize();
-            modules.Clear();
+            lock (Loaded)
+            {
+                foreach (var module in Loaded)
+                    module.Value.CoFinalize();
+                Loaded.Clear();
+            }
+        }
+
+        public void ProcessType(Type type)
+        {
+            if (type.IsDefined(typeof(DeclareModuleAttribute), false) && typeof(IModule).IsAssignableFrom(type))
+                try
+                {
+                    var module = (IModule) Activator.CreateInstance(type);
+                    module.CoInitialize();
+                    lock (Loaded)
+                    {
+                        Loaded.Add(type.FullName ?? "", module);
+                    }
+                    LogPort.Debug($"Loaded Module : {type}");
+                }
+                catch (Exception e)
+                {
+                    LogPort.Debug($"Module {type} Load Failure : {e}");
+                }
         }
     }
 }
