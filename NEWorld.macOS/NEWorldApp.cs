@@ -18,14 +18,16 @@
 // 
 namespace NEWorld.macOS
 {
-    internal class NEWorldApp
+    internal static class NEWorldApp
     {
         private static void Main(string[] args)
         {
+            Core.ApplicationControl.DoLaunch();
             using (var game = new Xenko.Engine.Game())
             {
                 game.Run();
             }
+            Core.ApplicationControl.DoShutdown();
         }
     }
 }

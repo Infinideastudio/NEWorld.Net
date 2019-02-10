@@ -26,7 +26,8 @@ namespace NEWorldShell
     {
         public static void Main(string[] args)
         {
-            Modules.Instance.Load("Main");
+            ApplicationControl.DoLaunch();
+            Modules.Load("Main");
             var cli = new ServerCommandLine();
             var server = Services.Get<Server>("Game.Server");
             server.Enable(31111);
@@ -34,6 +35,7 @@ namespace NEWorldShell
             server.Run();
             cli.Start();
             EventBus.Broadcast(null, new Game.GameUnloadEvent());
+            ApplicationControl.DoShutdown();
         }
     }
 }

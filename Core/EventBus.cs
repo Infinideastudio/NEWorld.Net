@@ -178,4 +178,16 @@ namespace Core
             }
         }
     }
+
+    public sealed class DeclareGlobalBusEventHandlerClassAttribute : Attribute {}
+
+    [DeclareAssemblyReflectiveScanner]
+    public sealed class GlobalBusEventHandlerClassDetector : IAssemblyReflectiveScanner
+    {
+        public void ProcessType(Type type)
+        {
+            if (type.IsDefined(typeof(DeclareGlobalBusEventHandlerClassAttribute), false))
+                EventBus.AddCollection(Activator.CreateInstance(type));
+        }
+    }
 }
