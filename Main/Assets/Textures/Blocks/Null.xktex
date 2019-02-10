@@ -3,5 +3,8 @@ Id: 758069be-3d4f-4f11-a44c-8b5bbea08cbb
 SerializedVersion: {Xenko: 2.0.0.0}
 Tags: []
 Source: !file Null.png
+IsCompressed: false
 Type: !ColorTextureType
+    UseSRgbSampling: false
     ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+IsStreamable: false

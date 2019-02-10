@@ -22,6 +22,7 @@ using System.Threading.Tasks;
 using Core;
 using Game;
 using Game.Network;
+using Game.Terrain;
 using Game.World;
 using NEWorld.Renderer;
 using Xenko.Core.Diagnostics;
@@ -61,11 +62,11 @@ namespace NEWorld
 
         public static GraphicsContext GraphicsContext => Game.GraphicsContext;
 
-        public static CommandList CommandList => Game.GraphicsContext.CommandList;
-
         public static IndexBufferBinding IndexBuffer { get; private set; }
 
         public static ContentManager Content { get; set; }
+
+        public static RenderDrawContext RdwContext { get; set; }
     }
 
     public static class IndexBufferBuilder
@@ -115,6 +116,7 @@ namespace NEWorld
             Context.Material = Material;
             Context.OperatingScene = Entity.Scene;
             LogPort.Logger = Log;
+            Context.RdwContext = new RenderDrawContext(Services, RenderContext.GetShared(Services), Game.GraphicsContext);
             Log.ActivateLog(LogMessageType.Debug);
             EventBus.Broadcast(this, new GameRenderPrepareEvent());
         }
@@ -165,11 +167,20 @@ namespace NEWorld
         {
             InitializeContext();
             InitializeModules();
+            LoadTextures();
             EstablishChunkService();
             await EstablishGameConnection();
             LoadPlayer();
             await EnterCurrentWorld();
             StartTerrainRenderService();
+        }
+
+        private void LoadTextures()
+        {
+            var texture = RdTextures.FlushTextures();
+            BlockRenderers.FlushTextures(Core.Services.Get<IBlockTextures>("BlockTextures"));
+            Material.Passes[0].Parameters.Set(VertexTextureTerrainKeys.Almg, texture);
+            Material.Passes[0].Parameters.Set(VertexTextureTerrainKeys.TexturePerLine, RdTextures.TexturesPerLine);
         }
 
         public override void Start()

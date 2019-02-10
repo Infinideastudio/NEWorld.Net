@@ -3,5 +3,8 @@ Id: 6cde71ed-6d9a-4642-a312-d58c02dbb07d
 SerializedVersion: {Xenko: 2.0.0.0}
 Tags: []
 Source: !file Plank.png
+IsCompressed: false
 Type: !ColorTextureType
+    UseSRgbSampling: false
     ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+IsStreamable: false

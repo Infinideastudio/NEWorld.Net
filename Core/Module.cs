@@ -40,7 +40,7 @@ namespace Core
     {
         private static readonly Dictionary<string, IModule> Loaded = new Dictionary<string, IModule>();
 
-        private static string _basePath = Path.Modules();
+        private static string _basePath = AppContext.BaseDirectory;
         
         public static void SetBasePath(string path)
         {
