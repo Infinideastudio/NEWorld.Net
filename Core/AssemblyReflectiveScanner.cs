@@ -23,7 +23,11 @@ using System.Reflection;
 
 namespace Core
 {
-    public class DeclareAssemblyReflectiveScannerAttribute : Attribute
+    public sealed class DeclareNeWorldAssemblyAttribute : Attribute
+    {
+    }
+
+    public sealed class DeclareAssemblyReflectiveScannerAttribute : Attribute
     {
     }
 
@@ -110,6 +114,8 @@ namespace Core
             {
                 _processed?.Add(assembly.GetName(true));
             }
+
+            if (!assembly.IsDefined(typeof(DeclareNeWorldAssemblyAttribute), false)) return;
 
             ScanForAssemblyScanners(assembly);
 
