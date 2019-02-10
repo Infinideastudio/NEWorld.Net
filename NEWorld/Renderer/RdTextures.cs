@@ -51,25 +51,52 @@ namespace NEWorld.Renderer
             var count = Textures.Count;
             TexturesPerLine = (1 << (int)(Math.Ceiling(Math.Log(Math.Ceiling(Math.Sqrt(count))) / Math.Log(2))));
             var wid = TexturesPerLine * pixelPerTexture;
-            var texture = Texture.New2D(Context.GraphicsDevice, wid, wid,
-                1/*(int) (Math.Log(pixelPerTexture) / Math.Log(2))*/, PixelFormat.R8G8B8A8_UNorm);
-            var result = Texture.New2D(Context.GraphicsDevice, pixelPerTexture, pixelPerTexture, 1, PixelFormat.R8G8B8A8_UNorm, TextureFlags.RenderTarget | TextureFlags.ShaderResource);
-            var scaler = new ImageScaler(SamplingPattern.Expanded);
-            scaler.SetOutput(result);
-            for (var i = 0; i < count; ++i)
+            using (Texture texture = Texture.New2D(Context.GraphicsDevice, wid, wid, PixelFormat.R8G8B8A8_UNorm),
+                result = Texture.New2D(Context.GraphicsDevice, pixelPerTexture, pixelPerTexture,
+                    PixelFormat.R8G8B8A8_UNorm, TextureFlags.RenderTarget | TextureFlags.ShaderResource))
             {
-                var tile = Textures[i];
-                scaler.SetInput(tile);
-                scaler.Draw(Context.RdwContext);
-                var x = i % TexturesPerLine;
-                var y = i / TexturesPerLine;
-                var rx = x * pixelPerTexture;
-                var ry = y * pixelPerTexture;
-                Context.RdwContext.CommandList.CopyRegion(
-                    result, result.GetSubResourceIndex(0, 0), null, 
-                    texture, texture.GetSubResourceIndex(0, 0), rx, ry);
+                using (var scaler = new ImageScaler(SamplingPattern.Linear))
+                {
+                    scaler.SetOutput(result);
+                    for (var i = 0; i < count; ++i)
+                    {
+                        var tile = Textures[i];
+                        scaler.SetInput(tile);
+                        scaler.Draw(Context.RdwContext);
+                        var x = i % TexturesPerLine;
+                        var y = i / TexturesPerLine;
+                        var rx = x * pixelPerTexture;
+                        var ry = y * pixelPerTexture;
+                        Context.RdwContext.CommandList.CopyRegion(
+                            result, result.GetSubResourceIndex(0, 0), null,
+                            texture, texture.GetSubResourceIndex(0, 0), rx, ry);
+                    }
+                    return MakeMipmap(texture, (int) Math.Floor(Math.Log(pixelPerTexture) / Math.Log(2)), scaler);
+                }
             }
-            return texture;
+        }
+
+        private static Texture MakeMipmap(Texture input, int levels, ImageScaler scaler)
+        {
+            var ret = Texture.New2D(Context.GraphicsDevice, input.Width, input.Height, levels + 1, input.Format);
+            var fact = 1;
+            scaler.SetInput(input);
+            for (var i = 0; i <= levels; ++i)
+            {
+                using (var target = Texture.New2D(Context.GraphicsDevice, input.Width / fact, input.Height / fact,
+                    input.Format, TextureFlags.RenderTarget | TextureFlags.ShaderResource))
+                {
+                    scaler.SetOutput(target);
+                    scaler.Draw(Context.RdwContext);
+                    Context.RdwContext.CommandList.CopyRegion(
+                        target, target.GetSubResourceIndex(0, 0), null,
+                        ret, ret.GetSubResourceIndex(0, i), 0, 0);
+                }
+
+                fact *= 2;
+            }
+
+            return ret;
         }
 
         public static int TexturesPerLine { get; private set; }

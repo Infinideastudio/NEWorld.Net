@@ -10,6 +10,7 @@ Hierarchy:
         - ref!! 1cc17873-cca9-48fe-a61f-a1d061e26959
         - ref!! b1058700-11a7-4296-bb63-2fefdb5f28b7
         - ref!! b1588acf-0fcd-4377-bf5d-6c81dcf34484
+        - ref!! 3cb14cc7-8d18-4297-833c-05b0988ea34e
     Parts:
         -   Entity:
                 Id: 1cc17873-cca9-48fe-a61f-a1d061e26959
@@ -37,6 +38,22 @@ Hierarchy:
                                 ComputeTransmittance: false
                                 BiasParameters: {}
         -   Entity:
+                Id: 3cb14cc7-8d18-4297-833c-05b0988ea34e
+                Name: Ambient light
+                Components:
+                    055a0e18643d9b0b976c9cc0b1fff92a: !TransformComponent
+                        Id: 56e85624-3f61-4c79-a480-0e9c245c2b29
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    6836afe6382702a77272903fb605a7fc: !LightComponent
+                        Id: 2a92935c-26e7-44dd-89e6-f5f94e76ddea
+                        Type: !LightAmbient
+                            Color: !ColorRgbProvider
+                                Value: {R: 1.0, G: 1.0, B: 1.0}
+                        Intensity: 0.25
+        -   Entity:
                 Id: 8d346802-8fe6-4d18-957c-c6dd8404ea84
                 Name: Camera
                 Components:
@@ -50,6 +67,7 @@ Hierarchy:
                         Id: ad927bbe-0362-46f3-bf19-c11527de8a86
                         Name: null
                         Projection: Perspective
+                        FarClipPlane: 2048.0
                         Slot: dce133b3-fc2c-4978-8f3c-8a7bc66947f0
                     84e3e1914c52c7d890fe96ba860bf21f: !NEWorld.BasicCameraController,NEWorld
                         Id: 0ae3e97b-49cb-4d05-983b-e3c306612767
