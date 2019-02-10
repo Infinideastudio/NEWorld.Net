@@ -22,6 +22,7 @@ using Game.Terrain;
 using Xenko.Graphics;
 using System;
 using Xenko.Core.Mathematics;
+using Xenko.Rendering.Images;
 
 namespace NEWorld.Renderer
 {
@@ -30,11 +31,11 @@ namespace NEWorld.Renderer
     {
         public uint Add(string assetUri)
         {
-            var id = (uint) textures.Count;
+            var id = (uint) Textures.Count;
             var texture = Context.Content.Load<Texture>(assetUri);
             if (Context.Content.IsLoaded(assetUri))
             {
-                textures.Add(texture);
+                Textures.Add(texture);
             }
 
             return id;
@@ -42,53 +43,38 @@ namespace NEWorld.Renderer
 
         public void GetTexturePos(ref BlockTexCoord pos)
         {
-            pos.Tex = new Int2(0, 0); //new Int2((int) (pos.Id % texturePerLine), (int) (pos.Id / texturePerLine));
+            pos.Tex = new Int2((int) (pos.Id % TexturesPerLine), (int) (pos.Id / TexturesPerLine));
         }
 
         public static Texture FlushTextures()
         {
-            var count = textures.Count;
-            texturePerLine = (1 << (int)(Math.Ceiling(Math.Log(Math.Ceiling(Math.Sqrt(count))) / Math.Log(2))));
-            var wid = texturePerLine * pixelPerTexture;
+            var count = Textures.Count;
+            TexturesPerLine = (1 << (int)(Math.Ceiling(Math.Log(Math.Ceiling(Math.Sqrt(count))) / Math.Log(2))));
+            var wid = TexturesPerLine * pixelPerTexture;
             var texture = Texture.New2D(Context.GraphicsDevice, wid, wid,
-                1/*(int) (Math.Log(pixelPerTexture) / Math.Log(2))*/, PixelFormat.R8G8B8A8_UInt);
+                1/*(int) (Math.Log(pixelPerTexture) / Math.Log(2))*/, PixelFormat.R8G8B8A8_UNorm);
+            var result = Texture.New2D(Context.GraphicsDevice, pixelPerTexture, pixelPerTexture, 1, PixelFormat.R8G8B8A8_UNorm, TextureFlags.RenderTarget | TextureFlags.ShaderResource);
+            var scaler = new ImageScaler(SamplingPattern.Expanded);
+            scaler.SetOutput(result);
             for (var i = 0; i < count; ++i)
             {
-                var tile = textures[i];
-                /*var raw = tile.GetData<byte>(Context.CommandList);
-                var unit = raw.Length / (tile.Width * tile.Height);
-                var down = new byte[unit * pixelPerTexture * pixelPerTexture];
-                var xFact = (double)tile.Width / pixelPerTexture;
-                var yFact = (double)tile.Height / pixelPerTexture;
-                for (var xi = 0; xi < pixelPerTexture; ++xi)
-                {
-                    for (var yi = 0; yi < pixelPerTexture; ++yi)
-                    {
-                        var from = (int)(unit * (Math.Round(xi * xFact) * pixelPerTexture + Math.Round(yi * yFact)));
-                        var to = unit * (xi * pixelPerTexture + yi);
-                        for (var n = 0; n < unit; ++n)
-                        {
-                            down[to + n] = raw[from + n];
-                        }
-                    }
-                }
-
-                var re = Texture.New2D(Context.GraphicsDevice, pixelPerTexture, pixelPerTexture, tile.Format, down);*/
-                var re = tile;
-                var x = i % texturePerLine;
-                var y = i / texturePerLine;
+                var tile = Textures[i];
+                scaler.SetInput(tile);
+                scaler.Draw(Context.RdwContext);
+                var x = i % TexturesPerLine;
+                var y = i / TexturesPerLine;
                 var rx = x * pixelPerTexture;
                 var ry = y * pixelPerTexture;
-                Context.CommandList.CopyRegion(
-                    re, re.GetSubResourceIndex(0, 0), null, 
+                Context.RdwContext.CommandList.CopyRegion(
+                    result, result.GetSubResourceIndex(0, 0), null, 
                     texture, texture.GetSubResourceIndex(0, 0), rx, ry);
             }
             return texture;
         }
 
-        public static int TexturesPreLine => 1;
+        public static int TexturesPerLine { get; private set; }
 
-        private static int texturePerLine, pixelPerTexture = 32;
-        private static List<Texture>textures = new List<Texture>();
+        private static int pixelPerTexture = 32;
+        private static readonly List<Texture> Textures = new List<Texture>();
     }
 }

@@ -3,5 +3,8 @@ Id: f35d797b-97bd-4f89-823e-7ce0254f8fd5
 SerializedVersion: {Xenko: 2.0.0.0}
 Tags: []
 Source: !file Stone.png
+IsCompressed: false
 Type: !ColorTextureType
+    UseSRgbSampling: false
     ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+IsStreamable: false

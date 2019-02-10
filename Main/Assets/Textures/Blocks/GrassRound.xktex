@@ -3,5 +3,8 @@ Id: c896ecda-99c3-4815-b811-6dcf125c371c
 SerializedVersion: {Xenko: 2.0.0.0}
 Tags: []
 Source: !file GrassRound.png
+IsCompressed: false
 Type: !ColorTextureType
+    UseSRgbSampling: false
     ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+IsStreamable: false

@@ -66,7 +66,7 @@ namespace Core
         {
             lock (ProcessLock)
             {
-                return (bool) _processed?.Contains(assembly.GetName());
+                return _processed != null && (bool) (_processed?.Contains(assembly.GetName()));
             }
         }
 

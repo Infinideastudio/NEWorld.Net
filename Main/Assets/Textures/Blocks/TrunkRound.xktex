@@ -3,5 +3,8 @@ Id: bc3db60e-4472-4e7f-b1e8-626b4a0cc336
 SerializedVersion: {Xenko: 2.0.0.0}
 Tags: []
 Source: !file TrunkRound.png
+IsCompressed: false
 Type: !ColorTextureType
+    UseSRgbSampling: false
     ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+IsStreamable: false

@@ -18,6 +18,8 @@ namespace Xenko.Rendering
 {
     public static partial class VertexTextureTerrainKeys
     {
+        public static readonly ValueParameterKey<float> TexturePerLine = ParameterKeys.NewValue<float>();
         public static readonly ObjectParameterKey<SamplerState> MeshTextureSampler = ParameterKeys.NewObject<SamplerState>();
+        public static readonly ObjectParameterKey<Texture> Almg = ParameterKeys.NewObject<Texture>();
     }
 }

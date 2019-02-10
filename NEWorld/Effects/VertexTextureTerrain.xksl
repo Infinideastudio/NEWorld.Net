@@ -1,14 +1,19 @@
-﻿shader VertexTextureTerrain : ComputeColor, TransformationBase
+﻿shader VertexTextureTerrain: ComputeColor, TransformationBase
 {
-    SamplerState MeshTextureSampler
-	{
-		Filter = MIN_MAG_MIP_LINEAR;
-		AddressU = Wrap;
-		AddressV = Wrap;
-	};
-    // stage Texture2D Almg;
+    //(cbuffer for values, and rgroup for textures)
+    cbuffer PerMaterial {
+        stage float TexturePerLine;
+    }
+    rgroup PerMaterial {
+        SamplerState MeshTextureSampler
+	    {
+		    Filter = MIN_MAG_MIP_LINEAR;
+		    AddressU = Wrap;
+		    AddressV = Wrap;
+	    };
+        stage Texture2D Almg;
+    }
     stage stream uint2 Pack: COLOR0;
-
     stage stream float4 Vertex : POSITION;
     stage stream float2 TexCoord : TEXCOORD0;
     stage stream float3 Normal : NORMAL;
@@ -18,7 +23,7 @@
     {
         uint high = streams.Pack.x, low = streams.Pack.y;
         streams.Vertex = float4((high >> 16) & 0xFF, (high >> 8) & 0xFF, high & 0xFF, 1);
-        streams.TexCoord = float2((low >> 8) & 0xFF, low & 0xFF);
+        streams.TexCoord = float2((low >> 8) & 0xFF, low & 0xFF) / TexturePerLine;
         streams.Shade = ((float)(((high >> 24) & 0xFF) + 1)) * 0.0625f;
         static const float3 Normals[6] = {
             float3(1, 0, 0), float3(-1, 0, 0),
@@ -31,6 +36,6 @@
 
     override float4 Compute()
     {
-        return float4(streams.Shade, streams.Shade, streams.Shade, 1.0f);//Almg.Sample(MeshTextureSampler, streams.TexCoord);
+        return float4(streams.Shade, streams.Shade, streams.Shade, 1.0f) * Almg.Sample(MeshTextureSampler, streams.TexCoord);
     }
 };
