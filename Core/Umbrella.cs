@@ -1,5 +1,5 @@
 ﻿// 
-// NEWorld/NEWorldShell: Program.cs
+// NEWorld/Core: Umbrella.cs
 // NEWorld: A Free Game with Similar Rules to Minecraft.
 // Copyright (C) 2015-2019 NEWorld Team
 // 
@@ -16,25 +16,5 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
-using Core;
-using Game.Network;
 
-namespace NEWorldShell
-{
-    internal static class Program
-    {
-        public static void Main(string[] args)
-        {
-            ApplicationControl.DoLaunch();
-            Modules.Load("Main");
-            var cli = new ServerCommandLine();
-            var server = Services.Get<Server>("Game.Server");
-            server.Enable(31111);
-            EventBus.Broadcast(null, new Game.GameLoadEvent());
-            server.Run();
-            cli.Start();
-            EventBus.Broadcast(null, new Game.GameUnloadEvent());
-            ApplicationControl.DoShutdown();
-        }
-    }
-}
+[assembly:Core.DeclareNeWorldAssembly]

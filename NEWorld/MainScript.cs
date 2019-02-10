@@ -20,7 +20,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Core;
-using Core.Module;
 using Game;
 using Game.Network;
 using Game.World;

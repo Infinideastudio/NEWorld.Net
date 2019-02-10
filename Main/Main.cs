@@ -17,7 +17,6 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 using Core;
-using Core.Module;
 using Game;
 using Game.Terrain;
 using Game.World;
