@@ -103,3 +103,4 @@ Hierarchy:
                     d80b4d8f8e4c7517fb33931ae02a1875: !NEWorld.MainScript,NEWorld
                         Id: ad46feb5-e564-418b-8912-d79cfbc7a12d
                         Material: 9751d0fa-3d67-4760-ac85-9d209a2d12cb:VoxelMaterial
+                        MaterialTransparent: 9b99a21d-5934-44d8-8267-6ae0a64d4ff1:VoxelMaterialTransparent

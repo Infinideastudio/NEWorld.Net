@@ -56,6 +56,8 @@ namespace NEWorld
 
         public static Material Material { get; set; }
 
+        public static Material MaterialTransparent { get; set; }
+
         public static Scene OperatingScene { get; set; }
 
         public static GraphicsDevice GraphicsDevice => Game.GraphicsDevice;
@@ -95,7 +97,7 @@ namespace NEWorld
         // Current world
         private World currentWorld;
         public Material Material;
-
+        public Material MaterialTransparent;
         // Player
         private Player player;
 
@@ -114,6 +116,7 @@ namespace NEWorld
             Context.Game = Game;
             Context.Content = Content;
             Context.Material = Material;
+            Context.MaterialTransparent = MaterialTransparent;
             Context.OperatingScene = Entity.Scene;
             LogPort.Logger = Log;
             Context.RdwContext = new RenderDrawContext(Services, RenderContext.GetShared(Services), Game.GraphicsContext);
@@ -181,6 +184,8 @@ namespace NEWorld
             BlockRenderers.FlushTextures(Core.Services.Get<IBlockTextures>("BlockTextures"));
             Material.Passes[0].Parameters.Set(VertexTextureTerrainKeys.Almg, texture);
             Material.Passes[0].Parameters.Set(VertexTextureTerrainKeys.TexturePerLine, RdTextures.TexturesPerLine);
+            MaterialTransparent.Passes[0].Parameters.Set(VertexTextureTerrainKeys.Almg, texture);
+            MaterialTransparent.Passes[0].Parameters.Set(VertexTextureTerrainKeys.TexturePerLine, RdTextures.TexturesPerLine);
         }
 
         public override void Start()
