@@ -88,7 +88,17 @@ namespace Game.World
             private async void LocalLoad(World world, Int3 position)
             {
                 await ChunkService.TaskDispatcher.NextReadOnlyChance();
-                Reset(new Chunk(position, world));
+                Chunk chk;
+                if (world.ChunkExistsInDisk(chunk))
+                {
+                    chk = new Chunk(position, world, Chunk.InitOption.None);
+                    world.LoadChunkFromDisk(ref chk);
+                }
+                else
+                {
+                    chk = new Chunk(position, world);
+                }
+                Reset(chk);
             }
         }
 
@@ -109,8 +119,9 @@ namespace Game.World
             public void Task()
             {
                 //TODO: for multiplayer situation, it should decrease ref counter instead of deleting
-                chunk.Dispose();
+                chunk.World.SaveChunkToDisk(chunk);
                 chunk.World.DeleteChunk(chunk.Position);
+                chunk.Dispose();
             }
         }
 
