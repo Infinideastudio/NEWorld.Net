@@ -1,4 +1,6 @@
-# NEWorld [![BCH compliance](https://bettercodehub.com/edge/badge/Infinideastudio/NEWorld.Net?branch=Network)](https://bettercodehub.com/)
+# NEWorld [![BCH compliance](https://bettercodehub.com/edge/badge/Infinideastudio/NEWorld.Net?branch=Network)](https://bettercodehub.com/) [![Build status](https://ci.appveyor.com/api/projects/status/dmtc1xrvpg6rl5sm?svg=true)](https://ci.appveyor.com/project/DREAMWORLDVOID/neworld-net) [![Join the chat at https://discord.gg/NmsxPFG](https://img.shields.io/discord/544921870458290177.svg?style=flat&logo=discord&label=discord)](https://discord.gg/NmsxPFG) ![加入QQ讨论群](https://img.shields.io/badge/TencentQQ[NoLink]-485952572-green.svg)
+
+![](https://img.shields.io/github/languages/code-size/Infinideastudio/NEWorld.Net.svg?style=flat) ![](https://img.shields.io/github/repo-size/Infinideastudio/NEWorld.Net.svg?style=flat)
 
 全新的NEWorld!  
 
