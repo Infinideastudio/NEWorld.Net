@@ -119,9 +119,9 @@ namespace Game.World
             public void Task()
             {
                 //TODO: for multiplayer situation, it should decrease ref counter instead of deleting
-                chunk.Dispose();
-                chunk.World.DeleteChunk(chunk.Position);
                 chunk.World.SaveChunkToDisk(chunk);
+                chunk.World.DeleteChunk(chunk.Position);
+                chunk.Dispose();
             }
         }
 
