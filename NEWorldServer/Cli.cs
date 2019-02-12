@@ -16,13 +16,14 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
+
 using System;
 using System.Runtime;
 using Core;
 using Game;
 using Game.Network;
 
-namespace NEWorldShell
+namespace NEWorldServer
 {
     internal class ServerCommandLine
     {
