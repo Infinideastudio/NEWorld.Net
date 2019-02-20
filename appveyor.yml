@@ -1,0 +1,26 @@
+version: 0.0.1.{build}
+image: Visual Studio 2017
+cache:
+  # Github LFS
+  - '.git\lfs\objects'
+  # NuGet Stuff
+  - packages
+  - '%USERPROFILE%\.nuget\packages'
+pull_requests:
+  do_not_increment_build_number: true
+clone_script: echo skip
+install:  
+  # git fetch/checkout - 'clone_dir' can have cached content
+  # git will see the 'clone_dir' as empty as long as there is no .git/HEAD file
+  - git init %APPVEYOR_BUILD_FOLDER%
+  - cd %APPVEYOR_BUILD_FOLDER%
+  - git remote add origin https://github.com/%APPVEYOR_REPO_NAME%.git
+  # the APPVEYOR_REPO_BRANCH and tags will be updated even if it does not fast-forward, because it is prefixed with a plus sign
+  - git fetch -qfup --depth=1 origin +%APPVEYOR_REPO_BRANCH% +refs/tags/*:refs/tags/*
+  # default AppVeyor checkout
+  - git checkout -qf %APPVEYOR_REPO_COMMIT%
+before_build:
+  - cmd: nuget restore
+build:
+  verbosity: minimal  
+  
