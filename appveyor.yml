@@ -8,6 +8,8 @@ cache:
   - '%USERPROFILE%\.nuget\packages'
 pull_requests:
   do_not_increment_build_number: true
+init:
+  - ps: $env:APPVEYOR_SAVE_CACHE_ON_ERROR = "true"
 clone_script: echo skip
 install:  
   # git fetch/checkout - 'clone_dir' can have cached content
