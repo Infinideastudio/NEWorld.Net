@@ -16,6 +16,9 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
+
+using System.Diagnostics;
+
 namespace NEWorld.Windows
 {
     internal static class NEWorldApp
@@ -23,13 +26,8 @@ namespace NEWorld.Windows
         private static void Main(string[] args)
         {
             // TODO: Remove Later when Launching Server with Client is Possible
-            var server = System.Diagnostics.Process.Start("NEWorldShell.exe");
-            Core.ApplicationControl.DoLaunch();
-            using (var game = new Xenko.Engine.Game())
-            {
-                game.Run();
-            }
-            Core.ApplicationControl.DoShutdown();
+            var server = Process.Start("NEWorldShell.exe");
+            Application.Run();
             server?.Kill();
         }
     }

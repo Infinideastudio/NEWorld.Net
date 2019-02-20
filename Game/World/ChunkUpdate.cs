@@ -25,11 +25,11 @@ namespace Game.World
     {
         public delegate void ChunkUpdateHandler(Chunk chunk);
 
+        private bool pendingLocalUpdate, pendingNeighborUpdate;
+
         public static event ChunkUpdateHandler OnChunkUpdate;
 
         public static event ChunkUpdateHandler OnNeighborUpdate;
-
-        private bool pendingLocalUpdate, pendingNeighborUpdate;
 
         private void TriggerUpdate()
         {
@@ -46,10 +46,7 @@ namespace Game.World
 
         private void TriggerNeighborUpdate()
         {
-            foreach (var neighbor in GetNeighbors())
-            {
-                neighbor.EnqueueNeighborUpdateTask();
-            }
+            foreach (var neighbor in GetNeighbors()) neighbor.EnqueueNeighborUpdateTask();
         }
 
         private async void EnqueueNeighborUpdateTask()
@@ -62,7 +59,7 @@ namespace Game.World
         public Chunk[] GetNeighbors()
         {
             // TODO: Cache The Value
-            return new []
+            return new[]
             {
                 World.GetChunk(new Int3(Position.X + 1, Position.Y, Position.Z)),
                 World.GetChunk(new Int3(Position.X - 1, Position.Y, Position.Z)),

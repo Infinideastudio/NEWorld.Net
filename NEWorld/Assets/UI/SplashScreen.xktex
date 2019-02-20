@@ -1,0 +1,10 @@
+!Texture
+Id: ceed4cf4-2811-44d9-82dc-3305c17225f5
+SerializedVersion: {Xenko: 2.0.0.0}
+Tags: []
+Source: !file SplashScreen.png
+IsCompressed: false
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+GenerateMipmaps: false
+IsStreamable: false

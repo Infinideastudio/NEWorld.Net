@@ -16,6 +16,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
+
 using System;
 using System.Threading;
 using Game.Utilities;
@@ -71,7 +72,9 @@ namespace Game.World
             {
                 var operated = Interlocked.Exchange(ref chunk, null);
                 if (entryAdded)
+                {
                     operated.World.ResetChunkAndUpdate(operated);
+                }
                 else
                 {
                     entryAdded = true;
@@ -119,13 +122,33 @@ namespace Game.World
             private readonly Player player;
             private readonly World world;
 
+            public LoadUnloadDetectorTask(World world, Player player)
+            {
+                this.player = player;
+                this.world = world;
+            }
+
+            public void Task(int instance, int instances)
+            {
+                new Instance(world, player, instance, instances).Run();
+            }
+
+            // TODO: Remove Type1 Clone
+            private static int ChebyshevDistance(Int3 l, Int3 r)
+            {
+                return Math.Max(Math.Max(Math.Abs(l.X - r.X), Math.Abs(l.Y - r.Y)), Math.Abs(l.Z - r.Z));
+            }
+
             private class Instance
             {
                 private readonly Int3 centerPos;
-                private readonly World world;
                 private readonly int instance, instances;
                 private readonly OrderedListIntLess<Int3> loadList = new OrderedListIntLess<Int3>(MaxChunkLoadCount);
-                private readonly OrderedListIntGreater<Chunk> unloadList = new OrderedListIntGreater<Chunk>(MaxChunkUnloadCount);
+
+                private readonly OrderedListIntGreater<Chunk> unloadList =
+                    new OrderedListIntGreater<Chunk>(MaxChunkUnloadCount);
+
+                private readonly World world;
 
                 internal Instance(World wrd, Player player, int ins, int inst)
                 {
@@ -153,8 +176,7 @@ namespace Game.World
                     var centerCPos = GetChunkPos(centerPos);
 
                     // TODO: Instance this
-                    if (instance == 0 )
-                    {
+                    if (instance == 0)
                         foreach (var chunk in world.Chunks)
                         {
                             var curPos = chunk.Value.Position;
@@ -163,7 +185,6 @@ namespace Game.World
                                 unloadList.Insert((curPos * Chunk.RowSize + MiddleOffset - centerPos).LengthSquared(),
                                     chunk.Value);
                         }
-                    }
 
                     var edge1 = loadRange * 2 + 1;
                     var edge2 = edge1 * edge1;
@@ -171,30 +192,13 @@ namespace Game.World
                     var corner = new Int3(centerCPos.X - loadRange, centerCPos.Y - loadRange, centerCPos.Z - loadRange);
                     for (var i = instance; i < edge3; i += instances)
                     {
-                        var position = corner + new Int3(i / edge2, (i % edge2) / edge1, i % edge1);
+                        var position = corner + new Int3(i / edge2, i % edge2 / edge1, i % edge1);
                         // In load range, pending to load
                         if (!world.IsChunkLoaded(position))
                             loadList.Insert((position * Chunk.RowSize + MiddleOffset - centerPos).LengthSquared(),
                                 position);
                     }
                 }
-            }
-
-            public LoadUnloadDetectorTask(World world, Player player)
-            {
-                this.player = player;
-                this.world = world;
-            }
-
-            public void Task(int instance, int instances)
-            {
-                new Instance(world, player, instance, instances).Run();
-            }
-                
-            // TODO: Remove Type1 Clone
-            private static int ChebyshevDistance(Int3 l, Int3 r)
-            {
-                return Math.Max(Math.Max(Math.Abs(l.X - r.X), Math.Abs(l.Y - r.Y)), Math.Abs(l.Z - r.Z));
             }
         }
     }

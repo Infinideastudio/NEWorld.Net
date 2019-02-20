@@ -16,6 +16,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
+
 using System.Collections.Generic;
 using Game.World;
 using Xenko.Core.Mathematics;
@@ -30,14 +31,14 @@ namespace Game.Terrain
 
     public class BlockRenderContext
     {
+        public readonly Chunk Current;
+        public readonly Chunk[] Neighbors;
+
         public BlockRenderContext(Chunk current, Chunk[] neighbors)
         {
             Current = current;
             Neighbors = neighbors;
         }
-
-        public readonly Chunk Current;
-        public readonly Chunk[] Neighbors;
     }
 
     public interface IBlockRenderer

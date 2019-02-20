@@ -16,6 +16,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
+
 using Game.World;
 using Xenko.Core.Mathematics;
 
@@ -27,9 +28,9 @@ namespace Game.Client
 
         private const int SectionBits = 4;
 
-        private Chunk[,,][,,] Section;
-
         private Int3 BasePosition;
+
+        private Chunk[,,][,,] Section;
 
         private Chunk[,,] GetSectionRelative(Int3 offset)
         {

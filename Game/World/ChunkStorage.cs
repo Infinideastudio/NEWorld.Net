@@ -16,6 +16,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
+
 using System;
 using System.Runtime.InteropServices;
 
@@ -23,19 +24,6 @@ namespace Game.World
 {
     public unsafe partial class Chunk
     {
-        private static class Allocator
-        {
-            internal static BlockData* Allocate()
-            {
-                return (BlockData*) Marshal.AllocHGlobal(CubeSize * sizeof(BlockData)).ToPointer();
-            }
-
-            internal static void Release(BlockData* data)
-            {
-                Marshal.FreeHGlobal((IntPtr) data);
-            }
-        }
-
         public BlockData* Blocks { get; private set; }
         public uint CopyOnWrite { get; private set; } = uint.MaxValue;
 
@@ -93,6 +81,19 @@ namespace Game.World
         partial void ReleaseCriticalResources()
         {
             ReleaseBlockData();
+        }
+
+        private static class Allocator
+        {
+            internal static BlockData* Allocate()
+            {
+                return (BlockData*) Marshal.AllocHGlobal(CubeSize * sizeof(BlockData)).ToPointer();
+            }
+
+            internal static void Release(BlockData* data)
+            {
+                Marshal.FreeHGlobal((IntPtr) data);
+            }
         }
     }
 }

@@ -16,7 +16,9 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
+
 using Core;
+using Game;
 using Game.Network;
 
 namespace NEWorldShell
@@ -30,10 +32,10 @@ namespace NEWorldShell
             var cli = new ServerCommandLine();
             var server = Services.Get<Server>("Game.Server");
             server.Enable(31111);
-            EventBus.Broadcast(null, new Game.GameLoadEvent());
+            EventBus.Broadcast(null, new GameLoadEvent());
             server.Run();
             cli.Start();
-            EventBus.Broadcast(null, new Game.GameUnloadEvent());
+            EventBus.Broadcast(null, new GameUnloadEvent());
             ApplicationControl.DoShutdown();
         }
     }

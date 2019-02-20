@@ -1,0 +1,222 @@
+!SceneAsset
+Id: 266472ef-16b4-488b-9211-7fd69ba3ffd4
+SerializedVersion: {Xenko: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! 0b58c9c6-a837-4da1-85e7-9398f16167f5
+        - ref!! e54dea7a-b44c-47ac-8097-34e8f5d9fa05
+        - ref!! b743a071-1a3c-4ac5-b6e8-6ade6dc3fe72
+    Parts:
+        -   Entity:
+                Id: 0b58c9c6-a837-4da1-85e7-9398f16167f5
+                Name: Camera
+                Components:
+                    d6d1875287b54a68014538e4d5713f2f: !TransformComponent
+                        Id: 09bd1056-1924-474e-87af-9803664c5b97
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    933df3d032c0162e7ff9c3af1234527f: !CameraComponent
+                        Id: c98264ae-6c1e-4f8b-a618-d843420fbe2c
+                        Name: null
+                        Projection: Perspective
+                        VerticalFieldOfView: 90.0
+                        Slot: 318a7c1d-a5b5-449f-aa82-fa422cd75f6c
+        -   Entity:
+                Id: 115fa7ec-425b-4b30-8a03-6a5ef683dc72
+                Name: B1
+                Components:
+                    fa2c919757b193961aa21de9e34c46e0: !TransformComponent
+                        Id: cf4e9ca6-b8f6-4e58-9878-8d96a3455610
+                        Position: {X: -2.56, Y: 0.0, Z: 0.0}
+                        Rotation: {X: -0.707106769, Y: 5.33850759E-08, Z: -0.707106769, W: 5.33850759E-08}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    aad8bec95ec4d096e3694c88859199f3: !SpriteComponent
+                        Id: 1351f29e-d88a-42fc-8cde-cc3141fd7929
+                        SpriteProvider: !SpriteFromTexture
+                            Texture: bc90caf6-941b-4c95-b8dd-47c43811efbc:UI/Lounge/B1
+                            Center: {X: 0.0, Y: 0.0}
+                            IsTransparent: false
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        PremultipliedAlpha: false
+                        RenderGroup: Group31
+        -   Entity:
+                Id: 350ac655-b352-4d5b-b4dd-32780dd4004e
+                Name: B4
+                Components:
+                    580b57a6a1a04922f81159496c184a0d: !TransformComponent
+                        Id: 3ae26185-12a0-48b9-93d3-6b9ee1f525bf
+                        Position: {X: 0.0, Y: -2.56, Z: 0.0}
+                        Rotation: {X: 0.707106769, Y: 0.0, Z: 0.0, W: 0.707106769}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    a3f14bb20098f66f7816b6d2ea041a27: !SpriteComponent
+                        Id: 2f285419-604a-4eb0-b68b-50e94585be89
+                        SpriteProvider: !SpriteFromTexture
+                            Texture: 69e7bd7d-543e-421f-a683-519a70ad7d03:UI/Lounge/B4
+                            Center: {X: 0.0, Y: 0.0}
+                            IsTransparent: false
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        PremultipliedAlpha: false
+                        RenderGroup: Group31
+        -   Entity:
+                Id: 5ffd5d72-28b2-451c-8234-6e467b8c4408
+                Name: Lounge
+                Components:
+                    67789aec2871d4fa2a46912fc57d22ea: !TransformComponent
+                        Id: 0030d37d-1d11-412f-96fa-259e6ed1dbb3
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    b6d58c9210a516b2b6a4867e7791f7ca: !UIComponent
+                        Id: 4fe2fbf1-814c-4e9e-ab01-510c663a68b6
+                        Page: 52d6bdef-4fc5-4410-84ae-0d1255ed6eba:UI/Lounge/Lounge
+                        Resolution: {X: 1280.0, Y: 720.0, Z: 1000.0}
+                        Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                    e24da279611a0507e19eb84fba01d021: !NEWorld.UI.Lounge.LoungePageControl,NEWorld
+                        Id: 62e06f8e-a490-4fea-a477-3c8278cc489d
+        -   Entity:
+                Id: 71d6af3f-3d32-400a-9baa-a6110a01b4c1
+                Name: B5
+                Components:
+                    c4b89a6c5bc51357a47777f95603d8b4: !TransformComponent
+                        Id: 714dc374-b8e4-4aba-953d-a099d20c2977
+                        Position: {X: 0.0, Y: 2.56, Z: 0.0}
+                        Rotation: {X: 0.707106769, Y: 0.0, Z: 0.0, W: 0.707106769}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    073e88f94fc61108ee23124539231acb: !SpriteComponent
+                        Id: 3bbdf0d2-d1d7-4f2a-b5c6-ee9a06da3081
+                        SpriteProvider: !SpriteFromTexture
+                            Texture: 8903a684-b20f-41cb-8c6f-268c205d80f7:UI/Lounge/B5
+                            Center: {X: 0.0, Y: 0.0}
+                            IsTransparent: false
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        PremultipliedAlpha: false
+                        RenderGroup: Group31
+        -   Entity:
+                Id: 7387d3f1-632d-41cd-a422-530b11683637
+                Name: B0
+                Components:
+                    104de6a212e02e97f63537e242f446f1: !TransformComponent
+                        Id: fdde00a1-8f1b-44a0-9cc9-1322e9009ec1
+                        Position: {X: 0.0, Y: 0.0, Z: 2.56}
+                        Rotation: {X: -1.0, Y: 7.54979E-08, Z: 4.371139E-08, W: -3.300118E-15}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    48b39d2cd5af787d76a9c492ae03c4d9: !SpriteComponent
+                        Id: 10ebfa6f-b61f-4b54-a7f3-c906e861fb19
+                        SpriteProvider: !SpriteFromTexture
+                            Texture: 1be42123-bc93-48e8-a8a8-37a873ce4c46:UI/Lounge/B0
+                            Center: {X: 0.0, Y: 0.0}
+                            IsTransparent: false
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        PremultipliedAlpha: false
+                        RenderGroup: Group31
+        -   Entity:
+                Id: 82883be6-fec5-4c00-a158-18de5d6f1131
+                Name: Skybox
+                Components:
+                    7ef0eade8e7ead19153ecb332382f200: !TransformComponent
+                        Id: 37520511-e9c8-4d8f-942b-402bc3411c71
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 5.0, Y: 5.0, Z: 5.0}
+                        Children:
+                            28c25dc53c0376bcdb9c19f1f7b9d374: ref!! fdde00a1-8f1b-44a0-9cc9-1322e9009ec1
+                            62f4781cbea7842ad05c0945096be7d0: ref!! cf4e9ca6-b8f6-4e58-9878-8d96a3455610
+                            423e5e8a85ffd9d4b4636ba91babec83: ref!! d94bd9bf-78f8-49da-9075-e723a3836208
+                            f15b541c527a24363a898fb4bf23cfa3: ref!! cdefa61d-e8ed-424f-a1bf-47f093e35dee
+                            b155c3b348d865cee49124bed8f533d0: ref!! 3ae26185-12a0-48b9-93d3-6b9ee1f525bf
+                            2744a5f06a7789748a13092ecba8b382: ref!! 714dc374-b8e4-4aba-953d-a099d20c2977
+                    bfc4c145b08dc18eff13b1b105ddae74: !NEWorld.UI.Lounge.CubeRotate,NEWorld
+                        Id: 4cf7b247-f693-4fbf-9632-9afe1c6c835c
+        -   Entity:
+                Id: b743a071-1a3c-4ac5-b6e8-6ade6dc3fe72
+                Name: Background
+                Components:
+                    861fdc218d00a85b1c6804b69e1b8a0e: !TransformComponent
+                        Id: 4b68c73e-7e37-46c0-a46f-63c1007357a1
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            eaf3931b3f866f8b1a8d96f4ca126505: ref!! b6aa1026-e98b-40fc-89ed-2c01e3a7d887
+                            1cf35907131afe0244928299d23006ca: ref!! 37520511-e9c8-4d8f-942b-402bc3411c71
+                    ab82a00a704d03250cd8d1b1015f3f98: !BackgroundComponent
+                        Id: a6fa561e-d82f-4c15-bbbc-5f629978c44a
+                        Texture: null
+                        Is2D: true
+                    0041b55cb38d3afc1e5332d36630c3a1: !NEWorld.UI.Shared.AllowWindowResize,NEWorld
+                        Id: 9879abab-2aa4-4fe0-94dc-0c5033f80e9b
+        -   Entity:
+                Id: c61a47bb-d594-46b3-9e62-ddd509bd4e6f
+                Name: B2
+                Components:
+                    35147d528f937233b55144d55468cbad: !TransformComponent
+                        Id: d94bd9bf-78f8-49da-9075-e723a3836208
+                        Position: {X: 0.0, Y: 0.0, Z: -2.56}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 1.0, W: -4.371139E-08}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    6a6d686bec6c687a008425a2b16f97a3: !SpriteComponent
+                        Id: da80fb23-ba31-4f70-aeca-eb3abdf120dd
+                        SpriteProvider: !SpriteFromTexture
+                            Texture: 2d8e1661-07d2-4cf7-b6ff-60d7bca0fe23:UI/Lounge/B2
+                            Center: {X: 0.0, Y: 0.0}
+                            IsTransparent: false
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        PremultipliedAlpha: false
+                        RenderGroup: Group31
+        -   Entity:
+                Id: dc69d5c8-ca48-47bc-bad4-161b68c8ed40
+                Name: B3
+                Components:
+                    30fcd725efb0dd95f61b3088ffec5fb3: !TransformComponent
+                        Id: cdefa61d-e8ed-424f-a1bf-47f093e35dee
+                        Position: {X: 2.56, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.707106769, Y: -5.33850759E-08, Z: -0.707106769, W: 5.33850759E-08}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    2cfe3c4ff975aa258f61324db495b24f: !SpriteComponent
+                        Id: d8346fd2-9a81-426d-bd5f-c8db06957d7c
+                        SpriteProvider: !SpriteFromTexture
+                            Texture: 0a459a5d-87d9-42df-afb8-8203d3f5cf99:UI/Lounge/B3
+                            Center: {X: 0.0, Y: 0.0}
+                            IsTransparent: false
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        PremultipliedAlpha: false
+                        RenderGroup: Group31
+        -   Entity:
+                Id: e54dea7a-b44c-47ac-8097-34e8f5d9fa05
+                Name: UIRoot
+                Components:
+                    4bfebd77530a22f76705857236c1ef85: !TransformComponent
+                        Id: 76f0deae-8db0-44ba-9770-76f84d480fca
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            faab5c89c96bd7eb2bd28e116b65acec: ref!! 0030d37d-1d11-412f-96fa-259e6ed1dbb3
+        -   Entity:
+                Id: edb024bf-2664-43a8-857f-13d7e21934cd
+                Name: Background
+                Components:
+                    10fc0d8ab55b1d9db4f50407fa7f22e8: !TransformComponent
+                        Id: b6aa1026-e98b-40fc-89ed-2c01e3a7d887
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    23097f9a14c099393d426e85f115a174: !CameraComponent
+                        Id: 8c2dd018-b9e2-4f8c-9247-69aa2646bfe1
+                        Name: null
+                        Projection: Perspective
+                        VerticalFieldOfView: 90.0
+                        Slot: d890f91d-8bc7-4437-b5e3-cc99e651439c

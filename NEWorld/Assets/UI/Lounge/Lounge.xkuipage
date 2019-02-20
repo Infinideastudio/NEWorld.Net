@@ -1,0 +1,238 @@
+!UIPageAsset
+Id: 52d6bdef-4fc5-4410-84ae-0d1255ed6eba
+SerializedVersion: {Xenko: 2.1.0.1}
+Tags: []
+Design:
+    Resolution: {X: 1280.0, Y: 720.0, Z: 1000.0}
+Hierarchy:
+    RootParts:
+        - !Grid ref!! e5ccc72f-5e14-4f94-8056-15d7724c8246
+    Parts:
+        -   UIElement: !Button
+                Id: 1b671d97-4a37-48a2-96e8-cbfd8363c83c
+                DependencyProperties:
+                    b9a39eb68b69f2cb1475a845a757acbb~GridBase.ColumnSpanPropertyKey: 1
+                    3430177785c01fcb206444e0be0d35e8~GridBase.RowPropertyKey: 2
+                    2b7f21b4fa4241cc7a9f3d4aedf019eb~GridBase.RowSpanPropertyKey: 1
+                    88ee862fc11bacfddaebb55fae97e53b~GridBase.ColumnPropertyKey: 1
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                DrawLayerNumber: 2
+                CanBeHitByUser: true
+                Width: 210.0
+                Height: 40.0
+                HorizontalAlignment: Left
+                VerticalAlignment: Center
+                Margin: {Left: 10.0}
+                MaximumWidth: 3.40282347E+38
+                MaximumHeight: 3.40282347E+38
+                MaximumDepth: 3.40282347E+38
+                Name: Exit
+                Padding: {Left: 10.0, Top: 5.0, Right: 10.0, Bottom: 7.0}
+                Content: !TextBlock ref!! 7d4ea082-ef2c-4faf-a3dd-448772f14c79
+                PressedImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:XenkoUIDesigns
+                    CurrentFrame: 2
+                NotPressedImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:XenkoUIDesigns
+                    CurrentFrame: 1
+                MouseOverImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:XenkoUIDesigns
+                ImageStretchType: None
+        -   UIElement: !Grid
+                Id: 2d105f51-d063-453e-a423-81fdc68a2c7c
+                DependencyProperties:
+                    10c39461bee764c41233d24ddb7dc1f3~GridBase.RowPropertyKey: 1
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                Margin: {Top: 10.0}
+                MaximumWidth: 3.40282347E+38
+                MaximumHeight: 3.40282347E+38
+                MaximumDepth: 3.40282347E+38
+                Name: Interactive
+                Children:
+                    e200fbd1b750fa6c5d9fcddfa875c277: !Button ref!! c27120b3-1f1a-4bb1-bdec-8962049e9e5f
+                    087365bbc6e6eb967a0574054966635c: !Button ref!! e3de0fc2-2744-4f14-8e7b-775eec4ff34d
+                    5f77884df073a4e57b05d1da9e327431: !Button ref!! 3de615ee-c31b-421a-bfb0-3f4df8a011cd
+                    ec3f94b03cc4437dbf30ab9c899943be: !Button ref!! 1b671d97-4a37-48a2-96e8-cbfd8363c83c
+                RowDefinitions:
+                    45d2b55a5b3de6ccaea3bc6e7221eb22:
+                        Type: Fixed
+                        SizeValue: 50.0
+                    633abcaf880990685a2c41a24b4c4695:
+                        MaximumSize: 3.40282347E+38
+                        Type: Fixed
+                        SizeValue: 50.0
+                    4333bf6c515aea6c44d611995130392c:
+                        Type: Fixed
+                        SizeValue: 50.0
+                    592348e9881dabdff493556f6a475ebe: {}
+                ColumnDefinitions:
+                    9f5dda008a95477df40b5923d990885d: {}
+                    0be5d098ee8798dd32b2d6f25aa6c5e9: {}
+                LayerDefinitions: {}
+        -   UIElement: !Button
+                Id: 3de615ee-c31b-421a-bfb0-3f4df8a011cd
+                DependencyProperties:
+                    b9a39eb68b69f2cb1475a845a757acbb~GridBase.ColumnSpanPropertyKey: 1
+                    3430177785c01fcb206444e0be0d35e8~GridBase.RowPropertyKey: 2
+                    2b7f21b4fa4241cc7a9f3d4aedf019eb~GridBase.RowSpanPropertyKey: 1
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                DrawLayerNumber: 2
+                CanBeHitByUser: true
+                Width: 210.0
+                Height: 40.0
+                HorizontalAlignment: Right
+                VerticalAlignment: Center
+                Margin: {Right: 10.0}
+                MaximumWidth: 3.40282347E+38
+                MaximumHeight: 3.40282347E+38
+                MaximumDepth: 3.40282347E+38
+                Name: Options
+                Padding: {Left: 10.0, Top: 5.0, Right: 10.0, Bottom: 7.0}
+                Content: !TextBlock ref!! 4c97e84e-eecd-4cf5-bd6f-eb6c04c938bc
+                PressedImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:XenkoUIDesigns
+                    CurrentFrame: 2
+                NotPressedImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:XenkoUIDesigns
+                    CurrentFrame: 1
+                MouseOverImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:XenkoUIDesigns
+                ImageStretchType: None
+        -   UIElement: !TextBlock
+                Id: 4c97e84e-eecd-4cf5-bd6f-eb6c04c938bc
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                HorizontalAlignment: Center
+                VerticalAlignment: Center
+                Margin: {}
+                MaximumWidth: 3.40282347E+38
+                MaximumHeight: 3.40282347E+38
+                MaximumDepth: 3.40282347E+38
+                Text: Options
+                Font: 27bab064-a488-480c-a01e-fdba7a935849:UI/Shared/Font/SourceHanSansCN
+                TextSize: 16.0
+                TextColor: {R: 240, G: 240, B: 240, A: 255}
+        -   UIElement: !TextBlock
+                Id: 677c4e5a-7b34-482d-9a8f-c6d286e44738
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                HorizontalAlignment: Center
+                VerticalAlignment: Center
+                Margin: {}
+                MaximumWidth: 3.40282347E+38
+                MaximumHeight: 3.40282347E+38
+                MaximumDepth: 3.40282347E+38
+                Text: Play
+                Font: 27bab064-a488-480c-a01e-fdba7a935849:UI/Shared/Font/SourceHanSansCN
+                TextSize: 16.0
+                TextColor: {R: 240, G: 240, B: 240, A: 255}
+        -   UIElement: !TextBlock
+                Id: 7d4ea082-ef2c-4faf-a3dd-448772f14c79
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                HorizontalAlignment: Center
+                VerticalAlignment: Center
+                Margin: {}
+                Text: Exit
+                Font: 27bab064-a488-480c-a01e-fdba7a935849:UI/Shared/Font/SourceHanSansCN
+                TextSize: 16.0
+                TextColor: {R: 240, G: 240, B: 240, A: 255}
+        -   UIElement: !ImageElement
+                Id: 93785944-a665-4c81-9170-8f8744957743
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                HorizontalAlignment: Center
+                VerticalAlignment: Bottom
+                Margin: {Bottom: 10.0}
+                MaximumWidth: 3.40282347E+38
+                MaximumHeight: 3.40282347E+38
+                MaximumDepth: 3.40282347E+38
+                Source: !SpriteFromTexture
+                    Texture: 10bec540-1596-4033-8405-f32612102863:UI/Lounge/Title
+                    Center: {X: 0.0, Y: 0.0}
+                Color: {R: 255, G: 255, B: 255, A: 255}
+                StretchType: None
+        -   UIElement: !TextBlock
+                Id: a786557a-d90d-4a5d-b47d-69c0b9a2fc1c
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                HorizontalAlignment: Center
+                VerticalAlignment: Center
+                Margin: {}
+                Text: Multiplayer
+                Font: 27bab064-a488-480c-a01e-fdba7a935849:UI/Shared/Font/SourceHanSansCN
+                TextSize: 16.0
+                TextColor: {R: 240, G: 240, B: 240, A: 255}
+        -   UIElement: !Button
+                Id: c27120b3-1f1a-4bb1-bdec-8962049e9e5f
+                DependencyProperties:
+                    b9a39eb68b69f2cb1475a845a757acbb~GridBase.ColumnSpanPropertyKey: 2
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                DrawLayerNumber: 2
+                CanBeHitByUser: true
+                Width: 440.0
+                Height: 40.0
+                HorizontalAlignment: Center
+                VerticalAlignment: Center
+                Margin: {}
+                MaximumWidth: 3.40282347E+38
+                MaximumHeight: 3.40282347E+38
+                MaximumDepth: 3.40282347E+38
+                Name: EnterWorldLocal
+                Padding: {Left: 10.0, Top: 5.0, Right: 10.0, Bottom: 7.0}
+                Content: !TextBlock ref!! 677c4e5a-7b34-482d-9a8f-c6d286e44738
+                PressedImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:XenkoUIDesigns
+                    CurrentFrame: 2
+                NotPressedImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:XenkoUIDesigns
+                    CurrentFrame: 1
+                MouseOverImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:XenkoUIDesigns
+                ImageStretchType: None
+        -   UIElement: !Button
+                Id: e3de0fc2-2744-4f14-8e7b-775eec4ff34d
+                DependencyProperties:
+                    b9a39eb68b69f2cb1475a845a757acbb~GridBase.ColumnSpanPropertyKey: 2
+                    3430177785c01fcb206444e0be0d35e8~GridBase.RowPropertyKey: 1
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                DrawLayerNumber: 2
+                CanBeHitByUser: true
+                Width: 440.0
+                Height: 40.0
+                HorizontalAlignment: Center
+                VerticalAlignment: Center
+                Margin: {}
+                MaximumWidth: 3.40282347E+38
+                MaximumHeight: 3.40282347E+38
+                MaximumDepth: 3.40282347E+38
+                Name: EnterWorldRemote
+                Padding: {Left: 10.0, Top: 5.0, Right: 10.0, Bottom: 7.0}
+                Content: !TextBlock ref!! a786557a-d90d-4a5d-b47d-69c0b9a2fc1c
+                PressedImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:XenkoUIDesigns
+                    CurrentFrame: 2
+                NotPressedImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:XenkoUIDesigns
+                    CurrentFrame: 1
+                MouseOverImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:XenkoUIDesigns
+                ImageStretchType: None
+        -   UIElement: !Grid
+                Id: e5ccc72f-5e14-4f94-8056-15d7724c8246
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                Margin: {}
+                MinimumWidth: 600.0
+                MinimumHeight: 400.0
+                MaximumWidth: 3.40282347E+38
+                MaximumHeight: 3.40282347E+38
+                MaximumDepth: 3.40282347E+38
+                Children:
+                    3ba6a770f758e35f000a639110b24ea3: !ImageElement ref!! 93785944-a665-4c81-9170-8f8744957743
+                    e088ff4795cc10d24d8385fc5d117e4d: !Grid ref!! 2d105f51-d063-453e-a423-81fdc68a2c7c
+                RowDefinitions:
+                    47395627020cfe293ef661584f8d2aae: {}
+                    4ae51f5763722281aa1f7f9aaa308ffa: {}
+                ColumnDefinitions: {}
+                LayerDefinitions: {}

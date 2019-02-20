@@ -16,6 +16,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
+
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,7 +31,9 @@ namespace Game.Network
     {
         public class Server : FixedLengthProtocol
         {
-            public Server() : base(4){}
+            public Server() : base(4)
+            {
+            }
 
             public override string Name()
             {
@@ -131,7 +134,7 @@ namespace Game.Network
             {
                 return "GetChunk";
             }
-            
+
             public override void HandleRequest(Session.Receive request)
             {
                 var buffer = new byte[Size];

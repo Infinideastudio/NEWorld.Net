@@ -17,4 +17,6 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
-[assembly:Core.DeclareNeWorldAssembly]
+using Core;
+
+[assembly: DeclareNeWorldAssembly(AssemblyScanPolicy.All)]

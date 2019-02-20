@@ -1,0 +1,13 @@
+!Texture
+Id: 10bec540-1596-4033-8405-f32612102863
+SerializedVersion: {Xenko: 2.0.0.0}
+Tags: []
+Source: !file Title.png
+Width: 503.0
+Height: 192.0
+IsSizeInPercentage: false
+IsCompressed: false
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+GenerateMipmaps: false
+IsStreamable: false

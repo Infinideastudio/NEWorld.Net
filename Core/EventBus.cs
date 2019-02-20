@@ -144,6 +144,16 @@ namespace Core
             slot?.Invoke(sender, payload);
         }
 
+        [DeclareAssemblyReflectiveScanner]
+        private sealed class GlobalHandlerClassDetector : IAssemblyReflectiveScanner
+        {
+            public void ProcessType(Type type)
+            {
+                if (type.IsDefined(typeof(DeclareGlobalBusEventHandlerClassAttribute), false))
+                    AddCollection(Activator.CreateInstance(type));
+            }
+        }
+
         private interface ISlot
         {
             void Add(Delegate handler);
@@ -179,15 +189,7 @@ namespace Core
         }
     }
 
-    public sealed class DeclareGlobalBusEventHandlerClassAttribute : Attribute {}
-
-    [DeclareAssemblyReflectiveScanner]
-    public sealed class GlobalBusEventHandlerClassDetector : IAssemblyReflectiveScanner
+    public sealed class DeclareGlobalBusEventHandlerClassAttribute : Attribute
     {
-        public void ProcessType(Type type)
-        {
-            if (type.IsDefined(typeof(DeclareGlobalBusEventHandlerClassAttribute), false))
-                EventBus.AddCollection(Activator.CreateInstance(type));
-        }
     }
 }

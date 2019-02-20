@@ -21,14 +21,6 @@ namespace Core
 {
     public static class ApplicationControl
     {
-        public class Launch
-        {
-        }
-
-        public class Shutdown
-        {
-        }
-
         public static void DoLaunch()
         {
             AssemblyReflectiveScanner.UpdateDomainAssemblies();
@@ -38,6 +30,14 @@ namespace Core
         public static void DoShutdown()
         {
             EventBus.Broadcast(null, new Shutdown());
+        }
+
+        public class Launch
+        {
+        }
+
+        public class Shutdown
+        {
         }
     }
 }

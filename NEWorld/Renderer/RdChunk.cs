@@ -16,6 +16,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
+
 using Game.Terrain;
 using Game.World;
 using Xenko.Core.Mathematics;
@@ -40,7 +41,8 @@ namespace NEWorld.Renderer
          */
         public ChunkVboGen Generate(Chunk chunk)
         {
-            using (VertexBuilder vaOpacity = new VertexBuilder(262144), vaTranslucent = new VertexBuilder(262144)) {
+            using (VertexBuilder vaOpacity = new VertexBuilder(262144), vaTranslucent = new VertexBuilder(262144))
+            {
                 var tmp = new Int3();
                 var context = new BlockRenderContext(chunk, chunk.GetNeighbors());
                 for (tmp.X = 0; tmp.X < Chunk.RowSize; ++tmp.X)
@@ -54,7 +56,12 @@ namespace NEWorld.Renderer
 
                 var mesh0 = vaOpacity.Dump();
                 var mesh1 = vaTranslucent.Dump();
-                Model = mesh0 != null || mesh1 != null ? new Model {new MaterialInstance(Context.Material), new MaterialInstance(Context.MaterialTransparent)} : null;
+                Model = mesh0 != null || mesh1 != null
+                    ? new Model
+                    {
+                        new MaterialInstance(Context.Material), new MaterialInstance(Context.MaterialTransparent)
+                    }
+                    : null;
                 if (mesh0 != null) Model.Add(mesh0);
                 if (mesh1 != null)
                 {

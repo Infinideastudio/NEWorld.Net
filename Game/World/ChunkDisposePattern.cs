@@ -16,11 +16,12 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
+
 using System;
 
 namespace Game.World
 {
-    public partial class Chunk: IDisposable
+    public partial class Chunk : IDisposable
     {
         public void Dispose()
         {

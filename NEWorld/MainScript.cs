@@ -16,6 +16,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,6 +25,7 @@ using Game;
 using Game.Network;
 using Game.Terrain;
 using Game.World;
+using NEWorld.Effects;
 using NEWorld.Renderer;
 using Xenko.Core.Diagnostics;
 using Xenko.Core.Mathematics;
@@ -97,7 +99,9 @@ namespace NEWorld
         // Current world
         private World currentWorld;
         public Material Material;
+
         public Material MaterialTransparent;
+
         // Player
         private Player player;
 
@@ -119,7 +123,8 @@ namespace NEWorld
             Context.MaterialTransparent = MaterialTransparent;
             Context.OperatingScene = Entity.Scene;
             LogPort.Logger = Log;
-            Context.RdwContext = new RenderDrawContext(Services, RenderContext.GetShared(Services), Game.GraphicsContext);
+            Context.RdwContext =
+                new RenderDrawContext(Services, RenderContext.GetShared(Services), Game.GraphicsContext);
             Log.ActivateLog(LogMessageType.Debug);
             EventBus.Broadcast(this, new GameRenderPrepareEvent());
         }
@@ -185,7 +190,8 @@ namespace NEWorld
             Material.Passes[0].Parameters.Set(VertexTextureTerrainKeys.Almg, texture);
             Material.Passes[0].Parameters.Set(VertexTextureTerrainKeys.TexturePerLine, RdTextures.TexturesPerLine);
             MaterialTransparent.Passes[0].Parameters.Set(VertexTextureTerrainKeys.Almg, texture);
-            MaterialTransparent.Passes[0].Parameters.Set(VertexTextureTerrainKeys.TexturePerLine, RdTextures.TexturesPerLine);
+            MaterialTransparent.Passes[0].Parameters
+                .Set(VertexTextureTerrainKeys.TexturePerLine, RdTextures.TexturesPerLine);
         }
 
         public override void Start()

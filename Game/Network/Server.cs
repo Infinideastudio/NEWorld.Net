@@ -16,6 +16,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
+
 using System;
 using System.Threading.Tasks;
 using Core;
@@ -29,10 +30,17 @@ namespace Game.Network
 
         private Task wait;
 
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
         ~Server()
         {
             Dispose(false);
         }
+
         public void Enable(int port)
         {
             server = new Core.Network.Server(port);
@@ -67,16 +75,7 @@ namespace Game.Network
         private void Dispose(bool disposing)
         {
             ReleaseUnmanagedResources();
-            if (disposing)
-            {
-                wait?.Dispose();
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            if (disposing) wait?.Dispose();
         }
     }
 }

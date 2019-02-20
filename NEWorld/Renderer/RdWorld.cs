@@ -16,6 +16,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -122,7 +123,5 @@ namespace NEWorld.Renderer
                 return Delta.All(p => world.IsChunkLoaded(pos + p));
             }
         }
-
-        
     }
 }

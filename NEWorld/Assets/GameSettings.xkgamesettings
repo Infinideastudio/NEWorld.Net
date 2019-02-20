@@ -2,16 +2,16 @@
 Id: ea39345b-fe46-475a-b61e-d2e3e67a6cce
 SerializedVersion: {Xenko: 2.1.0.3}
 Tags: []
-DefaultScene: 9dff7916-ac70-450a-aed9-fa776976f005:MainScene
-GraphicsCompositor: 3156586f-3baa-4f44-bcd7-0d72a73d2f2e:GraphicsCompositor
+DefaultScene: 266472ef-16b4-488b-9211-7fd69ba3ffd4:UI/Lounge/LoungeScene
+GraphicsCompositor: 6c0e0475-569c-4249-8e38-6c34d2f11b68:UISlim
 Defaults:
     - !Xenko.Audio.AudioEngineSettings,Xenko.Audio
         HrtfSupport: false
     - !Xenko.Assets.EditorSettings,Xenko.Assets
         RenderingMode: LDR
     - !Xenko.Graphics.RenderingSettings,Xenko.Graphics
-        DefaultBackBufferWidth: 1280
-        DefaultBackBufferHeight: 720
+        DefaultBackBufferWidth: 600
+        DefaultBackBufferHeight: 400
         AdaptBackBufferToScreen: false
         DefaultGraphicsProfile: Level_11_0
         ColorSpace: Linear

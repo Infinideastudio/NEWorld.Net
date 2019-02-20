@@ -16,6 +16,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
+
 using Core;
 using Game.World;
 
@@ -44,9 +45,9 @@ namespace Game
             TaskDispatcher = Services.Get<TaskDispatcher>("Game.TaskDispatcher");
         }
 
-        public static TaskDispatcher TaskDispatcher { get; private set; }
+        public static TaskDispatcher TaskDispatcher { get; }
 
-        public static WorldManager Worlds { get; private set; }
+        public static WorldManager Worlds { get; }
 
         public static bool IsAuthority { set; get; }
 

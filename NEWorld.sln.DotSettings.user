@@ -26,4 +26,7 @@
   &lt;Assembly Path="C:\Users\yshli\.nuget\packages\xenko\3.1.0.1-beta01-0430\lib\netstandard2.0\Xenko.dll" /&gt;&#xD;
   &lt;Assembly Path="C:\Program Files\dotnet\shared\Microsoft.NETCore.App\2.1.7\System.Collections.Concurrent.dll" /&gt;&#xD;
   &lt;Assembly Path="C:\Users\yshli\.nuget\packages\xenko.core\3.1.0.1-beta01-0430\ref\netstandard2.0\Xenko.Core.dll" /&gt;&#xD;
+  &lt;Assembly Path="C:\Users\yshli\.nuget\packages\xenko.engine\3.1.0.1-beta01-0441\ref\netstandard2.0\Xenko.Engine.dll" /&gt;&#xD;
+  &lt;Assembly Path="C:\Users\yshli\.nuget\packages\xenko.graphics\3.1.0.1-beta01-0441\ref\netstandard2.0\Xenko.Graphics.dll" /&gt;&#xD;
+  &lt;Assembly Path="C:\Windows\Microsoft.NET\Framework\v4.0.30319\mscorlib.dll" /&gt;&#xD;
 &lt;/AssemblyExplorer&gt;</s:String></wpf:ResourceDictionary>

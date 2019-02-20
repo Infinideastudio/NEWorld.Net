@@ -1,0 +1,109 @@
+!GraphicsCompositorAsset
+Id: 6c0e0475-569c-4249-8e38-6c34d2f11b68
+SerializedVersion: {Xenko: 2.1.0.2}
+Tags: []
+Archetype: 823a81bf-bac0-4552-9267-aeed499c40df:DefaultGraphicsCompositorLevel10
+Cameras:
+    de2e75c3b2b23e54162686363f3f138e:
+        Id: 318a7c1d-a5b5-449f-aa82-fa422cd75f6c
+        Name: Main
+    2a64b79a3e9df82fec7ef05128bf39f7*:
+        Id: d890f91d-8bc7-4437-b5e3-cc99e651439c
+        Name: Background
+RenderStages:
+    47116750c1a5d449b4ad3625f71439b3:
+        Id: 69a59c95-b0be-459b-9662-55b1894755b4
+        Name: Opaque
+        EffectSlotName: Main
+        SortMode: !SortModeStateChange {}
+    9105a30fee026d4893472b6aee83d035:
+        Id: 2540811e-5545-4a08-8116-0ef4525fd125
+        Name: Transparent
+        EffectSlotName: Main
+        SortMode: !BackToFrontSortMode {}
+    33d9d311a1a65601da9ef56775477f95: ~(Deleted)
+    5a50638f5c514dc490c8c4f57cc88b57: ~(Deleted)
+    554e52c061404d4684dd7c4c70f70e0e: ~(Deleted)
+    bc1a77d2ab254a6e920f86cff65cd75e: ~(Deleted)
+RenderFeatures:
+    28e9bf54a5adbe063f59fb17acb2723e: !Xenko.Rendering.Sprites.SpriteRenderFeature,Xenko.Engine
+        RenderStageSelectors:
+            d74665cff080638a2439c4422e542d85: !Xenko.Rendering.Sprites.SpriteTransparentRenderStageSelector,Xenko.Engine
+                OpaqueRenderStage: ref!! 69a59c95-b0be-459b-9662-55b1894755b4
+                TransparentRenderStage: ref!! 2540811e-5545-4a08-8116-0ef4525fd125
+                EffectName: Test
+    60780391e205770513fdd53e07279a01: !Xenko.Rendering.Background.BackgroundRenderFeature,Xenko.Engine
+        RenderStageSelectors:
+            11c8b8ccb522e3cd1dd6688016062a6d: !Xenko.Rendering.SimpleGroupToRenderStageSelector,Xenko.Engine
+                RenderStage: ref!! 69a59c95-b0be-459b-9662-55b1894755b4
+                EffectName: Test
+    93933ad00d0c357d4915ad462cbfd04c: !Xenko.Rendering.UI.UIRenderFeature,Xenko.UI
+        RenderStageSelectors:
+            14a071694411235038a102ac3794bb4d: !Xenko.Rendering.SimpleGroupToRenderStageSelector,Xenko.Engine
+                RenderStage: ref!! 2540811e-5545-4a08-8116-0ef4525fd125
+                EffectName: Test
+    d8fb80b0e7995140a46bca8dc36ee8a2: ~(Deleted)
+    9013eab3ea0ef6c98bf133b86c173d45: ~(Deleted)
+SharedRenderers:
+    774702b0618350319ae94ce5dcfaf7ea*: !Xenko.Rendering.Compositing.ForwardRenderer,Xenko.Engine
+        Id: 5f863492-5f6a-46ea-8997-ecbe640753c7
+        Clear:
+            Id: 87ed17ba-bab6-4b2b-bedc-820c6508fd0a
+            Color: {R: 0.403921574, G: 0.4117647, B: 0.435294122, A: 1.0}
+        LightProbes: false
+        OpaqueRenderStage: ref!! 69a59c95-b0be-459b-9662-55b1894755b4
+        TransparentRenderStage: ref!! 2540811e-5545-4a08-8116-0ef4525fd125
+        ShadowMapRenderStages: {}
+        GBufferRenderStage: null
+        PostEffects: null
+        LightShafts: null
+        VRSettings:
+            Enabled: false
+            RequiredApis: {}
+            Overlays: {}
+        SubsurfaceScatteringBlurEffect: null
+        MSAALevel: None
+        MSAAResolver: {}
+    03ae15e2132a54572efbc954318c434b*: !Xenko.Rendering.Compositing.ForwardRenderer,Xenko.Engine
+        Id: 34d3b58d-b10b-4b0f-9cd2-69668d823039
+        Clear:
+            Id: 076c8c28-a521-4126-8522-9419ce54af36
+            Color: {R: 0.403921574, G: 0.4117647, B: 0.435294122, A: 1.0}
+        LightProbes: true
+        OpaqueRenderStage: ref!! 69a59c95-b0be-459b-9662-55b1894755b4
+        TransparentRenderStage: ref!! 2540811e-5545-4a08-8116-0ef4525fd125
+        ShadowMapRenderStages: {}
+        GBufferRenderStage: null
+        PostEffects: null
+        LightShafts: null
+        VRSettings:
+            Enabled: false
+            RequiredApis: {}
+            Overlays: {}
+        SubsurfaceScatteringBlurEffect: null
+        MSAALevel: None
+        MSAAResolver: {}
+    ee80a20a9bd99f2d70711114e15fe7ca: ~(Deleted)
+    d5b2e71c088247e21556decdce138d96: ~(Deleted)
+    60459475d3a3adaf2d1ba5d99913ca75: ~(Deleted)
+    34ecb9b2633eacfc439ba8744fe05102: ~(Deleted)
+Game*: !Xenko.Rendering.Compositing.SceneRendererCollection,Xenko.Engine
+    Id: 4cc59f69-90aa-4174-a9f9-3a0b2f0b56e9
+    Children:
+        778235f3db0b94cc40a27b486ede6cb8: !Xenko.Rendering.Compositing.RenderTextureSceneRenderer,Xenko.Engine
+            Id: 6f276f35-1938-44c4-95a8-a417402f3906
+            RenderTexture: null
+            Child: !Xenko.Rendering.Compositing.SceneCameraRenderer,Xenko.Engine
+                Id: 4169c543-b582-4cea-b7ed-e0ca3c8465b7
+                Camera: ref!! d890f91d-8bc7-4437-b5e3-cc99e651439c
+                Child: !Xenko.Rendering.Compositing.ForwardRenderer,Xenko.Engine ref!! 5f863492-5f6a-46ea-8997-ecbe640753c7
+                RenderMask: Group31
+        2316758d8e0aa4e062de7cac0c4e0649: null
+        6c526e0b7f6745dce5088b357b949abe: !Xenko.Rendering.Compositing.SceneCameraRenderer,Xenko.Engine
+            Id: 343df3ea-6588-40c1-9739-b3e6dfbf34d3
+            Camera: ref!! 318a7c1d-a5b5-449f-aa82-fa422cd75f6c
+            Child: !Xenko.Rendering.Compositing.ForwardRenderer,Xenko.Engine ref!! 34d3b58d-b10b-4b0f-9cd2-69668d823039
+            RenderMask: Group0, Group1, Group2, Group3, Group4, Group5, Group6, Group7, Group8, Group9, Group10, Group11, Group12, Group13, Group14, Group15, Group16, Group17, Group18, Group19, Group20, Group21, Group22, Group23, Group24, Group25, Group26, Group27, Group28, Group29, Group30
+SingleView*: !Xenko.Rendering.Compositing.ForwardRenderer,Xenko.Engine ref!! 5f863492-5f6a-46ea-8997-ecbe640753c7
+Editor*: !Xenko.Rendering.Compositing.ForwardRenderer,Xenko.Engine ref!! 5f863492-5f6a-46ea-8997-ecbe640753c7
+BlockPositions: {}

@@ -16,12 +16,13 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
+
+using System;
 using System.Collections.Generic;
 using Core;
 using Game.Terrain;
-using Xenko.Graphics;
-using System;
 using Xenko.Core.Mathematics;
+using Xenko.Graphics;
 using Xenko.Rendering.Images;
 
 namespace NEWorld.Renderer
@@ -29,14 +30,16 @@ namespace NEWorld.Renderer
     [DeclareService("BlockTextures")]
     public class RdTextures : IBlockTextures
     {
+        private static readonly int pixelPerTexture = 32;
+        private static readonly List<Texture> Textures = new List<Texture>();
+
+        public static int TexturesPerLine { get; private set; }
+
         public uint Add(string assetUri)
         {
             var id = (uint) Textures.Count;
             var texture = Context.Content.Load<Texture>(assetUri);
-            if (Context.Content.IsLoaded(assetUri))
-            {
-                Textures.Add(texture);
-            }
+            if (Context.Content.IsLoaded(assetUri)) Textures.Add(texture);
 
             return id;
         }
@@ -49,7 +52,7 @@ namespace NEWorld.Renderer
         public static Texture FlushTextures()
         {
             var count = Textures.Count;
-            TexturesPerLine = (1 << (int)(Math.Ceiling(Math.Log(Math.Ceiling(Math.Sqrt(count))) / Math.Log(2))));
+            TexturesPerLine = 1 << (int) Math.Ceiling(Math.Log(Math.Ceiling(Math.Sqrt(count))) / Math.Log(2));
             var wid = TexturesPerLine * pixelPerTexture;
             using (Texture texture = Texture.New2D(Context.GraphicsDevice, wid, wid, PixelFormat.R8G8B8A8_UNorm),
                 result = Texture.New2D(Context.GraphicsDevice, pixelPerTexture, pixelPerTexture,
@@ -71,6 +74,7 @@ namespace NEWorld.Renderer
                             result, result.GetSubResourceIndex(0, 0), null,
                             texture, texture.GetSubResourceIndex(0, 0), rx, ry);
                     }
+
                     return MakeMipmap(texture, (int) Math.Floor(Math.Log(pixelPerTexture) / Math.Log(2)), scaler);
                 }
             }
@@ -98,10 +102,5 @@ namespace NEWorld.Renderer
 
             return ret;
         }
-
-        public static int TexturesPerLine { get; private set; }
-
-        private static int pixelPerTexture = 32;
-        private static readonly List<Texture> Textures = new List<Texture>();
     }
 }

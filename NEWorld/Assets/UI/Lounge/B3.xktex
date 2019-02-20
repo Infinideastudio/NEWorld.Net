@@ -1,0 +1,10 @@
+!Texture
+Id: 0a459a5d-87d9-42df-afb8-8203d3f5cf99
+SerializedVersion: {Xenko: 2.0.0.0}
+Tags: []
+Source: !file B3.png
+IsCompressed: false
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+GenerateMipmaps: false
+IsStreamable: false

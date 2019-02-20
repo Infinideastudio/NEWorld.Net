@@ -16,6 +16,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
+
+using System;
 using Core;
 using Game;
 using Game.Terrain;
@@ -43,6 +45,14 @@ namespace Main
             EventBus.AddCollection(this);
         }
 
+        public void CoFinalize()
+        {
+        }
+
+        public void OnMemoryWarning()
+        {
+        }
+
         [DeclareBusEventHandler]
         public void GameRenderInit(object sender, GameRenderPrepareEvent load)
         {
@@ -55,7 +65,7 @@ namespace Main
             _rockChunkId = StaticChunkPool.GetId("Main.RockChunk");
             _waterChunkId = StaticChunkPool.GetId("Main.WaterChunk");
         }
-        
+
         [DeclareBusEventHandler]
         public void GameUnloads(object sender, GameUnloadEvent load)
         {
@@ -63,14 +73,6 @@ namespace Main
 
         [DeclareBusEventHandler]
         public void GameRenderFinalize(object sender, GameRenderFinalizeEvent load)
-        {
-        }
-
-        public void CoFinalize()
-        {
-        }
-
-        public void OnMemoryWarning()
         {
         }
 
@@ -115,9 +117,9 @@ namespace Main
 
             private static double InterpolatedNoise(double x, double y)
             {
-                var intX = (int)System.Math.Floor(x);
+                var intX = (int) Math.Floor(x);
                 var fractionalX = x - intX;
-                var intY = (int)System.Math.Floor(y);
+                var intY = (int) Math.Floor(y);
                 var fractionalY = y - intY;
                 var v1 = Noise(intX, intY);
                 var v2 = Noise(intX + 1, intY);
@@ -152,7 +154,7 @@ namespace Main
                     for (var z = 0; z < Chunk.RowSize; z++)
                     {
                         var val = heights[x, z] = (int) PerlinNoise2D((pos.X * Chunk.RowSize + x) / NoiseScaleX,
-                                            (pos.Z * Chunk.RowSize + z) / NoiseScaleZ) / 2 - 64;
+                                                      (pos.Z * Chunk.RowSize + z) / NoiseScaleZ) / 2 - 64;
                         if (val < low) low = val;
                         if (val > high) high = val;
                     }
@@ -163,13 +165,13 @@ namespace Main
                         return;
                     }
 
-                    if ((0-Chunk.RowSize) >= pos.Y * Chunk.RowSize && pos.Y * Chunk.RowSize > high)
+                    if (0 - Chunk.RowSize >= pos.Y * Chunk.RowSize && pos.Y * Chunk.RowSize > high)
                     {
                         context.EnableCopyOnWrite(StaticChunkPool.GetAirChunk());
                         return;
                     }
 
-                    if (pos.Y * Chunk.RowSize < (low - Chunk.RowSize - 3))
+                    if (pos.Y * Chunk.RowSize < low - Chunk.RowSize - 3)
                     {
                         context.EnableCopyOnWrite(_rockChunkId);
                         return;

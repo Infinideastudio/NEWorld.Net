@@ -1,0 +1,7 @@
+!SpriteFont
+Id: 27bab064-a488-480c-a01e-fdba7a935849
+SerializedVersion: {Xenko: 2.0.0.0}
+Tags: []
+FontSource: !FileFontProvider
+    Source: !file SourceHanSansCN-Normal.otf
+FontType: !RuntimeRasterizedSpriteFontType {}

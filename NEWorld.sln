@@ -1,3 +1,4 @@
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.271
@@ -17,8 +18,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Main", "Main\Main.csproj", "{15BDBFD8-DAEA-4324-9B09-7AB531BFE5EF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NEWorldShell", "NEWorldShell\NEWorldShell.csproj", "{0C30B20E-EBC8-46E2-ADEF-F4FC23C59DF4}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NEWorldServer", "NEWorldServer\NEWorldServer.csproj", "{6252EAE7-5115-41B2-A02C-8F61C2AAE6B8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -58,10 +57,6 @@ Global
 		{0C30B20E-EBC8-46E2-ADEF-F4FC23C59DF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0C30B20E-EBC8-46E2-ADEF-F4FC23C59DF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0C30B20E-EBC8-46E2-ADEF-F4FC23C59DF4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6252EAE7-5115-41B2-A02C-8F61C2AAE6B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6252EAE7-5115-41B2-A02C-8F61C2AAE6B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6252EAE7-5115-41B2-A02C-8F61C2AAE6B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6252EAE7-5115-41B2-A02C-8F61C2AAE6B8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

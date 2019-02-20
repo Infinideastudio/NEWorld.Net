@@ -16,6 +16,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
+
 using System.Collections.Generic;
 using Xenko.Core.Mathematics;
 
@@ -23,7 +24,7 @@ namespace Core.Math
 {
     public struct Mat4D
     {
-        private const double Pi = 3.1415926535897932f;
+        private const double Pi = System.Math.PI;
 
         public double[] Data;
 

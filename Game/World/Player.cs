@@ -16,8 +16,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
+
 using Core.Math;
-using Core.Utilities;
 using Xenko.Core.Mathematics;
 
 namespace Game.World
@@ -115,10 +115,7 @@ namespace Game.World
 
             public void Task(int instance, int count)
             {
-                if (instance == count)
-                {
-                    player.Update(ChunkService.Worlds.Get(worldId));
-                }
+                if (instance == count) player.Update(ChunkService.Worlds.Get(worldId));
             }
         }
     }

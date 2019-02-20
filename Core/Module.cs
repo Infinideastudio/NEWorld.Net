@@ -41,27 +41,6 @@ namespace Core
         private static readonly Dictionary<string, IModule> Loaded = new Dictionary<string, IModule>();
 
         private static string _basePath = AppContext.BaseDirectory;
-        
-        public static void SetBasePath(string path)
-        {
-            _basePath = path;
-        }
-
-        public static void Load(string moduleFile)
-        {
-            Assembly.Load(moduleFile);
-        }
-        
-        [DeclareBusEventHandler]
-        public static void UnloadAll(object sender, ApplicationControl.Shutdown type)
-        {
-            lock (Loaded)
-            {
-                foreach (var module in Loaded)
-                    module.Value.CoFinalize();
-                Loaded.Clear();
-            }
-        }
 
         public void ProcessType(Type type)
         {
@@ -74,12 +53,34 @@ namespace Core
                     {
                         Loaded.Add(type.FullName ?? "", module);
                     }
+
                     LogPort.Debug($"Loaded Module : {type}");
                 }
                 catch (Exception e)
                 {
                     LogPort.Debug($"Module {type} Load Failure : {e}");
                 }
+        }
+
+        public static void SetBasePath(string path)
+        {
+            _basePath = path;
+        }
+
+        public static void Load(string moduleFile)
+        {
+            Assembly.Load(moduleFile);
+        }
+
+        [DeclareBusEventHandler]
+        public static void UnloadAll(object sender, ApplicationControl.Shutdown type)
+        {
+            lock (Loaded)
+            {
+                foreach (var module in Loaded)
+                    module.Value.CoFinalize();
+                Loaded.Clear();
+            }
         }
     }
 }

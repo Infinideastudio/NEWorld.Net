@@ -16,18 +16,14 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
+
 namespace NEWorld.macOS
 {
     internal static class NEWorldApp
     {
         private static void Main(string[] args)
         {
-            Core.ApplicationControl.DoLaunch();
-            using (var game = new Xenko.Engine.Game())
-            {
-                game.Run();
-            }
-            Core.ApplicationControl.DoShutdown();
+            Application.Run();
         }
     }
 }
