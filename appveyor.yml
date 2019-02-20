@@ -3,9 +3,8 @@ image: Visual Studio 2017
 cache:
   # Github LFS
   - '.git\lfs\objects'
-  # NuGet Stuff
-  - packages
-  - '%USERPROFILE%\.nuget\packages'
+  # Cache the Bin folder to speedup res gen
+  - Bin
 pull_requests:
   do_not_increment_build_number: true
 init:
