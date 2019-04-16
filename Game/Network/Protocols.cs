@@ -17,12 +17,12 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
+using System;
 using System.Collections.Generic;
-using System.Threading;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Core.Network;
 using Game.World;
-using MessagePack;
 using Xenko.Core.Mathematics;
 
 namespace Game.Network
@@ -42,9 +42,9 @@ namespace Game.Network
 
             public override void HandleRequest(Session.Receive request)
             {
-                var session = request.ReadU32();
+                var session = request.ReadUInt32();
                 var ids = StaticChunkPool.Id;
-                Reply.Send(request.Session, session, MessagePackSerializer.SerializeUnsafe(ids));
+                Reply.Send(request.Session, session, ids);
             }
         }
 
@@ -63,23 +63,23 @@ namespace Game.Network
                     message.Write(session.Key);
                 }
 
-                var result = await session.Value;
-                StaticChunkPool.Id = MessagePackSerializer.Deserialize<Dictionary<string, uint>>(result);
+                StaticChunkPool.Id = (await session.Value).Get<Dictionary<string, uint>>();
             }
         }
     }
 
     public static class GetChunk
     {
-        private static readonly ThreadLocal<byte[]> LocalMemCache = new ThreadLocal<byte[]>();
-        private static readonly int Size = MessagePackSerializer.SerializeUnsafe(new int[4]).Count;
-
-        public class Server : FixedLengthProtocol
+        [ThreadStatic] private static byte[] _localMemCache;
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static byte[] GetCache()
         {
-            public Server() : base(Size)
-            {
-            }
+            return  _localMemCache ?? (_localMemCache = new byte[32768 * 4]);
+        }
 
+        public class Server : Protocol
+        {
             public override string Name()
             {
                 return "GetChunk";
@@ -87,11 +87,11 @@ namespace Game.Network
 
             public override void HandleRequest(Session.Receive stream)
             {
-                var request = MessagePackSerializer.Deserialize<int[]>(stream.Raw);
+                var request = stream.Read<int[]>();
                 var chunk = GetChunk((uint) request[0], new Int3(request[1], request[2], request[3]));
                 using (var message = stream.Session.CreateMessage(Id))
                 {
-                    message.Write(stream.Raw, 0, Size);
+                    message.WriteObject(request);
                     var cow = chunk.CopyOnWrite;
                     message.Write(cow);
                     if (cow == uint.MaxValue)
@@ -104,7 +104,7 @@ namespace Game.Network
 
             private static byte[] Get(Chunk chunk)
             {
-                var chunkData = LocalMemCache.Value ?? (LocalMemCache.Value = new byte[32768 * 4]);
+                var chunkData = GetCache();
                 chunk.SerializeTo(chunkData);
                 return chunkData;
             }
@@ -137,25 +137,21 @@ namespace Game.Network
 
             public override void HandleRequest(Session.Receive request)
             {
-                var buffer = new byte[Size];
-                request.Read(buffer, 0, Size);
-                var req = MessagePackSerializer.Deserialize<int[]>(buffer);
-                var cow = request.ReadU32();
-                Chunk chk;
+                var req = request.Read<int[]>();
                 var chunkPos = new Int3(req[1], req[2], req[3]);
                 var world = ChunkService.Worlds.Get((uint) req[0]);
-                if (cow == uint.MaxValue)
-                {
-                    var data = LocalMemCache.Value ?? (LocalMemCache.Value = new byte[32768 * 4]);
-                    request.Read(data, 0, data.Length);
-                    chk = DeserializeChunk(chunkPos, world, data);
-                }
-                else
-                {
-                    chk = new Chunk(chunkPos, world, cow);
-                }
+                ChunkService.TaskDispatcher.Add(
+                    new World.World.ResetChunkTask(RequestExtractChunkContent(request, chunkPos, world))
+                );
+            }
 
-                ChunkService.TaskDispatcher.Add(new World.World.ResetChunkTask(chk));
+            private static Chunk RequestExtractChunkContent(Session.Receive request, Int3 chunkPos, World.World world)
+            {
+                var cow = request.ReadUInt32();
+                if (cow != uint.MaxValue) return new Chunk(chunkPos, world, cow);
+                var data = GetCache();
+                request.Read(data, 0, data.Length);
+                return DeserializeChunk(chunkPos, world, data);
             }
 
             private static Chunk DeserializeChunk(Int3 chunkPos, World.World world, byte[] data)
@@ -167,10 +163,9 @@ namespace Game.Network
 
             public void Call(uint worldId, Int3 position)
             {
-                var data = new[] {(int) worldId, position.X, position.Y, position.Z};
                 using (var message = Network.Client.CreateMessage(Id))
                 {
-                    message.Write(MessagePackSerializer.SerializeUnsafe(data));
+                    message.WriteObject(new[] {(int) worldId, position.X, position.Y, position.Z});
                 }
             }
         }
@@ -186,8 +181,8 @@ namespace Game.Network
 
             public override void HandleRequest(Session.Receive request)
             {
-                var session = request.ReadU32();
-                Reply.Send(request.Session, session, MessagePackSerializer.SerializeUnsafe(new uint[] {0}));
+                var session = request.ReadUInt32();
+                Reply.Send(request.Session, session, new uint[] {0});
             }
 
             public override string Name()
@@ -211,8 +206,7 @@ namespace Game.Network
                     message.Write(session.Key);
                 }
 
-                var result = await session.Value;
-                return MessagePackSerializer.Deserialize<uint[]>(result);
+                return (await session.Value).Get<uint[]>();
             }
         }
     }
@@ -227,10 +221,10 @@ namespace Game.Network
 
             public override void HandleRequest(Session.Receive stream)
             {
-                var request = stream.ReadU32();
-                var world = ChunkService.Worlds.Get(stream.ReadU32());
+                var request = stream.ReadUInt32();
+                var world = ChunkService.Worlds.Get(stream.ReadUInt32());
                 var ret = new Dictionary<string, string> {{"name", world.Name}};
-                Reply.Send(stream.Session, request, MessagePackSerializer.SerializeUnsafe(ret));
+                Reply.Send(stream.Session, request, ret);
             }
 
             public override string Name()
@@ -255,8 +249,7 @@ namespace Game.Network
                     message.Write(wid);
                 }
 
-                var result = await session.Value;
-                return MessagePackSerializer.Deserialize<Dictionary<string, string>>(result);
+                return (await session.Value).Get<Dictionary<string, string>>();
             }
         }
     }

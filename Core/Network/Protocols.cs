@@ -17,12 +17,8 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
-using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
-using MessagePack;
 
 namespace Core.Network
 {
@@ -36,8 +32,7 @@ namespace Core.Network
                 message.Write(session.Key);
             }
 
-            var result = await session.Value;
-            return MessagePackSerializer.Deserialize<KeyValuePair<string, uint>[]>(result);
+            return (await session.Value).Get<KeyValuePair<string, uint>[]>();
         }
 
         public class Server : FixedLengthProtocol
@@ -51,12 +46,12 @@ namespace Core.Network
 
             public override void HandleRequest(Session.Receive request)
             {
-                var session = request.ReadU32();
+                var session = request.ReadUInt32();
                 var current = 0;
                 var reply = new KeyValuePair<string, uint>[protocols.Count];
                 foreach (var protocol in protocols)
                     reply[current++] = new KeyValuePair<string, uint>(protocol.Name(), protocol.Id);
-                Reply.Send(request.Session, session, MessagePackSerializer.SerializeUnsafe(reply));
+                Reply.Send(request.Session, session, reply);
             }
 
             public override string Name()
@@ -71,67 +66,6 @@ namespace Core.Network
             {
                 return "FetchProtocols";
             }
-        }
-    }
-
-    public sealed class Reply : Protocol
-    {
-        private static int _idTop;
-        private static readonly ConcurrentQueue<uint> SessionIds = new ConcurrentQueue<uint>();
-
-        private static readonly ConcurrentDictionary<uint, TaskCompletionSource<byte[]>> Sessions =
-            new ConcurrentDictionary<uint, TaskCompletionSource<byte[]>>();
-
-        public override string Name()
-        {
-            return "Reply";
-        }
-
-        public override void HandleRequest(Session.Receive request)
-        {
-            var session = request.ReadU32();
-            var length = request.ReadU32();
-            var dataSegment = new byte[length];
-            request.Read(dataSegment, 0, dataSegment.Length);
-            SessionDispatch(session, dataSegment);
-        }
-
-        public static void Send(Session dialog, uint session, ArraySegment<byte> payload)
-        {
-            using (var message = dialog.CreateMessage(0))
-            {
-                message.Write(session);
-                message.Write((uint) payload.Count);
-                message.Write(payload);
-            }
-        }
-
-        public static KeyValuePair<uint, Task<byte[]>> AllocSession()
-        {
-            if (!SessionIds.TryDequeue(out var newId))
-                newId = (uint) (Interlocked.Increment(ref _idTop) - 1);
-
-            var completionSource = new TaskCompletionSource<byte[]>();
-            while (!Sessions.TryAdd(newId, completionSource)) ;
-            return new KeyValuePair<uint, Task<byte[]>>(newId, completionSource.Task);
-        }
-
-        private static void SessionDispatch(uint sessionId, byte[] dataSegment)
-        {
-            TaskCompletionSource<byte[]> completion;
-            while (!Sessions.TryRemove(sessionId, out completion)) ;
-            completion.SetResult(dataSegment);
-            SessionIds.Enqueue(sessionId);
-        }
-
-        private static int GetSessionId(byte[] head)
-        {
-            return (head[0] << 24) | (head[1] << 16) | (head[2] << 8) | head[3];
-        }
-
-        private static int GetSessionLength(byte[] head)
-        {
-            return (head[4] << 24) | (head[5] << 16) | (head[6] << 8) | head[7];
         }
     }
 }

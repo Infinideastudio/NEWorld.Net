@@ -75,6 +75,11 @@ namespace Core
                 }
             }
 
+            UpdateDomainAssembliesProcessKeepUp();
+        }
+
+        private static void UpdateDomainAssembliesProcessKeepUp()
+        {
             lock (ProcessLock)
             {
                 _processed = null;

@@ -17,6 +17,8 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
+using System;
+
 namespace Core.Network
 {
     public abstract class Protocol
@@ -42,6 +44,20 @@ namespace Core.Network
     {
         public override void HandleRequest(Session.Receive request)
         {
+        }
+    }
+
+    [DeclareAssemblyReflectiveScanner]
+    internal class ProtocolDiscoverer : IAssemblyReflectiveScanner
+    {
+        public void ProcessType(Type type)
+        {
+            //throw new NotImplementedException();
+        }
+
+        private static bool IsProtocolType(Type type)
+        {
+            return typeof(Protocol).IsAssignableFrom(type);
         }
     }
 }
