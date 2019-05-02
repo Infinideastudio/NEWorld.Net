@@ -1,9 +1,9 @@
 !GameSettingsAsset
 Id: ea39345b-fe46-475a-b61e-d2e3e67a6cce
-SerializedVersion: {Xenko: 2.1.0.3}
+SerializedVersion: {Xenko: 3.1.0.1}
 Tags: []
-DefaultScene: 266472ef-16b4-488b-9211-7fd69ba3ffd4:UI/Lounge/LoungeScene
-GraphicsCompositor: 6c0e0475-569c-4249-8e38-6c34d2f11b68:UISlim
+DefaultScene: 9dff7916-ac70-450a-aed9-fa776976f005:MainScene
+GraphicsCompositor: 74141388-18d8-4958-9d1e-c4daa50e0add:GraphicsCompositor
 Defaults:
     - !Xenko.Audio.AudioEngineSettings,Xenko.Audio
         HrtfSupport: false
@@ -16,7 +16,7 @@ Defaults:
         DefaultGraphicsProfile: Level_11_0
         ColorSpace: Linear
         DisplayOrientation: LandscapeRight
-    - !Xenko.Streaming.StreamingSettings,Xenko.Engine
+    - !Xenko.Streaming.StreamingSettings,Xenko.Rendering
         ManagerUpdatesInterval: 0:00:00:00.0330000
         ResourceLiveTimeout: 0:00:00:08.0000000
     - !Xenko.Assets.Textures.TextureSettings,Xenko.Assets

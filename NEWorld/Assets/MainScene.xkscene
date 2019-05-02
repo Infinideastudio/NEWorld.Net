@@ -68,7 +68,7 @@ Hierarchy:
                         Name: null
                         Projection: Perspective
                         FarClipPlane: 2048.0
-                        Slot: dce133b3-fc2c-4978-8f3c-8a7bc66947f0
+                        Slot: 7b2a0985-e9f4-49bc-ab74-f4744f364ef1
                     84e3e1914c52c7d890fe96ba860bf21f: !NEWorld.BasicCameraController,NEWorld
                         Id: 0ae3e97b-49cb-4d05-983b-e3c306612767
                         KeyboardMovementSpeed: {X: 5.0, Y: 5.0, Z: 5.0}

@@ -1,6 +1,6 @@
 !GraphicsCompositorAsset
 Id: 6c0e0475-569c-4249-8e38-6c34d2f11b68
-SerializedVersion: {Xenko: 2.1.0.2}
+SerializedVersion: {Xenko: 3.1.0.1}
 Tags: []
 Archetype: 823a81bf-bac0-4552-9267-aeed499c40df:DefaultGraphicsCompositorLevel10
 Cameras:
@@ -26,20 +26,20 @@ RenderStages:
     554e52c061404d4684dd7c4c70f70e0e: ~(Deleted)
     bc1a77d2ab254a6e920f86cff65cd75e: ~(Deleted)
 RenderFeatures:
-    28e9bf54a5adbe063f59fb17acb2723e: !Xenko.Rendering.Sprites.SpriteRenderFeature,Xenko.Engine
+    28e9bf54a5adbe063f59fb17acb2723e: !Xenko.Rendering.Sprites.SpriteRenderFeature,Xenko.Rendering
         RenderStageSelectors:
-            d74665cff080638a2439c4422e542d85: !Xenko.Rendering.Sprites.SpriteTransparentRenderStageSelector,Xenko.Engine
+            d74665cff080638a2439c4422e542d85: !Xenko.Rendering.Sprites.SpriteTransparentRenderStageSelector,Xenko.Rendering
                 OpaqueRenderStage: ref!! 69a59c95-b0be-459b-9662-55b1894755b4
                 TransparentRenderStage: ref!! 2540811e-5545-4a08-8116-0ef4525fd125
                 EffectName: Test
-    60780391e205770513fdd53e07279a01: !Xenko.Rendering.Background.BackgroundRenderFeature,Xenko.Engine
+    60780391e205770513fdd53e07279a01: !Xenko.Rendering.Background.BackgroundRenderFeature,Xenko.Rendering
         RenderStageSelectors:
-            11c8b8ccb522e3cd1dd6688016062a6d: !Xenko.Rendering.SimpleGroupToRenderStageSelector,Xenko.Engine
+            11c8b8ccb522e3cd1dd6688016062a6d: !Xenko.Rendering.SimpleGroupToRenderStageSelector,Xenko.Rendering
                 RenderStage: ref!! 69a59c95-b0be-459b-9662-55b1894755b4
                 EffectName: Test
     93933ad00d0c357d4915ad462cbfd04c: !Xenko.Rendering.UI.UIRenderFeature,Xenko.UI
         RenderStageSelectors:
-            14a071694411235038a102ac3794bb4d: !Xenko.Rendering.SimpleGroupToRenderStageSelector,Xenko.Engine
+            14a071694411235038a102ac3794bb4d: !Xenko.Rendering.SimpleGroupToRenderStageSelector,Xenko.Rendering
                 RenderStage: ref!! 2540811e-5545-4a08-8116-0ef4525fd125
                 EffectName: Test
     d8fb80b0e7995140a46bca8dc36ee8a2: ~(Deleted)
@@ -87,10 +87,10 @@ SharedRenderers:
     d5b2e71c088247e21556decdce138d96: ~(Deleted)
     60459475d3a3adaf2d1ba5d99913ca75: ~(Deleted)
     34ecb9b2633eacfc439ba8744fe05102: ~(Deleted)
-Game*: !Xenko.Rendering.Compositing.SceneRendererCollection,Xenko.Engine
+Game*: !Xenko.Rendering.Compositing.SceneRendererCollection,Xenko.Rendering
     Id: 4cc59f69-90aa-4174-a9f9-3a0b2f0b56e9
     Children:
-        778235f3db0b94cc40a27b486ede6cb8: !Xenko.Rendering.Compositing.RenderTextureSceneRenderer,Xenko.Engine
+        778235f3db0b94cc40a27b486ede6cb8: !Xenko.Rendering.Compositing.RenderTextureSceneRenderer,Xenko.Rendering
             Id: 6f276f35-1938-44c4-95a8-a417402f3906
             RenderTexture: null
             Child: !Xenko.Rendering.Compositing.SceneCameraRenderer,Xenko.Engine
