@@ -19,14 +19,15 @@
 
 using System;
 using System.Threading.Tasks;
-using Core;
+using Akarin;
+using Akarin.Network;
 
 namespace Game.Network
 {
     [DeclareService("Game.Server")]
     public class Server : IDisposable
     {
-        private Core.Network.Server server;
+        private Akarin.Network.Server server;
 
         private Task wait;
 
@@ -43,11 +44,12 @@ namespace Game.Network
 
         public void Enable(int port)
         {
-            server = new Core.Network.Server(port);
-            server.RegisterProtocol(new GetChunk.Server());
-            server.RegisterProtocol(new GetAvailableWorldId.Server());
-            server.RegisterProtocol(new GetWorldInfo.Server());
-            server.RegisterProtocol(new GetStaticChunkIds.Server());
+            server = new Akarin.Network.Server(new ServerCreateInfo
+            {
+                Port = port,
+                HandshakeGroup = new Handshake(),
+                ProtocolGroups = new[] {"NEWorld.Core"}
+            });
             ChunkService.Worlds.Add("test world");
         }
 
@@ -56,14 +58,9 @@ namespace Game.Network
             wait = server.RunAsync();
         }
 
-        public int CountConnections()
-        {
-            return server.CountConnections();
-        }
-
         public void Stop()
         {
-            server.ShutDown();
+            server.Stop();
             wait.Wait();
         }
 

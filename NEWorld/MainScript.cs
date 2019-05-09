@@ -20,7 +20,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Core;
+using Akarin;
 using Game;
 using Game.Network;
 using Game.Terrain;
@@ -35,6 +35,7 @@ using Xenko.Games;
 using Xenko.Graphics;
 using Xenko.Rendering;
 using Buffer = Xenko.Graphics.Buffer;
+using LogPort = Core.LogPort;
 
 namespace NEWorld
 {
@@ -138,7 +139,7 @@ namespace NEWorld
             else
             {
                 // Initialize server
-                server = Core.Services.Get<Server>("Game.Server");
+                server = Akarin.Services.Get<Server>("Game.Server");
                 server.Enable(31111);
                 server.Run();
             }
@@ -146,7 +147,7 @@ namespace NEWorld
 
         private async Task EstablishGameConnection()
         {
-            await Core.Services.Get<Client>("Game.Client").Enable("127.0.0.1", 31111);
+            await Akarin.Services.Get<Client>("Game.Client").Enable("127.0.0.1", 31111);
             await Client.GetStaticChunkIds.Call();
             EventBus.Broadcast(this, new GameLoadEvent());
         }
@@ -186,7 +187,7 @@ namespace NEWorld
         private void LoadTextures()
         {
             var texture = RdTextures.FlushTextures();
-            BlockRenderers.FlushTextures(Core.Services.Get<IBlockTextures>("BlockTextures"));
+            BlockRenderers.FlushTextures(Akarin.Services.Get<IBlockTextures>("BlockTextures"));
             Material.Passes[0].Parameters.Set(VertexTextureTerrainKeys.Almg, texture);
             Material.Passes[0].Parameters.Set(VertexTextureTerrainKeys.TexturePerLine, RdTextures.TexturesPerLine);
             MaterialTransparent.Passes[0].Parameters.Set(VertexTextureTerrainKeys.Almg, texture);
@@ -206,7 +207,7 @@ namespace NEWorld
 
         private void TearDown()
         {
-            Core.Services.Get<TaskDispatcher>("Game.TaskDispatcher").Reset();
+            Akarin.Services.Get<TaskDispatcher>("Game.TaskDispatcher").Reset();
             EventBus.Broadcast(this, new GameUnloadEvent());
             EventBus.Broadcast(this, new GameRenderFinalizeEvent());
         }

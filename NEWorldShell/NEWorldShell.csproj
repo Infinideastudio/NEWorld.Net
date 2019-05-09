@@ -36,6 +36,9 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Akarin.Core">
+      <HintPath>..\..\..\..\..\.nuget\packages\akarin.core\1.0.0\lib\netstandard2.0\Akarin.Core.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />

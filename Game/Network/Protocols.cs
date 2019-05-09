@@ -21,23 +21,19 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using Core.Network;
+using Akarin.Network;
 using Game.World;
 using Xenko.Core.Mathematics;
 
 namespace Game.Network
 {
-    public static class GetStaticChunkIds
+    [DefineProtocolGroup(Name = "GetStaticChunkIds", ProtocolGroup = "NEWorld.Core")]
+    public class GetStaticChunkIds : ProtocolGroup<GetStaticChunkIds>
     {
-        public class Server : FixedLengthProtocol
+        public class Server : GroupProtocolFixedLength
         {
             public Server() : base(4)
             {
-            }
-
-            public override string Name()
-            {
-                return "GetStaticChunkId";
             }
 
             public override void HandleRequest(Session.Receive request)
@@ -48,27 +44,27 @@ namespace Game.Network
             }
         }
 
-        public class Client : StubProtocol
+        public override Protocol GetServerSide()
         {
-            public override string Name()
-            {
-                return "GetStaticChunkId";
-            }
+            return new Server();
+        }
 
+        public class Invoke : StaticInvoke
+        {
             public async Task Call()
             {
                 var session = Reply.AllocSession();
-                using (var message = Network.Client.CreateMessage(Id))
+                using (var message = CreateMessage())
                 {
                     message.Write(session.Key);
                 }
-
                 StaticChunkPool.Id = (await session.Value).Get<Dictionary<string, uint>>();
             }
         }
     }
-
-    public static class GetChunk
+    
+    [DefineProtocolGroup(Name = "GetChunk", ProtocolGroup = "NEWorld.Core")]
+    public class GetChunk : ProtocolGroup<GetChunk>
     {
         [ThreadStatic] private static byte[] _localMemCache;
         
@@ -78,13 +74,8 @@ namespace Game.Network
             return  _localMemCache ?? (_localMemCache = new byte[32768 * 4]);
         }
 
-        public class Server : Protocol
+        public class Server : GroupProtocol
         {
-            public override string Name()
-            {
-                return "GetChunk";
-            }
-
             public override void HandleRequest(Session.Receive stream)
             {
                 var request = stream.Read<int[]>();
@@ -128,13 +119,8 @@ namespace Game.Network
             }
         }
 
-        public class Client : Protocol
+        public class Client : GroupProtocol
         {
-            public override string Name()
-            {
-                return "GetChunk";
-            }
-
             public override void HandleRequest(Session.Receive request)
             {
                 var req = request.Read<int[]>();
@@ -159,21 +145,36 @@ namespace Game.Network
                 var chk = new Chunk(chunkPos, world, Chunk.InitOption.AllocateUnique);
                 chk.DeserializeFrom(data);
                 return chk;
-            }
 
+            }
+        }
+
+        public override Protocol GetClientSide()
+        {
+            return new Client();
+        }
+
+        public override Protocol GetServerSide()
+        {
+            return new Server();
+        }
+
+        public class Invoke : StaticInvoke
+        {
             public void Call(uint worldId, Int3 position)
             {
-                using (var message = Network.Client.CreateMessage(Id))
+                using (var message = CreateMessage())
                 {
                     message.WriteObject(new[] {(int) worldId, position.X, position.Y, position.Z});
                 }
             }
         }
     }
-
-    public static class GetAvailableWorldId
+    
+    [DefineProtocolGroup(Name = "GetAvailableWorldId", ProtocolGroup = "NEWorld.Core")]
+    public class GetAvailableWorldId : ProtocolGroup<GetAvailableWorldId>
     {
-        public class Server : FixedLengthProtocol
+        public class Server : GroupProtocolFixedLength
         {
             public Server() : base(4)
             {
@@ -184,24 +185,19 @@ namespace Game.Network
                 var session = request.ReadUInt32();
                 Reply.Send(request.Session, session, new uint[] {0});
             }
-
-            public override string Name()
-            {
-                return "GetAvailableWorldId";
-            }
         }
 
-        public class Client : StubProtocol
+        public override Protocol GetServerSide()
         {
-            public override string Name()
-            {
-                return "GetAvailableWorldId";
-            }
+            return new Server();
+        }
 
+        public class Invoke: StaticInvoke
+        {
             public async Task<uint[]> Call()
             {
                 var session = Reply.AllocSession();
-                using (var message = Network.Client.CreateMessage(Id))
+                using (var message = CreateMessage())
                 {
                     message.Write(session.Key);
                 }
@@ -210,10 +206,11 @@ namespace Game.Network
             }
         }
     }
-
-    public static class GetWorldInfo
+    
+    [DefineProtocolGroup(Name = "GetWorldInfo", ProtocolGroup = "NEWorld.Core")]
+    public class GetWorldInfo: ProtocolGroup<GetWorldInfo>
     {
-        public class Server : FixedLengthProtocol
+        public class Server : GroupProtocolFixedLength
         {
             public Server() : base(8)
             {
@@ -226,24 +223,14 @@ namespace Game.Network
                 var ret = new Dictionary<string, string> {{"name", world.Name}};
                 Reply.Send(stream.Session, request, ret);
             }
-
-            public override string Name()
-            {
-                return "GetWorldInfo";
-            }
         }
 
-        public class Client : StubProtocol
+        public class Invoke : StaticInvoke
         {
-            public override string Name()
-            {
-                return "GetWorldInfo";
-            }
-
             public async Task<Dictionary<string, string>> Call(uint wid)
             {
                 var session = Reply.AllocSession();
-                using (var message = Network.Client.CreateMessage(Id))
+                using (var message = CreateMessage())
                 {
                     message.Write(session.Key);
                     message.Write(wid);
@@ -251,6 +238,11 @@ namespace Game.Network
 
                 return (await session.Value).Get<Dictionary<string, string>>();
             }
+        }
+
+        public override Protocol GetServerSide()
+        {
+            return new Server();
         }
     }
 }

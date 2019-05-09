@@ -19,9 +19,10 @@
 
 using System;
 using System.Runtime;
-using Core;
+using Akarin;
 using Game;
 using Game.Network;
+using LogPort = Core.LogPort;
 
 namespace NEWorldShell
 {
@@ -68,14 +69,7 @@ namespace NEWorldShell
                     // TODO: AddReadOnlyTask UPS counter for server
                     return new CommandExecuteStat(true, "[Server UPS counter not finished yet!]");
                 });
-
-            _commands.RegisterCommand("server.connections", new CommandInfo("internal", "Count Connections."),
-                cmd =>
-                {
-                    LogPort.Debug($"{Services.Get<Server>("Game.Server").CountConnections()}");
-                    return new CommandExecuteStat(true, "");
-                });
-
+            
             _commands.RegisterCommand("chunks.count",
                 new CommandInfo("internal", "Show how many chunks are loaded"),
                 cmd =>

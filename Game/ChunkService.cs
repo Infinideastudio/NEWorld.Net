@@ -17,7 +17,7 @@
 // along with NEWorld.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
-using Core;
+using Akarin;
 using Game.World;
 
 namespace Game

@@ -19,20 +19,20 @@
 
 using System;
 using System.Threading.Tasks;
-using Core;
-using Core.Network;
+using Akarin;
+using Akarin.Network;
 
 namespace Game.Network
 {
     [DeclareService("Game.Client")]
     public class Client : IDisposable
     {
-        public static GetChunk.Client GetChunk;
-        public static GetAvailableWorldId.Client GetAvailableWorldId;
-        public static GetWorldInfo.Client GetWorldInfo;
-        public static GetStaticChunkIds.Client GetStaticChunkIds;
+        public static GetChunk.Invoke GetChunk = new GetChunk.Invoke();
+        public static GetAvailableWorldId.Invoke GetAvailableWorldId = new GetAvailableWorldId.Invoke();
+        public static GetWorldInfo.Invoke GetWorldInfo = new GetWorldInfo.Invoke();
+        public static GetStaticChunkIds.Invoke GetStaticChunkIds = new GetStaticChunkIds.Invoke();
 
-        private static Core.Network.Client _client;
+        private static Akarin.Network.Client _client;
 
         public void Dispose()
         {
@@ -41,17 +41,16 @@ namespace Game.Network
 
         public async Task Enable(string address, int port)
         {
-            _client = new Core.Network.Client(address, port);
-            _client.RegisterProtocol(GetChunk = new GetChunk.Client());
-            _client.RegisterProtocol(GetAvailableWorldId = new GetAvailableWorldId.Client());
-            _client.RegisterProtocol(GetWorldInfo = new GetWorldInfo.Client());
-            _client.RegisterProtocol(GetStaticChunkIds = new GetStaticChunkIds.Client());
-            await _client.HandShake();
-        }
-
-        public static Session.Send CreateMessage(uint protocol)
-        {
-            return _client.CreateMessage(protocol);
+            _client = await Akarin.Network.Client.CreateClient(new ClientCreateInfo
+            {
+                Address = address, Port = port,
+                HandshakeGroup = new Handshake(),
+                ProtocolGroups = new []{"NEWorld.Core"}
+            });
+            _client.BindStaticInvoke(GetChunk);
+            _client.BindStaticInvoke(GetAvailableWorldId);
+            _client.BindStaticInvoke(GetWorldInfo);
+            _client.BindStaticInvoke(GetStaticChunkIds);
         }
 
         public void Stop()
